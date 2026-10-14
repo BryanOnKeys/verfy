@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.atls/
+*.pem
+*.key
+atls-home-preview.html
+.next/
+node_modules/
+coverage/

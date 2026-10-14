@@ -1,0 +1,737 @@
+{
+ "secrets": [
+  [
+   "private-key",
+   "private key block",
+   "-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY(?: BLOCK)?-----",
+   "",
+   "high"
+  ],
+  [
+   "aws-access-key",
+   "AWS access key ID",
+   "\\b(?:AKIA|ASIA)[0-9A-Z]{16}\\b",
+   "",
+   "high"
+  ],
+  [
+   "github-token",
+   "GitHub token",
+   "\\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{22,})\\b",
+   "",
+   "high"
+  ],
+  [
+   "anthropic-key",
+   "Anthropic API key",
+   "\\bsk-ant-[A-Za-z0-9_\\-]{20,}",
+   "",
+   "high"
+  ],
+  [
+   "openai-key",
+   "OpenAI-style API key",
+   "\\bsk-(?!ant-)(?:proj-|svcacct-)?[A-Za-z0-9_\\-]{20,}",
+   "",
+   "high"
+  ],
+  [
+   "stripe-key",
+   "Stripe secret key",
+   "\\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\\b",
+   "",
+   "high"
+  ],
+  [
+   "slack-token",
+   "Slack token",
+   "\\bxox[abprs]-[A-Za-z0-9\\-]{10,}",
+   "",
+   "high"
+  ],
+  [
+   "google-api-key",
+   "Google API key",
+   "\\bAIza[0-9A-Za-z_\\-]{35}\\b",
+   "",
+   "high"
+  ],
+  [
+   "telegram-bot-token",
+   "Telegram bot token",
+   "\\b\\d{8,10}:AA[A-Za-z0-9_\\-]{33}\\b",
+   "",
+   "high"
+  ],
+  [
+   "generic-secret",
+   "hard-coded secret",
+   "\\b(?:api[_-]?key|secret[_-]?key|client[_-]?secret|password|passwd|auth[_-]?token|access[_-]?token)\\b\\s*[:=]\\s*[\"']([^\"'\\s]{12,})[\"']",
+   "i",
+   "medium"
+  ]
+ ],
+ "placeholders": [
+  "example",
+  "xxxx",
+  "your",
+  "changeme",
+  "placeholder",
+  "dummy",
+  "<",
+  "${",
+  "{{",
+  "redacted",
+  "****"
+ ],
+ "shell_patterns": [
+  [
+   "ATL-SH-001",
+   "deny",
+   "\\bRemove-Item\\b.*-Recurse.*\\s(?:[A-Z]:\\\\?|/|~|\\$HOME|\\$env:USERPROFILE)(?=$|\\s)",
+   "i",
+   "Recursive delete of a drive or home folder."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "\\bmkfs(?:\\.\\w+)?\\b",
+   "",
+   "Formats a disk."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "\\bformat\\s+[a-z]:(?=$|\\s)",
+   "i",
+   "Formats a drive."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "\\bdd\\b[^;&|\\n]*\\bof=/dev/(?!null\\b|zero\\b|stdout\\b|stderr\\b)",
+   "",
+   "Writes raw data onto a device."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   ">\\s*/dev/(?:sd[a-z]|nvme\\d|disk\\d|hd[a-z]|mmcblk\\d)",
+   "",
+   "Overwrites a disk device."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   ":\\s*\\(\\s*\\)\\s*\\{\\s*:\\s*\\|\\s*:\\s*&\\s*\\}\\s*;\\s*:",
+   "",
+   "Fork bomb."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "--no-preserve-root",
+   "",
+   "Disables the protection against deleting /."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "\\bkill\\s+-(?:9|KILL|SIGKILL)\\s+-1\\b",
+   "",
+   "Kills every process."
+  ],
+  [
+   "ATL-SH-003",
+   "deny",
+   "\\b(?:chmod|chown)\\s+-[A-Za-z]*R[A-Za-z]*\\s+\\S+\\s+/(?=$|\\s)",
+   "",
+   "Changes permissions of the whole system."
+  ],
+  [
+   "ATL-SH-003",
+   "ask",
+   "\\b(?:shutdown|reboot|halt|poweroff)\\b",
+   "",
+   "Shuts down or restarts the computer."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\b(?:curl|wget|fetch)\\b[^|;&\\n]*\\|\\s*(?:sudo\\s+)?(?:\\S*/)?(?:ba|z|da|k|fi)?sh\\b",
+   "",
+   "Downloads a script and pipes it straight into a shell."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\b(?:curl|wget)\\b[^|;&\\n]*\\|\\s*(?:sudo\\s+)?(?:python[0-9.]*|perl|ruby|node)\\b",
+   "",
+   "Downloads code and runs it immediately."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\b(?:ba|z|da|k)?sh\\s+<\\(\\s*(?:curl|wget)\\b",
+   "",
+   "Runs a downloaded script."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\|\\s*(?:sudo\\s+)?(?:\\S*/)?(?:ba|z|da|k)?sh(?:\\s+-[a-z]+)*\\s*(?:$|[;&|)])",
+   "",
+   "Pipes generated or decoded text straight into a shell."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\$\\(\\s*(?:curl|wget)\\b",
+   "",
+   "Runs the output of a download."
+  ],
+  [
+   "ATL-SH-005",
+   "ask",
+   "\\b(?:iex|invoke-expression)\\b.*\\b(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\b|\\b(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\b.*\\|\\s*(?:iex|invoke-expression)\\b",
+   "i",
+   "Downloads a PowerShell script and runs it."
+  ],
+  [
+   "ATL-SH-008",
+   "deny",
+   "/dev/(?:tcp|udp)/",
+   "",
+   "Opens a raw network connection from the shell (reverse shell pattern)."
+  ],
+  [
+   "ATL-SH-008",
+   "deny",
+   "\\b(?:nc|ncat|netcat)\\b[^;&|\\n]*\\s-(?:e|c)\\s",
+   "",
+   "Netcat with command execution (reverse shell pattern)."
+  ],
+  [
+   "ATL-SH-008",
+   "deny",
+   "\\bsocat\\b[^;&|\\n]*\\bexec:",
+   "i",
+   "socat with command execution (reverse shell pattern)."
+  ],
+  [
+   "ATL-SH-010",
+   "ask",
+   "\\b(?:drop\\s+(?:table|database|schema)|truncate\\s+(?:table\\s+)?[\\w.\"`]+)",
+   "i",
+   "Destructive SQL statement."
+  ],
+  [
+   "ATL-SH-010",
+   "ask",
+   "\\bdelete\\s+from\\s+[\\w.\"`]+\\s*(?:;|$|[\"'])",
+   "i",
+   "DELETE without a WHERE clause."
+  ],
+  [
+   "ATL-SH-011",
+   "deny",
+   "disableAllHooks",
+   "",
+   "Tries to switch off agent hooks, including Atls."
+  ]
+ ],
+ "sql_patterns": [
+  [
+   "ATL-SQL-001",
+   "ask",
+   "\\b(?:drop\\s+(?:table|database|schema|index|view)|truncate\\s+(?:table\\s+)?[\\w.\"`]+)",
+   "i",
+   "Destructive SQL statement."
+  ],
+  [
+   "ATL-SQL-001",
+   "ask",
+   "\\bdelete\\s+from\\s+[\\w.\"`]+\\s*(?:;|$)",
+   "i",
+   "DELETE without a WHERE clause."
+  ],
+  [
+   "ATL-SQL-001",
+   "ask",
+   "\\bupdate\\s+[\\w.\"`]+\\s+set\\s+(?:(?!\\bwhere\\b)[\\s\\S])*$",
+   "i",
+   "UPDATE without a WHERE clause."
+  ],
+  [
+   "ATL-SQL-002",
+   "ask",
+   "\\b(?:grant|revoke|alter\\s+user|create\\s+user|drop\\s+user)\\b",
+   "i",
+   "Changes database users or permissions."
+  ]
+ ],
+ "scan_text": [
+  [
+   "ATL-SCAN-001",
+   "critical",
+   "\\b(?:ignore|disregard|forget|override)\\s+(?:all\\s+|any\\s+|the\\s+)?(?:previous|prior|above|earlier|other|system)\\s+(?:instructions|prompts?|rules|directions|messages)",
+   "i",
+   "Tells the model to ignore its instructions."
+  ],
+  [
+   "ATL-SCAN-001",
+   "critical",
+   "<\\s*/?\\s*(?:important|system|instructions?|secret|hidden|admin)\\s*>",
+   "i",
+   "Contains a hidden instruction block (<IMPORTANT>, <SYSTEM>...)."
+  ],
+  [
+   "ATL-SCAN-001",
+   "critical",
+   "\\b(?:do\\s+not|don't|never)\\s+(?:tell|inform|mention|reveal|show|alert|notify|disclose)\\b[^.]{0,100}\\b(?:user|human|anyone|them)\\b",
+   "i",
+   "Tells the model to hide something from the user."
+  ],
+  [
+   "ATL-SCAN-001",
+   "critical",
+   "\\bwithout\\s+(?:telling|informing|asking|notifying|alerting|showing)\\s+(?:the\\s+)?user",
+   "i",
+   "Asks the model to act without telling the user."
+  ],
+  [
+   "ATL-SCAN-001",
+   "high",
+   "\\b(?:secretly|covertly|silently|surreptitiously)\\b",
+   "i",
+   "Asks for something to be done secretly."
+  ],
+  [
+   "ATL-SCAN-001",
+   "high",
+   "\\b(?:before|prior\\s+to)\\s+(?:using|calling|running|invoking)\\s+(?:this|any|other|the)\\b[^.]{0,40}\\b(?:must|should|need\\s+to|always)\\b",
+   "i",
+   "Adds a hidden precondition to how tools are used."
+  ],
+  [
+   "ATL-SCAN-002",
+   "critical",
+   "\\b(?:pass|include|send|put|add|append|attach|provide|upload|forward|copy)\\b[^.]{0,80}\\b(?:conversation|chat\\s+history|system\\s+prompt|previous\\s+messages|api\\s+keys?|passwords?|credentials|secrets?|private\\s+keys?|ssh\\s+keys?|tokens?|env(?:ironment)?\\s+variables)\\b",
+   "i",
+   "Asks the model to hand over sensitive data."
+  ],
+  [
+   "ATL-SCAN-002",
+   "critical",
+   "\\b(?:read|open|cat|access|load|fetch|get|copy|include)\\b[^.]{0,40}(?:~/\\.ssh|\\.ssh/|\\bid_rsa\\b|\\bid_ed25519\\b|(?:^|[\\s/'\"`(])\\.env\\b|\\.aws/credentials|\\bmcp\\.json\\b|claude_desktop_config|\\.cursor/|\\.netrc\\b|/etc/shadow|/etc/passwd|\\bwallet\\.dat\\b)",
+   "i",
+   "Tells the model to read a sensitive file."
+  ],
+  [
+   "ATL-SCAN-002",
+   "high",
+   "(?:~/\\.ssh|\\.ssh/|\\bid_rsa\\b|\\bid_ed25519\\b|(?:^|[\\s/'\"`(])\\.env\\b|\\.aws/credentials|\\bmcp\\.json\\b|claude_desktop_config|\\.cursor/|\\.netrc\\b|/etc/shadow|/etc/passwd|\\bwallet\\.dat\\b|\\bseed\\s+phrase\\b|\\bmnemonic\\b)",
+   "i",
+   "Mentions a sensitive file or secret store."
+  ],
+  [
+   "ATL-SCAN-004",
+   "critical",
+   "\\b(?:all|every|any)\\s+(?:other\\s+)?(?:emails?|messages?|requests?|payments?|transfers?)\\b[^.]{0,60}\\b(?:must|should|have\\s+to|always)\\b[^.]{0,30}\\b(?:sent|forwarded|redirected|routed|cc'?d|bcc'?d|copied)\\b",
+   "i",
+   "Redirects what other tools send."
+  ],
+  [
+   "ATL-SCAN-004",
+   "high",
+   "\\b(?:when|whenever|if)\\b[^.]{0,40}\\b(?:uses?|calls?|invokes?|runs?)\\b[^.]{0,30}\\btools?\\b[^.]{0,60}\\b(?:instead|also|first|must|always)\\b",
+   "i",
+   "Changes how other tools behave (tool shadowing)."
+  ],
+  [
+   "ATL-SCAN-001",
+   "medium",
+   "\\b(?:you\\s+are\\s+now|new\\s+instructions|act\\s+as\\s+(?:an?\\s+)?(?:admin|root|developer|system))\\b",
+   "i",
+   "Tries to change the model's role."
+  ],
+  [
+   "ATL-SCAN-001",
+   "medium",
+   "\\b(?:otherwise|or\\s+else)\\b[^.]{0,40}\\b(?:will\\s+(?:not\\s+work|fail|break|crash)|won't\\s+work|stops?\\s+working)",
+   "i",
+   "Pressures the model with a warning that the tool will fail."
+  ]
+ ],
+ "exfil_params": [
+  "sidenote",
+  "side_note",
+  "note",
+  "notes",
+  "context",
+  "metadata",
+  "extra",
+  "debug",
+  "feedback",
+  "reasoning",
+  "thoughts",
+  "conversation",
+  "history",
+  "summary",
+  "memo",
+  "remarks"
+ ],
+ "invisible_ranges": [
+  [
+   173,
+   173
+  ],
+  [
+   6158,
+   6158
+  ],
+  [
+   8203,
+   8207
+  ],
+  [
+   8234,
+   8238
+  ],
+  [
+   8288,
+   8292
+  ],
+  [
+   8294,
+   8297
+  ],
+  [
+   65279,
+   65279
+  ],
+  [
+   917504,
+   917631
+  ]
+ ],
+ "capabilities": {
+  "exec": {
+   "name": [
+    "exec",
+    "execute",
+    "shell",
+    "bash",
+    "terminal",
+    "cmd",
+    "command",
+    "powershell",
+    "eval",
+    "subprocess",
+    "sh",
+    "zsh",
+    "spawn"
+   ],
+   "params": [
+    "command",
+    "cmd",
+    "script",
+    "shell_command"
+   ]
+  },
+  "fs_write": {
+   "name": [
+    "write",
+    "edit",
+    "save",
+    "delete",
+    "remove",
+    "move",
+    "rename",
+    "mkdir",
+    "overwrite",
+    "append",
+    "patch",
+    "unlink",
+    "rmdir",
+    "upload",
+    "create"
+   ],
+   "params": []
+  },
+  "fs_read": {
+   "name": [
+    "read",
+    "list",
+    "get",
+    "view",
+    "cat",
+    "open",
+    "search",
+    "find",
+    "stat",
+    "tree",
+    "glob",
+    "grep"
+   ],
+   "params": []
+  },
+  "network": {
+   "name": [
+    "fetch",
+    "http",
+    "request",
+    "download",
+    "browse",
+    "scrape",
+    "crawl",
+    "webhook",
+    "curl",
+    "url",
+    "web",
+    "navigate",
+    "visit"
+   ],
+   "params": [
+    "url",
+    "uri",
+    "endpoint",
+    "href",
+    "webhook_url"
+   ]
+  },
+  "payment": {
+   "name": [
+    "pay",
+    "payment",
+    "payments",
+    "charge",
+    "transfer",
+    "refund",
+    "purchase",
+    "checkout",
+    "buy",
+    "payout",
+    "invoice",
+    "wallet",
+    "stripe",
+    "order",
+    "send_money"
+   ],
+   "params": [
+    "amount",
+    "amount_usd",
+    "amount_cents",
+    "price",
+    "total"
+   ]
+  },
+  "messaging": {
+   "name": [
+    "email",
+    "mail",
+    "message",
+    "slack",
+    "sms",
+    "tweet",
+    "post",
+    "notify",
+    "reply",
+    "dm",
+    "chat",
+    "telegram",
+    "whatsapp"
+   ],
+   "params": [
+    "recipient",
+    "recipients",
+    "channel",
+    "cc",
+    "bcc",
+    "chat_id"
+   ]
+  },
+  "database": {
+   "name": [
+    "sql",
+    "query",
+    "database",
+    "db",
+    "insert",
+    "table",
+    "mongo",
+    "postgres",
+    "mysql",
+    "sqlite",
+    "redis"
+   ],
+   "params": [
+    "sql",
+    "statement"
+   ]
+  },
+  "credentials": {
+   "name": [
+    "password",
+    "secret",
+    "token",
+    "credential",
+    "credentials",
+    "apikey",
+    "keychain",
+    "vault",
+    "auth"
+   ],
+   "params": [
+    "password",
+    "secret",
+    "api_key",
+    "token"
+   ]
+  }
+ },
+ "path_keys": [
+  "path",
+  "paths",
+  "file",
+  "files",
+  "file_path",
+  "filepath",
+  "filename",
+  "target",
+  "destination",
+  "dest",
+  "source",
+  "src",
+  "directory",
+  "dir",
+  "folder",
+  "source_path",
+  "destination_path",
+  "new_path",
+  "old_path"
+ ],
+ "url_keys": [
+  "url",
+  "uri",
+  "href",
+  "endpoint",
+  "link",
+  "webhook",
+  "webhook_url",
+  "callback_url",
+  "target_url"
+ ],
+ "command_keys": [
+  "command",
+  "cmd",
+  "script",
+  "shell_command",
+  "commandline",
+  "command_line"
+ ],
+ "sql_keys": [
+  "sql",
+  "query",
+  "statement"
+ ],
+ "amount_keys": [
+  "amount",
+  "amount_usd",
+  "amount_cents",
+  "price",
+  "total",
+  "value"
+ ],
+ "recipient_keys": [
+  "to",
+  "recipient",
+  "payee",
+  "destination",
+  "account",
+  "merchant",
+  "to_account"
+ ],
+ "verbs": {
+  "read": [
+   "read",
+   "get",
+   "view",
+   "cat",
+   "open",
+   "list",
+   "search",
+   "find",
+   "stat",
+   "show",
+   "tree",
+   "glob",
+   "grep",
+   "head",
+   "tail",
+   "download",
+   "fetch",
+   "load",
+   "info"
+  ],
+  "delete": [
+   "delete",
+   "remove",
+   "rm",
+   "unlink",
+   "rmdir",
+   "trash",
+   "destroy",
+   "purge"
+  ],
+  "write": [
+   "write",
+   "edit",
+   "create",
+   "save",
+   "append",
+   "update",
+   "put",
+   "patch",
+   "move",
+   "rename",
+   "copy",
+   "mkdir",
+   "upload",
+   "replace",
+   "insert",
+   "set",
+   "overwrite",
+   "touch"
+  ],
+  "payment": [
+   "pay",
+   "payment",
+   "charge",
+   "transfer",
+   "refund",
+   "purchase",
+   "checkout",
+   "buy",
+   "payout",
+   "send",
+   "tip",
+   "donate",
+   "order"
+  ],
+  "message": [
+   "send",
+   "email",
+   "mail",
+   "message",
+   "post",
+   "tweet",
+   "notify",
+   "reply",
+   "publish",
+   "comment",
+   "dm",
+   "sms"
+  ]
+ }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "atls",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Atls: security, policy and verifiable evidence for coding agents and MCP tools.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:engine": "node atls-cli/tests/test_engine.mjs",
+    "test:cli": "cd atls-cli && python -m unittest discover -s tests",
+    "test:db": "vitest run supabase/tests",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "check:brand": "node scripts/check-brand.mjs",
+    "preview:html": "node scripts/build-preview.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run test:engine && npm run check:secrets && npm run check:brand && npm run build"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  }
+}

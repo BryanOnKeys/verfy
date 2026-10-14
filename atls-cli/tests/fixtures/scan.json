@@ -1,0 +1,205 @@
+[
+ {
+  "file": "filesystem.json",
+  "expect": {
+   "score": 100,
+   "grade": "A",
+   "tools": [
+    {
+     "name": "read_text_file",
+     "sha256": "sha256:d0c6513ce58103542bbf4ed8c907b4eb5648651cb17f0ef1d1a2b3be01f0f722",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_read"
+     ],
+     "rules": []
+    },
+    {
+     "name": "write_file",
+     "sha256": "sha256:1d449ac4da30073a634b49de87e647735417a8f273e1a8a0d893e192a43fe81d",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_write"
+     ],
+     "rules": []
+    },
+    {
+     "name": "edit_file",
+     "sha256": "sha256:d34914aee2916dc2ca72092e474f31c5afc0660539860e491d44fc4836563e04",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_write"
+     ],
+     "rules": []
+    },
+    {
+     "name": "list_directory",
+     "sha256": "sha256:30b2040e844206f3e4ff83e8d45b2a08884d2d5a342267b312cf8376787458cd",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_read"
+     ],
+     "rules": []
+    },
+    {
+     "name": "move_file",
+     "sha256": "sha256:8ac7543389adbf4305708ac51ba542571aeef78e9d55ae651cd39244b58edeed",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_write"
+     ],
+     "rules": []
+    },
+    {
+     "name": "search_files",
+     "sha256": "sha256:b681504b76ef0f1a7b406fe25cfeb9ec16ff0777ddda3769103f0d352db68d1f",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "fs_read"
+     ],
+     "rules": []
+    }
+   ]
+  }
+ },
+ {
+  "file": "mixed-bag.json",
+  "expect": {
+   "score": 35,
+   "grade": "F",
+   "tools": [
+    {
+     "name": "summarize",
+     "sha256": "sha256:fb5ba9e8720bb91c392b187e19f7cce73d0e22b7fe8fb8c120d9d06c6d5e14bc",
+     "score": 35,
+     "grade": "F",
+     "capabilities": [],
+     "rules": [
+      "ATL-SCAN-001",
+      "ATL-SCAN-003"
+     ]
+    },
+    {
+     "name": "translate",
+     "sha256": "sha256:15ed105f3ef8cd9e214008c5e96aafb16c03956828938025c04d45e710c556e0",
+     "score": 97,
+     "grade": "A",
+     "capabilities": [],
+     "rules": [
+      "ATL-SCAN-008"
+     ]
+    },
+    {
+     "name": "run_sql",
+     "sha256": "sha256:2ebc6f59f6dac7c144024d67ae6973bc3f785a9844acc8e680ff2e20640db4a3",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "database"
+     ],
+     "rules": []
+    },
+    {
+     "name": "exec",
+     "sha256": "sha256:d9339e8e5db7db3dc2a524ccbf33e7ed415c8e67e9ff6e3f40ad6c7b47417a13",
+     "score": 89,
+     "grade": "B",
+     "capabilities": [
+      "exec"
+     ],
+     "rules": [
+      "ATL-SCAN-011",
+      "ATL-SCAN-012"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "file": "poisoned-math.json",
+  "expect": {
+   "score": 0,
+   "grade": "F",
+   "tools": [
+    {
+     "name": "add",
+     "sha256": "sha256:9fa91d5fce859aad1f3c749edc64e75079993111b424ab64a56b9b6c9a435674",
+     "score": 0,
+     "grade": "F",
+     "capabilities": [],
+     "rules": [
+      "ATL-SCAN-001",
+      "ATL-SCAN-002",
+      "ATL-SCAN-006"
+     ]
+    },
+    {
+     "name": "multiply",
+     "sha256": "sha256:de445e89e1c33d65013aa589f2717eb21eafc73ddde8ccfcc2a6bc8ff521e728",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [],
+     "rules": []
+    }
+   ]
+  }
+ },
+ {
+  "file": "shadow-mail.json",
+  "expect": {
+   "score": 35,
+   "grade": "F",
+   "tools": [
+    {
+     "name": "get_weather",
+     "sha256": "sha256:274a80af28cd74cda92ba2895f55a050f5f01d4db7ae792d4a2485ad6a8b113c",
+     "score": 35,
+     "grade": "F",
+     "capabilities": [],
+     "rules": [
+      "ATL-SCAN-004"
+     ]
+    },
+    {
+     "name": "send_email",
+     "sha256": "sha256:5cb8e1432de315864263d40015141d955607e0364dbbcc04055c4d4e1c34a425",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "messaging"
+     ],
+     "rules": []
+    }
+   ]
+  }
+ },
+ {
+  "file": "filesystem.json",
+  "pins": {
+   "read_text_file": "sha256:0000",
+   "write_file": "sha256:1d449ac4da30073a634b49de87e647735417a8f273e1a8a0d893e192a43fe81d",
+   "old_tool": "sha256:1"
+  },
+  "expect": {
+   "score": 39,
+   "grade": "F",
+   "removed": [
+    "old_tool"
+   ],
+   "pinstatus": {
+    "read_text_file": "changed",
+    "write_file": "ok",
+    "edit_file": "new",
+    "list_directory": "new",
+    "move_file": "new",
+    "search_files": "new"
+   }
+  }
+ }
+]

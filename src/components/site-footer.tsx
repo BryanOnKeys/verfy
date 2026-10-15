@@ -31,7 +31,9 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="shell footer-bottom">
-        <span>The Verfy CLI is released under the MIT license.</span>
+        <span>
+          The Verfy CLI is released under the MIT license. <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+        </span>
         <span>Verfy is not a sandbox. The security model lists what it does not cover.</span>
       </div>
     </footer>

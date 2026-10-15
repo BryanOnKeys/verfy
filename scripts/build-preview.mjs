@@ -70,6 +70,8 @@ const swaps = [
   // footer: the columns list the app's pages; here they list this page's sections
   [/<nav class="footer-col"[\s\S]*<\/nav>(\s*<\/div>\s*<div class="shell footer-bottom">)/, `<nav class="footer-col" aria-label="On this page"><h3>On this page</h3><ul>${SECTIONS.map(([href, label]) => `<li><a href="${href}">${label}</a></li>`).join("")}</ul></nav>$1`],
   [/The security model lists what it does not cover\./, "Its known limits are listed in docs/SECURITY_LIMITATIONS.md."],
+  // the legal pages are not in this file; link to them on the site the preview was built from
+  [/<a href="\/privacy">Privacy<\/a>([\s\S]*?)<a href="\/terms">Terms<\/a>/, `<a href="${base}/privacy">Privacy</a>$1<a href="${base}/terms">Terms</a>`],
   [/href="\/"/g, 'href="#main"'],
 ];
 for (const [from, to] of swaps) {

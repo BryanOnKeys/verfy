@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Icon } from "@/components/icons";
+import { ReceiptAnatomy } from "@/components/proof";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -132,6 +133,12 @@ export default function HowItWorksPage() {
             <div><span>A person reviews <code className="inline-code">atls lock diff</code>, then approves locally or proposes the change to the team.</span></div>
           </div>
         </div>
+      </section>
+
+      <section className="stack reveal" style={{ marginBottom: 32 }} aria-labelledby="anatomy-title">
+        <h2 id="anatomy-title" style={{ fontSize: "1.5rem" }}>Inside a receipt</h2>
+        <p className="text-2">One record from the published test vectors. Point at a part to see what it proves.</p>
+        <ReceiptAnatomy />
       </section>
 
       <div className="alert alert-info">

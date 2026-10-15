@@ -6,7 +6,13 @@
  */
 const TURNSTILE = "https://challenges.cloudflare.com";
 
-export function buildCsp(nonce: string, opts: { dev: boolean; supabaseUrl?: string; captcha?: boolean }): string {
+// where the sign-in redirect chain goes after Supabase (only when that provider is switched on)
+const OAUTH_ORIGINS = { google: "https://accounts.google.com", github: "https://github.com" };
+
+export function buildCsp(
+  nonce: string,
+  opts: { dev: boolean; supabaseUrl?: string; captcha?: boolean; oauth?: (keyof typeof OAUTH_ORIGINS)[] },
+): string {
   const supabase = opts.supabaseUrl ? new URL(opts.supabaseUrl).origin : "";
   // Cloudflare Turnstile (optional CAPTCHA) loads one script and one iframe from its own origin
   const cf = opts.captcha ? [TURNSTILE] : [];
@@ -21,7 +27,7 @@ export function buildCsp(nonce: string, opts: { dev: boolean; supabaseUrl?: stri
     "connect-src": ["'self'", ...(supabase ? [supabase] : []), ...cf, ...(opts.dev ? ["ws:"] : [])],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
-    "form-action": ["'self'", ...(supabase ? [supabase] : [])],
+    "form-action": ["'self'", ...(supabase ? [supabase] : []), ...(opts.oauth ?? []).map((p) => OAUTH_ORIGINS[p])],
     "frame-ancestors": ["'none'"],
     "frame-src": cf.length ? cf : ["'none'"],
     "worker-src": ["'self'", "blob:"],

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signInWithGitHub } from "@/app/auth/actions";
 import { SignInForm } from "@/components/auth-forms";
 import { Icon } from "@/components/icons";
+import { OAuthButtons } from "@/components/oauth-buttons";
 import { NotConfigured } from "@/components/states";
-import { isConfigured, publicEnv } from "@/lib/env";
+import { isConfigured } from "@/lib/env";
 import { safeNext } from "@/lib/safe-redirect";
 import { getSessionUser } from "@/server/session";
 
@@ -13,6 +13,9 @@ export const metadata: Metadata = { title: "Sign in", robots: { index: false } }
 
 const ERRORS: Record<string, string> = {
   invalid_link: "That link is invalid or has expired. Request a new one.",
+  oauth_failed: "That sign-in option is not available. Use another one or your email.",
+  google_disabled: "Google sign-in is not enabled on this deployment.",
+  google_failed: "Google sign-in could not start. Try again or use email.",
   github_disabled: "GitHub sign-in is not enabled on this deployment.",
   github_failed: "GitHub sign-in could not start. Try again or use email.",
 };
@@ -28,7 +31,6 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     );
   }
   if ((await getSessionUser()).user) redirect(next);
-  const github = publicEnv().NEXT_PUBLIC_AUTH_GITHUB_ENABLED === "true";
   return (
     <div className="shell auth-wrap">
       <div className="auth-card glass card-lg stack" data-light>
@@ -44,18 +46,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
             <span>{ERRORS[sp.error]}</span>
           </div>
         )}
-        {github && (
-          <>
-            <form action={signInWithGitHub}>
-              <input type="hidden" name="next" value={next} />
-              <button type="submit" className="btn btn-secondary" style={{ width: "100%" }}>
-                <Icon name="github" size={18} />
-                <span>Continue with GitHub</span>
-              </button>
-            </form>
-            <div className="divider">or</div>
-          </>
-        )}
+        <OAuthButtons next={next} />
         <SignInForm next={next} />
       </div>
     </div>

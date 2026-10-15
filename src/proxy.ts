@@ -40,7 +40,11 @@ export async function proxy(request: NextRequest) {
   const nonce = makeNonce();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  const csp = buildCsp(nonce, { dev: process.env.NODE_ENV === "development", supabaseUrl, captcha: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) });
+  const oauth = [
+    ...(process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED === "true" ? (["google"] as const) : []),
+    ...(process.env.NEXT_PUBLIC_AUTH_GITHUB_ENABLED === "true" ? (["github"] as const) : []),
+  ];
+  const csp = buildCsp(nonce, { dev: process.env.NODE_ENV === "development", supabaseUrl, captcha: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY), oauth });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

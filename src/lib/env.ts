@@ -13,6 +13,7 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20),
   NEXT_PUBLIC_APP_URL: url.transform((u) => u.replace(/\/+$/, "")),
   NEXT_PUBLIC_AUTH_GITHUB_ENABLED: z.enum(["true", "false"]).default("false"),
+  NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: z.enum(["true", "false"]).default("false"),
   // optional: Cloudflare Turnstile site key; when set, sign-in, sign-up and reset forms require the check
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().regex(/^[\w-]{8,100}$/).optional(),
 });
@@ -40,6 +41,7 @@ export function publicEnv(): PublicEnv {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_AUTH_GITHUB_ENABLED: process.env.NEXT_PUBLIC_AUTH_GITHUB_ENABLED || undefined,
+    NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED || undefined,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined,
   });
   if (!parsed.success) {

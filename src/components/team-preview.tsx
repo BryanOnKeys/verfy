@@ -50,7 +50,7 @@ export function TeamPreview() {
     <div className="preview-layout">
       <div className="preview-copy">
         <span className="eyebrow">
-          <span className="num">05</span> Atls Team
+          <span className="num">04</span> Atls Team
         </span>
         <h2 id="team-title">One policy for every developer&apos;s agent</h2>
         <p className="lead">Publish rules once, approve tool changes for the whole team, revoke a lost laptop, and give auditors evidence they can check without trusting you.</p>

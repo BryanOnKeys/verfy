@@ -160,15 +160,30 @@ export async function updatePassword(_: FormState, form: FormData): Promise<Form
   return { message: "Password updated." };
 }
 
-export async function signInWithGitHub(form: FormData): Promise<void> {
-  if (publicEnv().NEXT_PUBLIC_AUTH_GITHUB_ENABLED !== "true") redirect("/auth/sign-in?error=github_disabled");
+/** Providers people can sign in with, each switched on by its NEXT_PUBLIC_AUTH_*_ENABLED flag once it is set up in Supabase. */
+const OAUTH_PROVIDERS = {
+  google: { flag: "NEXT_PUBLIC_AUTH_GOOGLE_ENABLED", scopes: "openid email profile", query: { prompt: "select_account" } },
+  github: { flag: "NEXT_PUBLIC_AUTH_GITHUB_ENABLED", scopes: "read:user user:email", query: undefined },
+} as const;
+type OAuthProvider = keyof typeof OAUTH_PROVIDERS;
+
+export async function signInWithProvider(form: FormData): Promise<void> {
+  const provider = String(form.get("provider") ?? "");
+  if (!Object.hasOwn(OAUTH_PROVIDERS, provider)) redirect("/auth/sign-in?error=oauth_failed");
+  const p = OAUTH_PROVIDERS[provider as OAuthProvider];
+  if (publicEnv()[p.flag] !== "true") redirect(`/auth/sign-in?error=${provider}_disabled`);
   const next = safeNext(String(form.get("next") ?? ""));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: { redirectTo: `${publicEnv().NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(next)}`, scopes: "read:user user:email" },
+    provider: provider as OAuthProvider,
+    options: {
+      redirectTo: `${publicEnv().NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(next)}`,
+      scopes: p.scopes,
+      // Google shows its account chooser every time, so people pick the account instead of being signed in silently
+      ...(p.query ? { queryParams: p.query } : {}),
+    },
   });
-  if (error || !data.url) redirect("/auth/sign-in?error=github_failed");
+  if (error || !data.url) redirect(`/auth/sign-in?error=${provider}_failed`);
   redirect(data.url);
 }
 

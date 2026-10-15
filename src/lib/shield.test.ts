@@ -93,3 +93,13 @@ describe("CSP with the optional CAPTCHA", () => {
     expect(on).toContain("frame-ancestors 'none'");
   });
 });
+
+describe("CSP with social sign-in", () => {
+  it("lets the sign-in form continue to a provider only when that provider is switched on", () => {
+    const off = buildCsp("n", { dev: false, supabaseUrl: "https://x.supabase.co" });
+    expect(off).toMatch(/form-action 'self' https:\/\/x\.supabase\.co;/);
+    const on = buildCsp("n", { dev: false, supabaseUrl: "https://x.supabase.co", oauth: ["google", "github"] });
+    expect(on).toContain("form-action 'self' https://x.supabase.co https://accounts.google.com https://github.com;");
+    expect(on).not.toMatch(/script-src [^;]*google/);
+  });
+});

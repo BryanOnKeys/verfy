@@ -16,9 +16,11 @@ Atls Team runs on three services. Set them up in this order; each has its own st
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel | no (public by design; RLS protects data) | Supabase publishable key (or legacy anon key) |
 | `NEXT_PUBLIC_APP_URL` | Vercel | no | Public URL of the app, used for redirects, invitation links and cookie `Secure` flag |
 | `NEXT_PUBLIC_AUTH_GITHUB_ENABLED` | Vercel | no | `true` only after GitHub OAuth is configured in Supabase |
+| `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` | Vercel | no | `true` only after Google OAuth is configured in Supabase |
 | `SUPABASE_SECRET_KEY` | Vercel, **server only** | **yes** | Supabase secret key (or legacy service_role key); bypasses RLS |
 | `ATLS_IP_HASH_SALT` | Vercel, **server only** | **yes** | Salt for hashing client IPs in rate limits (≥ 32 chars) |
 | GitHub OAuth client ID / secret | **Supabase dashboard** (Auth → Providers → GitHub) | secret | Not used by the app directly |
+| Google OAuth client ID / secret | **Supabase dashboard** (Auth → Providers → Google) | secret | Not used by the app directly |
 
 Nothing else is needed. The app refuses to run API routes without the server variables (`503 not_configured`) and shows a setup notice on pages.
 

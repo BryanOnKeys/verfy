@@ -4,7 +4,7 @@ import { CodeBlock } from "@/components/copy-button";
 import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/live-guard";
 import { buildChain, consoleChain, judge, PRESET, verifyChain } from "@/components/demo-chains";
-import { ReceiptAnatomy, TamperDemo } from "@/components/proof";
+import { TamperDemo } from "@/components/proof";
 import { TeamPreview } from "@/components/team-preview";
 
 const enter = (n: number) => ({ "data-enter": "", style: { "--enter": n } as CSSProperties });
@@ -21,20 +21,13 @@ function Words({ text, from = 0 }: { text: string; from?: number }) {
   ));
 }
 
-const RISKS: [string, string][] = [
-  ["It runs commands on your machine", "One wrong step can delete a folder, force-push over a colleague's work or pipe a script from the internet into a shell."],
-  ["Its tools can change overnight", "An MCP server can rewrite a tool's description after you trusted it, and hide instructions that only the model reads."],
-  ["Afterwards, nobody can prove what happened", "Chat logs can be edited and are not evidence. When something goes wrong, you need a record in which any later edit shows."],
-];
-
-const MODULES: { id: string; icon: IconName; tone?: string; name: string; title: string; body: string; ticks: string[] }[] = [
+const MODULES: { id: string; icon: IconName; tone?: string; name: string; title: string; body: string }[] = [
   {
     id: "guard",
     icon: "shieldCheck",
     name: "Guard",
     title: "Checks every step before it runs",
     body: "Shell commands, file writes, web requests, SQL and payments are checked against your policy. Every answer is allow, ask or deny, with the rule and the reason.",
-    ticks: ["Deterministic rules, no model in the loop", "Errors become ask or deny, never a silent allow"],
   },
   {
     id: "scan",
@@ -43,7 +36,6 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     name: "Scan",
     title: "Finds risky MCP servers",
     body: "Reads Claude Code, Cursor and Claude Desktop settings and flags hidden instructions, unpinned packages, plain-HTTP servers and leaked keys.",
-    ticks: ["Static by default, never starts a server", "Rule IDs, severities and fixes for every finding"],
   },
   {
     id: "lock",
@@ -52,7 +44,6 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     name: "Lock",
     title: "Tools can't change behind your back",
     body: "The first time a tool is used, Atls pins the SHA-256 of its exact definition. If it changes later, it is blocked until a person reviews the difference.",
-    ticks: ["Readable diffs, invisible characters spelled out", "Team approvals shared to every device"],
   },
   {
     id: "receipts",
@@ -61,15 +52,7 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     name: "Receipts",
     title: "A record that proves itself",
     body: "Every decision becomes a receipt, signed on the device with Ed25519 and chained to the one before it with SHA-256.",
-    ticks: ["Edits, deletions and reordering are detected", "Private keys never leave the device"],
   },
-];
-
-const PRINCIPLES: { icon: IconName; title: string; body: string }[] = [
-  { icon: "gauge", title: "Deterministic", body: "Same input, same verdict, every time, from rules you can read, test and change." },
-  { icon: "shield", title: "Fail-safe", body: "A broken policy, unreadable lock or internal error turns into ask or deny. Atls never fails open." },
-  { icon: "key", title: "Your keys stay yours", body: "Devices sign with keys that never leave them. The server stores public keys only and checks every signature." },
-  { icon: "info", title: "Honest limits", body: "Atls sees what passes through its hook or gateway. It is not a sandbox, and it says so." },
 ];
 
 const FAQ: [string, string][] = [
@@ -84,10 +67,6 @@ const FAQ: [string, string][] = [
   [
     "Does my code leave my computer?",
     "No. Checks run locally and never wait for the network. If you join a team, only receipts are uploaded, and by default they hold hashes of the arguments, not the arguments. Private keys never leave the device.",
-  ],
-  [
-    "Which agents does it work with?",
-    "Claude Code through its PreToolUse hook, and any MCP client (Cursor, Claude Desktop and others) through the Atls gateway in front of an MCP server.",
   ],
   [
     "Is Atls a sandbox?",
@@ -280,30 +259,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="section shell" id="problem" aria-labelledby="risk-title">
-        <div className="section-head split reveal">
-          <span className="eyebrow">
-            <span className="num">01</span> The problem
-          </span>
-          <h2 id="risk-title">Your agent can act. Can you see what it does?</h2>
-          <p className="lead">Coding agents now run commands, edit files and call tools on real machines, with real credentials. Three things go wrong.</p>
-        </div>
-        <ol className="risks reveal stagger">
-          {RISKS.map(([t, b], i) => (
-            <li key={t}>
-              <span className="n">0{i + 1}</span>
-              <h3>{t}</h3>
-              <p>{b}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
       <section className="section section-rule" id="product" aria-labelledby="product-title">
         <div className="shell">
           <div className="section-head split reveal">
             <span className="eyebrow">
-              <span className="num">02</span> The product
+              <span className="num">01</span> The product
             </span>
             <h2 id="product-title">Four controls. One record you can trust.</h2>
             <p className="lead">Each works on its own on a developer&apos;s laptop. Together they answer: what did the agent do, with which tool, and who allowed it?</p>
@@ -320,14 +280,6 @@ export default async function HomePage() {
                 <h3>{m.title}</h3>
                 <div className="module-body">
                   <p>{m.body}</p>
-                  <ul className="ticks">
-                    {m.ticks.map((t) => (
-                      <li key={t}>
-                        <Icon name="check" size={14} />
-                        <span>{t}</span>
-                      </li>
-                    ))}
-                  </ul>
                   <Link href={`/features#${m.id}`} className="module-link">
                     How {m.name} works <Icon name="arrowRight" size={15} />
                   </Link>
@@ -342,7 +294,7 @@ export default async function HomePage() {
         <div className="shell">
           <div className="section-head split reveal">
             <span className="eyebrow">
-              <span className="num">03</span> How it works
+              <span className="num">02</span> How it works
             </span>
             <h2 id="how-title">In the path of every tool call</h2>
             <p className="lead">Atls decides on your machine, without waiting for the network. The web platform collects evidence; it is never in the way.</p>
@@ -351,27 +303,6 @@ export default async function HomePage() {
             <FlowDiagram />
             <FlowDiagramTall />
           </div>
-          <ol className="steps" style={{ marginTop: 48 }}>
-            <li className="step">
-              <span className="step-num">STEP 1</span>
-              <h3>Install</h3>
-              <p>
-                Install the CLI and run <code>atls init</code>. Then <code>atls hook install --write</code> connects it to Claude Code.
-              </p>
-            </li>
-            <li className="step">
-              <span className="step-num">STEP 2</span>
-              <h3>Work as usual</h3>
-              <p>Safe steps pass instantly. Risky ones ask you first. Dangerous ones are stopped, with the rule and the reason.</p>
-            </li>
-            <li className="step">
-              <span className="step-num">STEP 3</span>
-              <h3>Prove it</h3>
-              <p>
-                Every step leaves a signed receipt. <code>atls verify</code> checks the chain offline, or share it with your team.
-              </p>
-            </li>
-          </ol>
           <div className="grid-2 reveal" id="install" style={{ marginTop: 48, alignItems: "center" }}>
             <div className="stack">
               <h3 style={{ fontSize: "1.3rem" }}>Running in two minutes</h3>
@@ -392,7 +323,7 @@ export default async function HomePage() {
         <div className="shell">
           <div className="section-head split reveal">
             <span className="eyebrow">
-              <span className="num">04</span> Evidence
+              <span className="num">03</span> Evidence
             </span>
             <h2 id="proof-title">Records that prove themselves</h2>
             <p className="lead">
@@ -400,9 +331,8 @@ export default async function HomePage() {
               receipts reach Atls Team, the server keeps their hashes and refuses a rewritten history, even one signed with the device&apos;s own key.
             </p>
           </div>
-          <div className="proof reveal">
+          <div className="reveal" style={{ maxWidth: 760 }}>
             <TamperDemo rows={chainRows} initialStates={chainStates} />
-            <ReceiptAnatomy />
           </div>
         </div>
       </section>
@@ -413,33 +343,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="section section-rule" id="principles" aria-labelledby="principles-title">
-        <div className="shell">
-          <div className="section-head reveal">
-            <span className="eyebrow">
-              <span className="num">06</span> Principles
-            </span>
-            <h2 id="principles-title">Built to be checked, not trusted</h2>
-          </div>
-          <div className="principles reveal stagger">
-            {PRINCIPLES.map((p) => (
-              <div key={p.title} className="principle">
-                <span className="icon-well">
-                  <Icon name={p.icon} size={19} />
-                </span>
-                <h3>{p.title}</h3>
-                <p>{p.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section section-rule" id="faq" aria-labelledby="faq-title">
         <div className="shell faq-layout">
           <div className="faq-intro reveal">
             <span className="eyebrow">
-              <span className="num">07</span> Questions
+              <span className="num">05</span> Questions
             </span>
             <h2 id="faq-title">Straight answers</h2>
             <p>

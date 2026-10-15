@@ -22,7 +22,7 @@ export default async function SignUpPage() {
     <div className="shell auth-wrap">
       <div className="auth-card glass card-lg stack" data-light>
         <div className="stack" style={{ gap: 6 }}>
-          <h1 style={{ fontSize: "1.7rem" }}>Create your Atls account</h1>
+          <h1 style={{ fontSize: "1.7rem" }}>Create your Verfy account</h1>
           <p className="text-2 small">
             Already have one? <Link href="/auth/sign-in" className="link">Sign in</Link>
           </p>

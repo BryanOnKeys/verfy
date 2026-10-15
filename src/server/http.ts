@@ -21,7 +21,7 @@ export class ApiError extends Error {
 
 export function problem(status: number, code: string, title: string, detail?: string, requestId?: string, extra?: Record<string, unknown>) {
   return NextResponse.json(
-    { type: `urn:atls:problem:${code}`, title, status, code, ...(detail ? { detail } : {}), ...(requestId ? { request_id: requestId } : {}), ...extra },
+    { type: `urn:verfy:problem:${code}`, title, status, code, ...(detail ? { detail } : {}), ...(requestId ? { request_id: requestId } : {}), ...extra },
     {
       status,
       headers: {
@@ -34,7 +34,7 @@ export function problem(status: number, code: string, title: string, detail?: st
   );
 }
 
-/** Map a Postgres / PostgREST error from an Atls function to a safe API error. */
+/** Map a Postgres / PostgREST error from a Verfy function to a safe API error. */
 export function fromDbError(error: { code?: string; message?: string } | null | undefined): ApiError {
   const code = error?.code ?? "";
   const msg = (error?.message ?? "").slice(0, 200);
@@ -61,7 +61,7 @@ export function fromDbError(error: { code?: string; message?: string } | null | 
   }
 }
 
-// Only messages Atls's own SQL functions raise are passed through; anything else stays generic.
+// Only messages Verfy's own SQL functions raise are passed through; anything else stays generic.
 const KNOWN_MESSAGES = [
   /^not signed in$/, /^permission denied( for this organization)?$/, /^[a-z ]+ not found$/, /^not a member$/,
   /^only an owner can change owners$/, /^an organization needs at least one owner$/, /^invite as admin, then transfer ownership$/,
@@ -107,7 +107,7 @@ export function route<P = Record<string, string>>(name: string, handler: Handler
       }
       if (e instanceof ConfigError) {
         log("error", "config", { route: name, message: e.message, request_id: requestId });
-        return problem(503, "not_configured", "This Atls deployment is not fully configured.", undefined, requestId);
+        return problem(503, "not_configured", "This Verfy deployment is not fully configured.", undefined, requestId);
       }
       log("error", "api_unhandled", { route: name, method: request.method, error: e instanceof Error ? e.name : "unknown", request_id: requestId });
       return problem(500, "internal", "Something went wrong on our side.", undefined, requestId);

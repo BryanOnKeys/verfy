@@ -6,12 +6,12 @@ The repository root is the whole project: the web app, the Supabase migrations, 
 
 Committed:
 
-- `src/`, `public/`, `supabase/` (migrations, seed for local dev, tests), `atls-cli/`, `advisories/`, `scripts/`, `docs/`, `deploy/`, `tests/`
+- `src/`, `public/`, `supabase/` (migrations, seed for local dev, tests), `verfy-cli/`, `advisories/`, `scripts/`, `docs/`, `deploy/`, `tests/`
 - `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.mts`
 - `README.md`, `LICENSE` (MIT), `SECURITY.md`, `.gitignore`, `.env.example`
 - `.github/workflows/ci.yml`, `.github/workflows/security.yml`, `.github/dependabot.yml`
 
-Never committed (already in `.gitignore`): `.env`, `.env.local` and every other `.env.*` except `.env.example`; `node_modules/`, `.next/`; `.atls/`, `key.json`, `team.json`, `*.jsonl` ledgers; `*.pem`, `*.key`; `.vercel/`.
+Never committed (already in `.gitignore`): `.env`, `.env.local` and every other `.env.*` except `.env.example`; `node_modules/`, `.next/`; `.verfy/`, `key.json`, `team.json`, `*.jsonl` ledgers; `*.pem`, `*.key`; `.vercel/`.
 
 Before the first push, run:
 
@@ -26,8 +26,8 @@ git status              # make sure no .env or key files are listed
 ```bash
 git init -b main                     # skip if the folder is already a repository
 git add .
-git commit -m "Atls MVP"
-git remote add origin git@github.com:<you>/atls.git
+git commit -m "Verfy MVP"
+git remote add origin git@github.com:<you>/verfy.git
 git push -u origin main
 ```
 
@@ -45,7 +45,7 @@ git push -u origin main
 **Settings → Branches → Add branch ruleset for `main`**
 
 - [ ] Require a pull request before merging (1 approval once you have a second maintainer).
-- [ ] Require status checks: `Web app, database and shared engine`, `Atls CLI (Python 3.13)`, `Dependency audit`, `Secret scan`.
+- [ ] Require status checks: `Web app, database and shared engine`, `Verfy CLI (Python 3.13)`, `Dependency audit`, `Secret scan`.
 - [ ] Block force pushes and deletions.
 - [ ] Require signed commits (optional).
 
@@ -62,7 +62,7 @@ If you later add a deploy workflow, store `VERCEL_TOKEN` etc. under Settings →
 | Workflow | Job | Checks |
 | --- | --- | --- |
 | `ci.yml` | Web app, database and shared engine | `npm ci`, ESLint, `tsc --noEmit`, Vitest (core, server helpers, RLS/tenant-isolation and seed tests on PGlite), JS engine fixtures, advisory validation, old-name check, `next build`, secret scan of repo and browser bundle |
-| `ci.yml` | Atls CLI | Python 3.10 / 3.12 / 3.13 on Linux, 3.13 on Windows and macOS: unit, gateway, hook, lock, team and cross-engine tests (pure-Python Ed25519), install, `atls demo` |
+| `ci.yml` | Verfy CLI | Python 3.10 / 3.12 / 3.13 on Linux, 3.13 on Windows and macOS: unit, gateway, hook, lock, team and cross-engine tests (pure-Python Ed25519), install, `verfy demo` |
 | `security.yml` | Dependency audit | `npm audit --omit=dev --audit-level=high`, `pip-audit` |
 | `security.yml` | Secret scan | TruffleHog (verified secrets, full history) and `scripts/check-secrets.mjs` |
 | `security.yml` | CodeQL | JavaScript/TypeScript and Python |

@@ -1,4 +1,4 @@
-// The product was renamed from its working titles to Atls. Fail if any old
+// The product was renamed from its working titles to Verfy. Fail if any old
 // product name, namespace or file name is left in the repository.
 //
 //   node scripts/check-brand.mjs

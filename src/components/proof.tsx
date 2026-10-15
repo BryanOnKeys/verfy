@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import vectors from "../../atls-cli/tests/fixtures/receipts.json";
+import vectors from "../../verfy-cli/tests/fixtures/receipts.json";
 import { shownVerdict, TAMPER_CMDS, TAMPER_TARGET as TARGET, verifyChain, type ChainRow, type ChainState } from "./demo-chains";
 import { Icon } from "./icons";
 
@@ -121,7 +121,7 @@ const NOTES: { part: string; key: string; title: string; text: string }[] = [
   { part: "v", key: "v", title: "Format version", text: "A fixed, documented format. Any tool can parse and check it." },
   { part: "chain", key: "seq, prev", title: "The chain", text: "Each receipt carries the SHA-256 of the one before it. Removing or reordering one breaks every link after it." },
   { part: "action", key: "action", title: "What was attempted", text: "The tool and a hash of its arguments. The arguments themselves stay on the device by default." },
-  { part: "decision", key: "decision", title: "What Atls decided", text: "The verdict, the exact rules that matched, and a hash of the policy in force at that moment." },
+  { part: "decision", key: "decision", title: "What Verfy decided", text: "The verdict, the exact rules that matched, and a hash of the policy in force at that moment." },
   { part: "sig", key: "kid, sig", title: "Who signed it", text: "An Ed25519 signature made on the device. The private key never leaves it; anyone with the public key can verify." },
 ];
 
@@ -129,7 +129,7 @@ export function ReceiptAnatomy() {
   const [part, setPart] = useState("chain");
   return (
     <div className="glass anatomy">
-      <pre className="anatomy-code" aria-label="An atls.receipt/1 record from the published test vectors">
+      <pre className="anatomy-code" aria-label="An verfy.receipt/1 record from the published test vectors">
         {LINES.map((l, i) => (
           <span key={i} className={`ln${l.part && l.part === part ? " on" : ""}`}>
             {"  ".repeat(l.indent ?? 0)}

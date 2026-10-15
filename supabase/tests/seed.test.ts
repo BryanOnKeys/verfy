@@ -9,7 +9,7 @@ describe("local seed (DEMO data)", () => {
   it("loads, labels everything DEMO and its receipts verify", async () => {
     const db = await createDb();
     await db.exec(readFileSync(path.join(__dirname, "..", "seed.sql"), "utf8"));
-    const demo = { role: "authenticated" as const, id: "11111111-1111-4111-8111-111111111111", email: "demo@atls.local" };
+    const demo = { role: "authenticated" as const, id: "11111111-1111-4111-8111-111111111111", email: "demo@verfy.local" };
     const orgs = await as(db, demo, (q) => q<{ name: string }>("select name from public.orgs"));
     expect(orgs).toEqual([{ name: "Demo Org (DEMO)" }]);
     const device = (await as(db, demo, (q) => q<{ public_key: string; kid: string }>("select public_key, kid from public.devices")))[0]!;

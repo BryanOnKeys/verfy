@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Builds a single-file preview of the Atls home page: one .html with the styles, the markup and the interactive parts
+ * Builds a single-file preview of the Verfy home page: one .html with the styles, the markup and the interactive parts
  * inlined, that opens straight from disk (fonts come from Google Fonts when online, with system fallbacks offline).
  *
  * It takes the page exactly as the running app renders it, removes the framework's scripts, and adds
- * scripts/preview/runtime.js with the real Atls engine (src/core/engine), so the console and the tamper demo give the
+ * scripts/preview/runtime.js with the real Verfy engine (src/core/engine), so the console and the tamper demo give the
  * same verdicts and hashes as the app. The file has no other pages, so links to them are replaced: buttons lead to
  * sections of this page with labels that say where they go, links that only make sense in the app are left out, and
  * the build fails if any link to another page is left over. A note at the top says it is a preview.
@@ -12,7 +12,7 @@
  *   npm run build && npm start            # or npm run dev
  *   node scripts/build-preview.mjs [base-url] [out-file ...]
  *
- * Defaults: http://localhost:3000, ./atls-home-preview.html
+ * Defaults: http://localhost:3000, ./verfy-home-preview.html
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -22,9 +22,9 @@ const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(repo, p), "utf8");
 const base = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 const outs = process.argv.slice(3);
-if (outs.length === 0) outs.push(join(repo, "atls-home-preview.html"));
+if (outs.length === 0) outs.push(join(repo, "verfy-home-preview.html"));
 
-const res = await fetch(`${base}/`, { headers: { cookie: "atls_theme=light" } });
+const res = await fetch(`${base}/`, { headers: { cookie: "verfy_theme=light" } });
 if (!res.ok) throw new Error(`GET ${base}/ returned ${res.status}`);
 const page = await res.text();
 
@@ -81,7 +81,7 @@ const leftover = [...body.matchAll(/href="(\/[^"]*)"/g)].map((m) => m[1]);
 if (leftover.length) throw new Error(`preview: links to other pages left over: ${[...new Set(leftover)].join(" ")}`);
 
 const note =
-  '<div class="preview-bar" role="note"><div class="shell">Preview: the Atls home page in one file. The console and the chain demo run the real Atls rules in your browser. Sign-up and the team dashboard are part of the web app.</div></div>';
+  '<div class="preview-bar" role="note"><div class="shell">Preview: the Verfy home page in one file. The console and the chain demo run the real Verfy rules in your browser. Sign-up and the team dashboard are part of the web app.</div></div>';
 
 /* ---------------------------------------------------------------- styles */
 const css = [
@@ -94,8 +94,8 @@ const css = [
 ].join("\n");
 
 /* ---------------------------------------------------------------- scripts */
-const engineSource = read("src/core/engine/atls-engine.mjs");
-if ((engineSource.match(/^export\b/gm) ?? []).length !== 1) throw new Error("atls-engine.mjs: expected exactly one export");
+const engineSource = read("src/core/engine/verfy-engine.mjs");
+if ((engineSource.match(/^export\b/gm) ?? []).length !== 1) throw new Error("verfy-engine.mjs: expected exactly one export");
 const iconSource = read("src/components/icons.tsx");
 const ICON_NAMES = ["check", "x", "alert", "shieldCheck", "history", "file", "copy", "menu", "link"];
 const icons = Object.fromEntries(
@@ -109,8 +109,8 @@ const json = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
 const runtime = [
   "(() => {",
   engineSource.replace(/^export function createEngine/m, "function createEngine"),
-  `const PATTERNS = ${json(JSON.parse(read("atls-cli/src/atls/data/patterns.json")))};`,
-  `const DEFAULT_POLICY = ${json(JSON.parse(read("atls-cli/src/atls/data/default_policy.json")))};`,
+  `const PATTERNS = ${json(JSON.parse(read("verfy-cli/src/verfy/data/patterns.json")))};`,
+  `const DEFAULT_POLICY = ${json(JSON.parse(read("verfy-cli/src/verfy/data/default_policy.json")))};`,
   `const ICONS = ${json(icons)};`,
   read("scripts/preview/runtime.js"),
   "})();",
@@ -118,7 +118,7 @@ const runtime = [
 if (runtime.includes("</script")) throw new Error("inlined script would close its tag early");
 
 // theme from the last visit, and motion only when the visitor allows it (removed again if the runtime never starts)
-const boot = `(function(){var r=document.documentElement;try{var t=localStorage.getItem("atls_theme");if(t==="dark"||t==="light")r.dataset.theme=t;if(t==="dark")document.querySelector('meta[name="theme-color"]').content="#0d0e11"}catch(e){}if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){r.dataset.fx="";setTimeout(function(){if(!r.dataset.fxReady)delete r.dataset.fx},2500)}})();`;
+const boot = `(function(){var r=document.documentElement;try{var t=localStorage.getItem("verfy_theme");if(t==="dark"||t==="light")r.dataset.theme=t;if(t==="dark")document.querySelector('meta[name="theme-color"]').content="#0d0e11"}catch(e){}if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){r.dataset.fx="";setTimeout(function(){if(!r.dataset.fxReady)delete r.dataset.fx},2500)}})();`;
 
 const favicon = `data:image/svg+xml,${encodeURIComponent(read("src/app/icon.svg").trim())}`;
 const html = `<!doctype html>
@@ -126,9 +126,9 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Atls sits between your coding agent and its tools: deterministic allow, ask or deny for every step, and signed receipts that prove what happened.">
+<meta name="description" content="Verfy sits between your coding agent and its tools: deterministic allow, ask or deny for every step, and signed receipts that prove what happened.">
 <meta name="theme-color" content="#f6f5f1">
-<title>Preview · Atls: control what your AI agents do, and prove what they did</title>
+<title>Preview · Verfy: control what your AI agents do, and prove what they did</title>
 <link rel="icon" href="${favicon}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,600..700&display=swap" rel="stylesheet">

@@ -16,7 +16,7 @@ import { rateLimit } from "@/server/ratelimit";
 /**
  * Server Actions for sign-in and sign-up. Next.js checks the Origin of every
  * Server Action request (CSRF). Passwords go straight from this server to
- * Supabase Auth; they are never logged or stored by Atls.
+ * Supabase Auth; they are never logged or stored by Verfy.
  *
  * Layers against brute force and abuse, in order:
  *  1. the shield in src/proxy.ts (per-IP flood limit before any work),

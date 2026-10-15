@@ -13,7 +13,7 @@ We aim to acknowledge reports within 2 business days and to keep you informed un
 
 ## Scope
 
-In scope: this repository's code — the `atls` CLI, the Next.js app and API, the Supabase migrations and RLS policies, CI configuration.
+In scope: this repository's code — the `verfy` CLI, the Next.js app and API, the Supabase migrations and RLS policies, CI configuration.
 
 Out of scope: vulnerabilities in Supabase, Vercel or GitHub themselves (report to them), social engineering, denial-of-service testing against deployments you do not own, findings that require a fully compromised developer machine.
 

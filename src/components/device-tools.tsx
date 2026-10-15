@@ -34,7 +34,7 @@ export function AddDevice({ orgId, appUrl }: { orgId: string; appUrl: string }) 
             <Icon name="key" size={16} />
             <span>This one-time code is shown only now and expires in one hour. Run the command on the device you want to enroll.</span>
           </div>
-          <CodeBlock code={`$ atls team enroll --url ${appUrl} --code ${code}`} label="Enrollment command" />
+          <CodeBlock code={`$ verfy team enroll --url ${appUrl} --code ${code}`} label="Enrollment command" />
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCode(null)} style={{ justifySelf: "start" }}>
             <span>Done</span>
           </button>

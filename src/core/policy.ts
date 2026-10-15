@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { engine, type Action, type Policy, type Verdict } from "./engine";
-import precheck from "../../atls-cli/tests/fixtures/precheck.json";
+import precheck from "../../verfy-cli/tests/fixtures/precheck.json";
 
 /**
  * Team policies: validation and the simulator that runs before a policy is
@@ -31,7 +31,7 @@ export const policySchema = z
     on_ask: z.enum(["deny", "allow", "elicit"]),
     fail_mode: z.enum(["ask", "deny"]),
     hide_unsafe_tools: z.boolean(),
-    disabled_rules: z.array(z.string().regex(/^ATL-[A-Z]+-\d{3}$/, "must be an Atls rule id like ATL-SH-006")).max(100),
+    disabled_rules: z.array(z.string().regex(/^VFY-[A-Z]+-\d{3}$/, "must be a Verfy rule id like VFY-SH-006")).max(100),
     tools: z.object({ deny: globs, ask: globs, trust: globs }).partial().strict(),
     files: z
       .object({ sensitive: globs, deny_write: globs, allow_write: globs, outside_workspace: z.enum(["allow", "ask", "deny"]) })
@@ -151,6 +151,6 @@ export function simulate(current: TeamPolicy, proposed: TeamPolicy, extra: Case[
   else if (safeBlocked > 0) warnings.push(`${safeBlocked} of ${SAFE_CASES.length} everyday actions would need approval or be blocked.`);
   if (proposed.on_ask === "allow") warnings.push("on_ask is \"allow\": actions that need approval will run without asking (they are still recorded).");
   if (proposed.lock?.on_new === "allow") warnings.push("lock.on_new is \"allow\": tools added to a locked server run without review.");
-  if ((proposed.disabled_rules ?? []).some((r) => /^ATL-(SH-001|FS-004|SEC-001|TOOL-00[34])$/.test(r))) warnings.push("A critical protection rule is disabled.");
+  if ((proposed.disabled_rules ?? []).some((r) => /^VFY-(SH-001|FS-004|SEC-001|TOOL-00[34])$/.test(r))) warnings.push("A critical protection rule is disabled.");
   return { total: cases.length, counts, changes, safe_total: SAFE_CASES.length, safe_blocked: safeBlocked, lockout, warnings };
 }

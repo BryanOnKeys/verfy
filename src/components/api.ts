@@ -1,6 +1,6 @@
 "use client";
 
-/** JSON calls to the Atls API from the dashboard. Errors come back as RFC 9457 problems. */
+/** JSON calls to the Verfy API from the dashboard. Errors come back as RFC 9457 problems. */
 export interface ApiResult<T> {
   ok: boolean;
   status: number;

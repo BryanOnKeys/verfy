@@ -32,7 +32,7 @@ export function CreateOrgForm() {
       setBusy(false);
       return;
     }
-    document.cookie = `atls_org=${res.data.id}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+    document.cookie = `verfy_org=${res.data.id}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
     router.refresh();
   }
 

@@ -1,7 +1,7 @@
 /**
  * The first line of defence, in front of every page, Server Action and API route. It is pure and synchronous, so it
  * costs microseconds and never touches the database: floods, scanners and malformed requests are turned away before
- * they can make Atls do any real work. The Postgres rate limits (src/server/ratelimit.ts) still apply afterwards and
+ * they can make Verfy do any real work. The Postgres rate limits (src/server/ratelimit.ts) still apply afterwards and
  * are the ones that hold across instances; these in-memory windows are per server instance and exist to shed load.
  *
  * What this does not do: absorb a volumetric DDoS. That happens in front of the app, at the platform edge (Vercel's
@@ -69,7 +69,7 @@ const PAGE_METHODS = new Set(["GET", "HEAD", "POST"]);
 const API_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
 
 /**
- * Paths that only vulnerability scanners ask for (secrets, VCS folders, other platforms' admin pages). Atls has none
+ * Paths that only vulnerability scanners ask for (secrets, VCS folders, other platforms' admin pages). Verfy has none
  * of them, so they get a cheap 404 without session handling or rendering.
  */
 const PROBE =

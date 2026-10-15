@@ -1,6 +1,6 @@
 # Deployment
 
-Atls Team runs on three services. Set them up in this order; each has its own step-by-step guide:
+Verfy Team runs on three services. Set them up in this order; each has its own step-by-step guide:
 
 1. **Supabase** — database, auth, storage: [`deploy/supabase/README.md`](../deploy/supabase/README.md)
 2. **Vercel** — the Next.js app: [`deploy/vercel/README.md`](../deploy/vercel/README.md)

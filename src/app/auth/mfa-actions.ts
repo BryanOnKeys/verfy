@@ -65,7 +65,7 @@ export async function startTotpEnrollment(): Promise<Enrollment> {
   const { data: existing } = await supabase.auth.mfa.listFactors();
   for (const f of existing?.all ?? []) if (f.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: f.id });
   if (existing?.totp.some((f) => f.status === "verified")) return { error: "An authenticator is already set up. Remove it first to replace it." };
-  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}`, issuer: "Atls" });
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}`, issuer: "Verfy" });
   if (error || !data) {
     log("warn", "mfa_enroll_failed", { reason: error?.code ?? "unknown" });
     return { error: "Two-factor authentication could not be started. Check that it is enabled for this project." };

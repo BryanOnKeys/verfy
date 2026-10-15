@@ -29,7 +29,7 @@ jobs:
       - name: pip-audit (CLI and its optional extra)
         run: |
           python -m pip install pip-audit
-          python -m pip install "./atls-cli[fast]"
+          python -m pip install "./verfy-cli[fast]"
           pip-audit --progress-spinner off
 
   secrets:
@@ -43,7 +43,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.99.2
         with:
           extra_args: --only-verified
-      - name: Atls pattern scan
+      - name: Verfy pattern scan
         run: node scripts/check-secrets.mjs
 
   codeql:

@@ -113,7 +113,7 @@ export default async function TeamPage() {
           ))}
         </dl>
         <div className="row small muted" style={{ gap: 6 }}>
-          <Icon name="info" size={14} /> Atls does not send email. Invitations are links you share yourself.
+          <Icon name="info" size={14} /> Verfy does not send email. Invitations are links you share yourself.
         </div>
       </section>
     </>

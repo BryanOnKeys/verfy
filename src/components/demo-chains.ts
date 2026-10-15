@@ -71,7 +71,7 @@ export async function buildChain(): Promise<ChainRow[]> {
 
 export const shownVerdict = (r: ChainRow, tampered: boolean): Verdict => (tampered && r.seq === TAMPER_TARGET ? "allow" : r.verdict);
 
-/** Checks the chain exactly as `atls verify` does: recompute each record's hash and compare it with the next record's link. */
+/** Checks the chain exactly as `verfy verify` does: recompute each record's hash and compare it with the next record's link. */
 export async function verifyChain(rows: ChainRow[], tampered: boolean): Promise<ChainState[]> {
   const out: ChainState[] = [];
   let prevComputed: string | null = null;

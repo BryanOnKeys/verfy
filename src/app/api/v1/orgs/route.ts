@@ -13,7 +13,7 @@ const body = z
   })
   .strict();
 
-/** POST /api/v1/orgs: create an organization; the caller becomes its owner and policy v1 is the Atls defaults. */
+/** POST /api/v1/orgs: create an organization; the caller becomes its owner and policy v1 is the Verfy defaults. */
 export const POST = route("orgs.create", async (request) => {
   const { user, supabase } = await requireSignedIn(request, { mutating: true });
   await rateLimit("userWrite", "user:" + user.id);

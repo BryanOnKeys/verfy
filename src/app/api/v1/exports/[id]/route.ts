@@ -28,8 +28,8 @@ export const GET = route<{ id: string }>("exports.get", async (request, { params
   if (exp.status === "ready" && exp.storage_path) {
     const bucket = createAdminClient().storage.from("exports");
     const [a, b] = await Promise.all([
-      bucket.createSignedUrl(`${exp.storage_path}/receipts.jsonl`, SIGNED_URL_SECONDS, { download: `atls-${exp.id}-receipts.jsonl` }),
-      bucket.createSignedUrl(`${exp.storage_path}/manifest.json`, SIGNED_URL_SECONDS, { download: `atls-${exp.id}-manifest.json` }),
+      bucket.createSignedUrl(`${exp.storage_path}/receipts.jsonl`, SIGNED_URL_SECONDS, { download: `verfy-${exp.id}-receipts.jsonl` }),
+      bucket.createSignedUrl(`${exp.storage_path}/manifest.json`, SIGNED_URL_SECONDS, { download: `verfy-${exp.id}-manifest.json` }),
     ]);
     if (a.error || b.error || !a.data || !b.data) throw new ApiError(503, "unavailable", "Download links could not be created. Try again.");
     downloads = { receipts: a.data.signedUrl, manifest: b.data.signedUrl };

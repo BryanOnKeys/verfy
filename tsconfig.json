@@ -20,5 +20,5 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.mts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", "atls-cli", ".next"]
+  "exclude": ["node_modules", "verfy-cli", ".next"]
 }

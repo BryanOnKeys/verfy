@@ -1,12 +1,12 @@
-# Atls API (v1)
+# Verfy API (v1)
 
-Base URL: your deployment, e.g. `https://atls.example.com`. All bodies are JSON (`Content-Type: application/json`). Every response has `Cache-Control: no-store` and an `x-request-id` header.
+Base URL: your deployment, e.g. `https://verfy.example.com`. All bodies are JSON (`Content-Type: application/json`). Every response has `Cache-Control: no-store` and an `x-request-id` header.
 
 ## Authentication
 
 | Caller | How | Used by |
 | --- | --- | --- |
-| Device | `Authorization: Bearer atd_<43 base64url chars>` — issued once by `POST /api/v1/devices/enroll`; stored server-side only as SHA-256; valid 365 days; dies when the device is revoked | `atls` CLI |
+| Device | `Authorization: Bearer atd_<43 base64url chars>` — issued once by `POST /api/v1/devices/enroll`; stored server-side only as SHA-256; valid 365 days; dies when the device is revoked | `verfy` CLI |
 | Person | Supabase session cookie (sign in on the web). State-changing requests must come from the app's own origin (`Origin` header is checked: CSRF protection) | dashboard, scripts in a signed-in browser |
 | Public | none, rate limited per IP | advisories feed, enrollment |
 
@@ -17,7 +17,7 @@ Session endpoints that read organization data take `?org=<organization uuid>`; e
 RFC 9457 problem details, `Content-Type: application/problem+json`:
 
 ```json
-{ "type": "urn:atls:problem:chain_gap", "title": "The receipts were not accepted.", "status": 422,
+{ "type": "urn:verfy:problem:chain_gap", "title": "The receipts were not accepted.", "status": 422,
   "code": "chain_gap", "detail": "expected seq 12, got 14", "request_id": "…", "index": 0 }
 ```
 
@@ -74,13 +74,13 @@ Errors: `400 invalid_enrollment_code`, `409 device_key_exists`, `422`, `429`.
 
 ### `POST /api/v1/receipts/batch` — device token
 
-Upload 1–500 signed `atls.receipt/1` receipts, in ascending, contiguous `seq` order. Body ≤ 500 × 16 KB.
+Upload 1–500 signed `verfy.receipt/1` receipts, in ascending, contiguous `seq` order. Body ≤ 500 × 16 KB.
 
 ```json
-{ "receipts": [ { "v": "atls.receipt/1", "id": "rcpt_…", "seq": 0, "prev": null, "issued_at": "2026-10-11T09:00:00.000Z",
+{ "receipts": [ { "v": "verfy.receipt/1", "id": "rcpt_…", "seq": 0, "prev": null, "issued_at": "2026-10-11T09:00:00.000Z",
                   "agent": "claude-code", "session": "ses_…",
                   "action": { "server": "claude-code", "tool": "Bash", "kind": "shell", "args_sha256": "sha256:…" },
-                  "decision": { "verdict": "deny", "rules": ["ATL-SH-001"], "policy_sha256": "sha256:…" },
+                  "decision": { "verdict": "deny", "rules": ["VFY-SH-001"], "policy_sha256": "sha256:…" },
                   "outcome": { "status": "blocked", "result_sha256": null },
                   "tool_sha256": null, "kid": "atl_…", "sig": "<86 base64url>" } ] }
 ```
@@ -112,8 +112,8 @@ The server checks, in order: schema (strict, v1 fields only), size, contiguous s
 
 | Method | Path | Role | Body / query | Success |
 | --- | --- | --- | --- | --- |
-| POST | `/api/v1/orgs` | signed in | `{ name, slug }` | `201 { id }` — caller becomes owner; policy v1 = Atls defaults |
-| POST | `/api/v1/orgs/{orgId}/invitations` | owner, admin | `{ email, role: admin\|member\|auditor }` | `201 { link, email, role, expires_in_days: 7 }` — Atls does not send email |
+| POST | `/api/v1/orgs` | signed in | `{ name, slug }` | `201 { id }` — caller becomes owner; policy v1 = Verfy defaults |
+| POST | `/api/v1/orgs/{orgId}/invitations` | owner, admin | `{ email, role: admin\|member\|auditor }` | `201 { link, email, role, expires_in_days: 7 }` — Verfy does not send email |
 | DELETE | `/api/v1/orgs/{orgId}/invitations/{id}` | owner, admin | — | `204` — the link stops working |
 | POST | `/api/v1/invitations/accept` | signed in (invited email) | `{ token }` | `200 { org_id }` |
 | PATCH | `/api/v1/orgs/{orgId}/members/{userId}` | owner, admin (only owners change owners; last owner stays) | `{ role }` | `200` |
@@ -134,15 +134,15 @@ The server checks, in order: schema (strict, v1 fields only), size, contiguous s
 
 ### Policy body
 
-A JSON object merged over the CLI defaults (`atls-cli/src/atls/data/default_policy.json`). Allowed keys: `agent, on_ask (deny|allow|elicit), fail_mode (ask|deny), hide_unsafe_tools, disabled_rules (ATL-XX-NNN), tools {deny, ask, trust}, files {sensitive, deny_write, allow_write, outside_workspace}, network {allow, deny, unknown}, payments {…}, rules [{id, pattern, flags?, verdict, message?, tool?, arg?}], receipts {include_args}, lock {on_new}`. `home` and `workspace` are local and rejected. Regexes must compile and may not contain nested quantifiers. ≤ 64 KB.
+A JSON object merged over the CLI defaults (`verfy-cli/src/verfy/data/default_policy.json`). Allowed keys: `agent, on_ask (deny|allow|elicit), fail_mode (ask|deny), hide_unsafe_tools, disabled_rules (VFY-XX-NNN), tools {deny, ask, trust}, files {sensitive, deny_write, allow_write, outside_workspace}, network {allow, deny, unknown}, payments {…}, rules [{id, pattern, flags?, verdict, message?, tool?, arg?}], receipts {include_args}, lock {on_new}`. `home` and `workspace` are local and rejected. Regexes must compile and may not contain nested quantifiers. ≤ 64 KB.
 
 ## Public endpoints
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| GET | `/api/v1/advisories?q&severity&ecosystem` | `{ format: "atls.advisories/1", count, advisories }`; only published entries; `review_status: "unreviewed"` = from public sources, not reproduced by Atls |
+| GET | `/api/v1/advisories?q&severity&ecosystem` | `{ format: "verfy.advisories/1", count, advisories }`; only published entries; `review_status: "unreviewed"` = from public sources, not reproduced by Verfy |
 | GET | `/api/health` | `{ ok, service, version, configured }` — never returns configuration values |
 
 ## Path note
 
-The design spec wrote endpoints such as `/v1/receipts:batch` and `/v1/locks/{id}:approve`. Colons are not valid in file names on Windows and are awkward in Next.js route folders, so Atls uses `/api/v1/receipts/batch` and `/api/v1/locks/{id}/approve`. The behaviour is the same.
+The design spec wrote endpoints such as `/v1/receipts:batch` and `/v1/locks/{id}:approve`. Colons are not valid in file names on Windows and are awkward in Next.js route folders, so Verfy uses `/api/v1/receipts/batch` and `/api/v1/locks/{id}/approve`. The behaviour is the same.

@@ -33,7 +33,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
   return (
     <header className="site-header">
       <div className="shell bar">
-        <Link href="/" className="brand" aria-label="Atls home">
+        <Link href="/" className="brand" aria-label="Verfy home">
           <Logo />
         </Link>
         <nav className="nav" aria-label="Main">

@@ -19,7 +19,7 @@ export function serverEnv(): ServerEnv {
     ATLS_IP_HASH_SALT: process.env.ATLS_IP_HASH_SALT,
   });
   if (!parsed.success) {
-    throw new ConfigError(`Atls server is not configured: ${parsed.error.issues.map((i) => i.message).join("; ")}. See docs/DEPLOYMENT.md.`);
+    throw new ConfigError(`Verfy server is not configured: ${parsed.error.issues.map((i) => i.message).join("; ")}. See docs/DEPLOYMENT.md.`);
   }
   if (parsed.data.SUPABASE_SECRET_KEY.startsWith("sb_publishable_")) {
     throw new ConfigError("SUPABASE_SECRET_KEY holds a publishable key; use the secret key (sb_secret_...).");

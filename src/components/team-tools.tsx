@@ -53,7 +53,7 @@ export function InviteForm({ orgId }: { orgId: string }) {
         <div className="alert alert-success" role="status" style={{ flexWrap: "wrap" }}>
           <Icon name="check" size={16} />
           <span style={{ flex: "1 1 300px", overflowWrap: "anywhere" }}>
-            Send this link to the person yourself; Atls does not send email. It works once, for that address, for 7 days.
+            Send this link to the person yourself; Verfy does not send email. It works once, for that address, for 7 days.
             <br />
             <code className="mono small">{link}</code>
           </span>
@@ -111,7 +111,7 @@ export function RemoveMember({ orgId, userId, email, isSelf }: { orgId: string; 
         const res = await api("DELETE", `/api/v1/orgs/${orgId}/members/${userId}`);
         if (!res.ok) return res.error ?? "The member could not be removed.";
         if (isSelf) {
-          document.cookie = "atls_org=; Path=/; Max-Age=0";
+          document.cookie = "verfy_org=; Path=/; Max-Age=0";
           router.push("/dashboard");
         }
         router.refresh();

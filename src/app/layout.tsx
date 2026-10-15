@@ -13,17 +13,17 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
-  title: { default: "Atls: control what your AI agents do, and prove what they did", template: "%s · Atls" },
+  title: { default: "Verfy: control what your AI agents do, and prove what they did", template: "%s · Verfy" },
   description:
-    "Atls sits between your coding agent and its tools. It allows safe actions, asks about risky ones, blocks dangerous ones, locks MCP tools and keeps a signed record of everything.",
-  applicationName: "Atls",
+    "Verfy sits between your coding agent and its tools. It allows safe actions, asks about risky ones, blocks dangerous ones, locks MCP tools and keeps a signed record of everything.",
+  applicationName: "Verfy",
   openGraph: {
     type: "website",
-    siteName: "Atls",
-    title: "Atls: control what your AI agents do, and prove what they did",
+    siteName: "Verfy",
+    title: "Verfy: control what your AI agents do, and prove what they did",
     description: "Readable rules, MCP tool locks and signed receipts for Claude Code, Cursor and MCP.",
   },
-  twitter: { card: "summary_large_image", title: "Atls", description: "Control what your AI agents do. Prove what they did." },
+  twitter: { card: "summary_large_image", title: "Verfy", description: "Control what your AI agents do. Prove what they did." },
   robots: { index: true, follow: true },
 };
 

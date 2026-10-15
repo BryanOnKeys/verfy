@@ -2,17 +2,17 @@ import { createHash, createPublicKey, verify as cryptoVerify, type KeyObject } f
 import { engine } from "./engine";
 
 /**
- * Server-side verifier for `atls.receipt/1`.
+ * Server-side verifier for `verfy.receipt/1`.
  *
  * A receipt is signed with Ed25519 over the canonical JSON of every field
  * except `sig`. `prev` is the `sha256:` digest of the canonical JSON of the
  * whole previous receipt, so editing, deleting or reordering any receipt breaks
  * the chain. Canonical JSON comes from the shared engine, so the bytes are the
  * same ones the Python CLI signed (checked by the cross-implementation vectors
- * in atls-cli/tests/fixtures/receipts.json).
+ * in verfy-cli/tests/fixtures/receipts.json).
  */
 
-export const RECEIPT_VERSION = "atls.receipt/1";
+export const RECEIPT_VERSION = "verfy.receipt/1";
 const B64U = /^[A-Za-z0-9_-]*$/;
 
 export function canonical(value: unknown): string {

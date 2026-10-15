@@ -12,7 +12,7 @@ describe("policy validation", () => {
         network: { allow: ["github.com", "*.python.org"], unknown: "ask" },
         payments: { max_per_call: 50, ask_above: 10, daily_budget: 100 },
         rules: [{ id: "no-prod-db", pattern: "prod-db", verdict: "deny", message: "Production is off-limits." }],
-        disabled_rules: ["ATL-SH-006"],
+        disabled_rules: ["VFY-SH-006"],
       }).ok,
     ).toBe(true);
   });
@@ -61,7 +61,7 @@ describe("policy simulator", () => {
 
   it("warns about weakening settings", () => {
     expect(simulate({}, { on_ask: "allow" }).warnings.join(" ")).toMatch(/without asking/);
-    expect(simulate({}, { disabled_rules: ["ATL-SH-001"] }).warnings.join(" ")).toMatch(/critical protection/);
+    expect(simulate({}, { disabled_rules: ["VFY-SH-001"] }).warnings.join(" ")).toMatch(/critical protection/);
   });
 });
 

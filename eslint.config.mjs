@@ -5,7 +5,7 @@ const config = [
   ...nextVitals,
   ...nextTs,
   {
-    ignores: [".next/**", "node_modules/**", "atls-cli/**", "next-env.d.ts", "src/core/engine/atls-engine.mjs", "coverage/**"],
+    ignores: [".next/**", "node_modules/**", "verfy-cli/**", "next-env.d.ts", "src/core/engine/verfy-engine.mjs", "coverage/**"],
   },
   {
     rules: {

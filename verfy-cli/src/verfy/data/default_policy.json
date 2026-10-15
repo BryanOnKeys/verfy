@@ -1,0 +1,104 @@
+{
+ "version": 1,
+ "agent": "agent",
+ "workspace": null,
+ "home": null,
+ "on_ask": "deny",
+ "fail_mode": "ask",
+ "hide_unsafe_tools": true,
+ "disabled_rules": [],
+ "tools": {
+  "deny": [],
+  "ask": [],
+  "trust": []
+ },
+ "files": {
+  "sensitive": [
+   "~/.ssh/**",
+   "**/.env",
+   "**/.env.*",
+   "**/*.pem",
+   "**/*.key",
+   "**/id_rsa*",
+   "**/id_ed25519*",
+   "**/id_ecdsa*",
+   "~/.aws/**",
+   "~/.config/gcloud/**",
+   "~/.azure/**",
+   "~/.kube/config",
+   "~/.netrc",
+   "~/.docker/config.json",
+   "**/.git-credentials",
+   "~/.gnupg/**",
+   "/etc/shadow",
+   "/etc/sudoers",
+   "**/*.keystore",
+   "**/credentials.json",
+   "**/secrets.json",
+   "**/.npmrc",
+   "**/.pypirc"
+  ],
+  "deny_write": [
+   "~/.ssh/**",
+   "/etc/**",
+   "/usr/**",
+   "/bin/**",
+   "/sbin/**",
+   "/boot/**",
+   "/System/**",
+   "**/.git/hooks/**",
+   "**/.verfy/**",
+   "~/.bashrc",
+   "~/.zshrc",
+   "~/.profile",
+   "~/.bash_profile",
+   "~/.gitconfig",
+   "~/.config/autostart/**",
+   "~/Library/LaunchAgents/**"
+  ],
+  "allow_write": [
+   "/tmp/**",
+   "/var/tmp/**",
+   "/dev/null",
+   "/dev/stdout",
+   "/dev/stderr"
+  ],
+  "outside_workspace": "ask"
+ },
+ "network": {
+  "allow": [],
+  "deny": [
+   "169.254.169.254",
+   "metadata.google.internal",
+   "100.100.100.200",
+   "*.ngrok.io",
+   "*.ngrok-free.app",
+   "webhook.site",
+   "*.requestcatcher.com",
+   "requestbin.net",
+   "*.pipedream.net",
+   "pastebin.com",
+   "transfer.sh",
+   "*.burpcollaborator.net",
+   "*.oast.fun",
+   "*.interact.sh"
+  ],
+  "unknown": "ask"
+ },
+ "payments": {
+  "max_per_call": 100,
+  "ask_above": 20,
+  "daily_budget": 200,
+  "currencies": [
+   "USD"
+  ],
+  "recipients": []
+ },
+ "rules": [],
+ "receipts": {
+  "include_args": false
+ },
+ "lock": {
+  "on_new": "ask"
+ }
+}

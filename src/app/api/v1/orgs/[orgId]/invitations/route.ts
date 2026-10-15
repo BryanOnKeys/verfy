@@ -16,7 +16,7 @@ const body = z
 
 /**
  * POST /api/v1/orgs/{orgId}/invitations (owner/admin): returns a one-time
- * invite link (valid 7 days) for that email address. Atls does not send
+ * invite link (valid 7 days) for that email address. Verfy does not send
  * email; copy the link to the person. Only the hash of the token is stored.
  */
 export const POST = route<{ orgId: string }>("invitations.create", async (request, { params }) => {

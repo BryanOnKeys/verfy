@@ -1,8 +1,8 @@
 {
-  "name": "atls",
+  "name": "verfy",
   "version": "0.2.0",
   "private": true,
-  "description": "Atls: security, policy and verifiable evidence for coding agents and MCP tools.",
+  "description": "Verfy: security, policy and verifiable evidence for coding agents and MCP tools.",
   "license": "MIT",
   "engines": {
     "node": ">=20.9.0"
@@ -15,8 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:engine": "node atls-cli/tests/test_engine.mjs",
-    "test:cli": "cd atls-cli && python -m unittest discover -s tests",
+    "test:engine": "node verfy-cli/tests/test_engine.mjs",
+    "test:cli": "cd verfy-cli && python -m unittest discover -s tests",
     "test:db": "vitest run supabase/tests",
     "check:secrets": "node scripts/check-secrets.mjs",
     "check:brand": "node scripts/check-brand.mjs",

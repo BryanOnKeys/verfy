@@ -11,7 +11,7 @@ updates:
       supabase:
         patterns: ["@supabase/*"]
   - package-ecosystem: pip
-    directory: /atls-cli
+    directory: /verfy-cli
     schedule:
       interval: weekly
   - package-ecosystem: github-actions

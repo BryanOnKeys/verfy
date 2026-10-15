@@ -43,14 +43,14 @@ describe("probes", () => {
 describe("screen", () => {
   const req = (over: Partial<{ method: string; url: string; pathname: string; ip: string }> = {}) => ({
     method: "GET",
-    url: "https://atls.test/docs",
+    url: "https://verfy.test/docs",
     pathname: "/docs",
     ip: "203.0.113.9",
     ...over,
   });
 
   it("refuses long URLs, odd methods and probes", () => {
-    expect(screen("page", req({ url: "https://atls.test/" + "a".repeat(5000) }))?.status).toBe(414);
+    expect(screen("page", req({ url: "https://verfy.test/" + "a".repeat(5000) }))?.status).toBe(414);
     expect(screen("page", req({ method: "TRACE" }))?.status).toBe(405);
     expect(screen("page", req({ method: "DELETE" }))?.status).toBe(405);
     expect(screen("api", req({ method: "DELETE", ip: "203.0.113.10" }))).toBeNull();

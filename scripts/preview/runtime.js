@@ -41,7 +41,7 @@
   const store = {
     set(v) {
       try {
-        localStorage.setItem("atls_theme", v);
+        localStorage.setItem("verfy_theme", v);
       } catch {
         /* storage can be blocked; the switch still works for this visit */
       }
@@ -272,7 +272,7 @@
         prev = hash;
       }
     };
-    // verify exactly as `atls verify` does: recompute each record's hash and compare it with the next record's link
+    // verify exactly as `verfy verify` does: recompute each record's hash and compare it with the next record's link
     const verify = async () => {
       const states = [];
       let prevComputed = null;

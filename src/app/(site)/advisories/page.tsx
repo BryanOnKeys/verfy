@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { advisoryQuery, listAdvisories, type AdvisoryRow } from "@/server/advisories";
 
 export const metadata: Metadata = {
-  title: "Atls Advisories",
+  title: "Verfy Advisories",
   description: "Known vulnerabilities in MCP servers and agent tooling, in OSV format, with sources.",
 };
 
@@ -28,7 +28,7 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
   return (
     <div className="shell section stack-lg">
       <header className="section-head">
-        <span className="eyebrow">Atls Advisories</span>
+        <span className="eyebrow">Verfy Advisories</span>
         <h1>Vulnerabilities in agent tooling</h1>
         <p className="lead">
           Public, sourced advisories for MCP servers and agent tools, in the OSV format with <code className="inline-code">ATLS-YYYY-NNNN</code> IDs and
@@ -73,7 +73,7 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
               {a.aliases.map((al) => (
                 <span key={al} className="badge">{al}</span>
               ))}
-              {a.review_status === "unreviewed" && <span className="badge badge-unreviewed" title="Imported from a public source; not reproduced by Atls">source: public record</span>}
+              {a.review_status === "unreviewed" && <span className="badge badge-unreviewed" title="Imported from a public source; not reproduced by Verfy">source: public record</span>}
             </div>
             <h2 style={{ fontSize: "1.08rem" }}>{a.summary}</h2>
             <p className="small muted">
@@ -86,7 +86,7 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
       <div className="alert alert-info">
         <Icon name="info" size={16} />
         <span>
-          Entries marked &quot;source: public record&quot; come from public CVE records and were not independently reproduced by Atls. New advisories are
+          Entries marked &quot;source: public record&quot; come from public CVE records and were not independently reproduced by Verfy. New advisories are
           added by pull request with at least one public source; a submission portal is planned for a later phase.
         </span>
       </div>

@@ -4,25 +4,25 @@ import { ReceiptAnatomy } from "@/components/proof";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: "Where Atls sits between a coding agent and its tools, how receipts are chained and signed, and how team sync stays out of the critical path.",
+  description: "Where Verfy sits between a coding agent and its tools, how receipts are chained and signed, and how team sync stays out of the critical path.",
 };
 
 function FlowDiagram() {
   return (
     <svg className="diagram" viewBox="0 0 860 300" role="img" aria-labelledby="flow-title flow-desc" style={{ width: "100%", height: "auto" }}>
-      <title id="flow-title">Atls in the tool-call path</title>
+      <title id="flow-title">Verfy in the tool-call path</title>
       <desc id="flow-desc">
-        The agent sends a tool call to the Atls hook or gateway. Atls checks policy and the lock, writes a signed receipt to the local ledger, and only then
-        lets the call reach the tool. Denied calls stop at Atls. A separate sync process uploads receipts to Atls Team.
+        The agent sends a tool call to the Verfy hook or gateway. Verfy checks policy and the lock, writes a signed receipt to the local ledger, and only then
+        lets the call reach the tool. Denied calls stop at Verfy. A separate sync process uploads receipts to Verfy Team.
       </desc>
       <rect className="box" x="20" y="96" width="170" height="86" rx="14" />
       <text x="105" y="134" textAnchor="middle" fontWeight="600">Coding agent</text>
       <text className="sub" x="105" y="156" textAnchor="middle">Claude Code, Cursor, MCP client</text>
 
       <rect className="box-accent" x="300" y="70" width="240" height="138" rx="16" />
-      <text x="420" y="104" textAnchor="middle" fontWeight="700">Atls</text>
+      <text x="420" y="104" textAnchor="middle" fontWeight="700">Verfy</text>
       <text className="sub" x="420" y="128" textAnchor="middle">1. policy check (allow · ask · deny)</text>
-      <text className="sub" x="420" y="148" textAnchor="middle">2. atls.lock digest check</text>
+      <text className="sub" x="420" y="148" textAnchor="middle">2. verfy.lock digest check</text>
       <text className="sub" x="420" y="168" textAnchor="middle">3. signed receipt → local ledger</text>
 
       <rect className="box" x="660" y="96" width="180" height="86" rx="14" />
@@ -36,7 +36,7 @@ function FlowDiagram() {
       <text className="sub" x="612" y="229">denied: stops here, receipt still written</text>
 
       <rect className="box" x="300" y="246" width="240" height="44" rx="12" />
-      <text x="420" y="273" textAnchor="middle" className="sub">atls sync (separate process) → Atls Team</text>
+      <text x="420" y="273" textAnchor="middle" className="sub">verfy sync (separate process) → Verfy Team</text>
       <path className="wire" d="M420 208 V246" strokeDasharray="4 4" />
     </svg>
   );
@@ -70,7 +70,7 @@ export default function HowItWorksPage() {
     <div className="shell section stack-lg">
       <header className="section-head">
         <span className="eyebrow">How it works</span>
-        <h1>Atls sits in the path of every tool call</h1>
+        <h1>Verfy sits in the path of every tool call</h1>
         <p className="lead">
           It runs on the developer&apos;s machine, decides locally and quickly, and never waits on the network. The web platform collects evidence; it is
           never in the critical path.
@@ -84,14 +84,14 @@ export default function HowItWorksPage() {
           <div className="stack">
             <h3>Claude Code hook</h3>
             <p className="text-2 small">
-              <code className="inline-code">atls hook pre-tool-use</code> receives each call as JSON. Atls answers deny or ask with the rule and reason,
+              <code className="inline-code">verfy hook pre-tool-use</code> receives each call as JSON. Verfy answers deny or ask with the rule and reason,
               or stays silent so Claude Code&apos;s own permissions decide. It never answers allow on its own.
             </p>
           </div>
           <div className="stack">
             <h3>MCP gateway</h3>
             <p className="text-2 small">
-              <code className="inline-code">atls proxy</code> wraps a stdio MCP server: it scans tools/list, hides poisoned or drifted tools, checks
+              <code className="inline-code">verfy proxy</code> wraps a stdio MCP server: it scans tools/list, hides poisoned or drifted tools, checks
               every tools/call and can ask the user through MCP elicitation.
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function HowItWorksPage() {
             <h3>Failure modes</h3>
             <p className="text-2 small">
               Bad input, a broken policy, an unreadable lock or a full disk all become <strong>ask</strong> (or <strong>deny</strong> with{" "}
-              <code className="inline-code">fail_mode</code>). Atls never fails open.
+              <code className="inline-code">fail_mode</code>). Verfy never fails open.
             </p>
           </div>
         </div>
@@ -119,18 +119,18 @@ export default function HowItWorksPage() {
           <h2 style={{ fontSize: "1.35rem" }}>Team sync</h2>
           <div className="timeline">
             <div><span>An admin creates a one-time enrollment code (valid one hour).</span></div>
-            <div><span><code className="inline-code">atls team enroll</code> sends the device&apos;s public key; the server returns a device token stored only as a hash.</span></div>
-            <div><span><code className="inline-code">atls sync</code> uploads receipts in batches of up to 500. The server checks schema, signature, sequence and links, and stores them idempotently.</span></div>
-            <div><span><code className="inline-code">atls team pull</code> fetches the team policy and team-approved locks.</span></div>
+            <div><span><code className="inline-code">verfy team enroll</code> sends the device&apos;s public key; the server returns a device token stored only as a hash.</span></div>
+            <div><span><code className="inline-code">verfy sync</code> uploads receipts in batches of up to 500. The server checks schema, signature, sequence and links, and stores them idempotently.</span></div>
+            <div><span><code className="inline-code">verfy team pull</code> fetches the team policy and team-approved locks.</span></div>
           </div>
         </div>
         <div className="glass card-lg stack reveal d1" data-light>
           <h2 style={{ fontSize: "1.35rem" }}>Lock drift</h2>
           <div className="timeline">
-            <div><span>First use: Atls locks the digest of every tool the server lists.</span></div>
+            <div><span>First use: Verfy locks the digest of every tool the server lists.</span></div>
             <div><span>Later, a description changes (for example, a hidden instruction is added).</span></div>
-            <div><span>The tool is hidden and its calls are denied with ATL-TOOL-004.</span></div>
-            <div><span>A person reviews <code className="inline-code">atls lock diff</code>, then approves locally or proposes the change to the team.</span></div>
+            <div><span>The tool is hidden and its calls are denied with VFY-TOOL-004.</span></div>
+            <div><span>A person reviews <code className="inline-code">verfy lock diff</code>, then approves locally or proposes the change to the team.</span></div>
           </div>
         </div>
       </section>
@@ -144,8 +144,8 @@ export default function HowItWorksPage() {
       <div className="alert alert-info">
         <Icon name="info" size={16} />
         <span>
-          Atls only sees calls that pass through its hook or gateway. Tools an agent can reach another way, or what a server does internally, are outside
-          what Atls can check or prove.
+          Verfy only sees calls that pass through its hook or gateway. Tools an agent can reach another way, or what a server does internally, are outside
+          what Verfy can check or prove.
         </span>
       </div>
     </div>

@@ -19,7 +19,7 @@ Project Settings → Environment Variables. Add each for **Production** and **Pr
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` | yes (public) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` | yes (public; RLS protects data) |
-| `NEXT_PUBLIC_APP_URL` | `https://atls.example.com` (no trailing slash). For Preview, the preview URL or your preview domain | yes |
+| `NEXT_PUBLIC_APP_URL` | `https://verfy.example.com` (no trailing slash). For Preview, the preview URL or your preview domain | yes |
 | `NEXT_PUBLIC_AUTH_GITHUB_ENABLED` | `false` (set `true` only after GitHub works in Supabase) | yes |
 | `SUPABASE_SECRET_KEY` | `sb_secret_…` — mark **Sensitive** | **no, server only** |
 | `ATLS_IP_HASH_SALT` | random, ≥ 32 characters (`openssl rand -base64 48`) — mark **Sensitive** | **no, server only** |
@@ -39,12 +39,12 @@ Rules:
 
 ## 4. Custom domain
 
-Project Settings → Domains → add `atls.example.com` and create the DNS record Vercel shows (CNAME to `cname.vercel-dns.com`, or the A record for an apex domain). HTTPS certificates are automatic. Then update `NEXT_PUBLIC_APP_URL` and the Supabase URLs to the custom domain and redeploy.
+Project Settings → Domains → add `verfy.example.com` and create the DNS record Vercel shows (CNAME to `cname.vercel-dns.com`, or the A record for an apex domain). HTTPS certificates are automatic. Then update `NEXT_PUBLIC_APP_URL` and the Supabase URLs to the custom domain and redeploy.
 
 ## 5. Smoke test after every production deploy
 
 ```bash
-APP=https://atls.example.com
+APP=https://verfy.example.com
 curl -s $APP/api/health                      # {"ok":true,...,"configured":true}
 curl -sI $APP/ | grep -iE "content-security-policy|strict-transport-security|x-frame-options"
 curl -s "$APP/api/v1/advisories" | head -c 200
@@ -54,10 +54,10 @@ curl -s -X POST $APP/api/v1/receipts/batch -H "content-type: application/json" -
 Then in a browser: sign up → confirm email → create an organization → Devices → Add a device → on a laptop:
 
 ```bash
-pip install ./atls-cli && atls init
-atls team enroll --url $APP --code <code>
-atls check "npm test" && atls hook install --write
-atls sync
+pip install ./verfy-cli && verfy init
+verfy team enroll --url $APP --code <code>
+verfy check "npm test" && verfy hook install --write
+verfy sync
 ```
 
 The receipts appear under Receipts; "Verify the whole chain on the server" reports all signatures valid.
@@ -76,7 +76,7 @@ Volumetric DDoS (floods of traffic at the network or HTTP level) is absorbed by 
 
 Also, in **Firewall**: turn on the managed **Bot Protection** ruleset if your plan offers it, keep **Attack Challenge Mode** in mind for incidents (it challenges every visitor until you turn it off), and in **Settings → Billing** set a spend limit so an attack cannot run up costs.
 
-Rule 1 matters because Next.js itself cannot represent `TRACE` requests and answers them with a generic error before any Atls code runs; nothing leaks, but the edge is the right place to refuse them.
+Rule 1 matters because Next.js itself cannot represent `TRACE` requests and answers them with a generic error before any Verfy code runs; nothing leaks, but the edge is the right place to refuse them.
 
 ## What protects the deployment, and where it is configured
 
@@ -98,7 +98,7 @@ Rule 1 matters because Next.js itself cannot represent `TRACE` requests and answ
 | Body size limits, schema validation, safe errors | `src/server/http.ts`, zod schemas in each route | code |
 | Log redaction | `src/server/log.ts`; logs go to Vercel → Logs (add a Drain for a SIEM) | code + dashboard |
 
-Atls does not claim protection it cannot see: whether WAF rules are enabled, which plan limits apply, and alerting are decisions you make in the Vercel dashboard.
+Verfy does not claim protection it cannot see: whether WAF rules are enabled, which plan limits apply, and alerting are decisions you make in the Vercel dashboard.
 
 ## Rollback
 

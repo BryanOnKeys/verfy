@@ -1,13 +1,13 @@
 /**
- * The Atls mark: an "A" laid in three courses, like a stepped pyramid, with a blue capstone. The courses are the
- * records Atls keeps, each resting on the one below it; the capstone is the seal that closes the chain. The courses
- * take the text colour (ink on paper, ivory at night) and the capstone takes the accent, so the mark follows the theme.
- * src/app/icon.svg and public/atls-mark.svg are the same drawing on an ink tile, for favicons and app icons.
+ * The Verfy mark: a "V" laid in three courses that narrow to a blue point. The courses are the records Verfy keeps,
+ * each one carrying the one above it; the point is the seal where the chain is checked. The courses take the text
+ * colour (ink on paper, ivory at night) and the point takes the accent, so the mark follows the theme.
+ * src/app/icon.svg and public/verfy-mark.svg are the same drawing on an ink tile, for favicons and app icons.
  */
 export const MARK_PATHS = {
-  cap: "M32 5L39.25 19.5H24.75z",
-  mid: "M21.75 25.5H42.25L47.75 36.5H16.25z",
-  base: "M13.25 42.5H50.75L59 59H40.5L32 46.5 23.5 59H5z",
+  cap: "M32 59L39.25 44.5H24.75z",
+  mid: "M21.75 38.5H42.25L47.75 27.5H16.25z",
+  base: "M13.25 21.5H50.75L59 5H40.5L32 17.5 23.5 5H5z",
 } as const;
 
 export function LogoMark({ size = 32, className, title }: { size?: number; className?: string; title?: string }) {
@@ -34,7 +34,7 @@ export function Logo({ size = 28 }: { size?: number }) {
   return (
     <>
       <LogoMark size={size} className="brand-mark" />
-      <span className="brand-word">Atls</span>
+      <span className="brand-word">Verfy</span>
     </>
   );
 }

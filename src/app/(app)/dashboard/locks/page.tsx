@@ -47,7 +47,7 @@ export default async function LocksPage() {
       <div className="page-head">
         <div>
           <h1>Tool locks</h1>
-          <p>Changed or new MCP tool definitions proposed by your devices. Approved digests reach every device with atls team pull.</p>
+          <p>Changed or new MCP tool definitions proposed by your devices. Approved digests reach every device with verfy team pull.</p>
         </div>
       </div>
 
@@ -56,7 +56,7 @@ export default async function LocksPage() {
           Waiting for review <span className="badge badge-pending">{pending.length}</span>
         </h2>
         {pending.length === 0 && (
-          <EmptyState icon="lock" title="Nothing to review" body="When a device sees a changed or new tool, run atls team propose SERVER TOOL and it shows up here." />
+          <EmptyState icon="lock" title="Nothing to review" body="When a device sees a changed or new tool, run verfy team propose SERVER TOOL and it shows up here." />
         )}
         {reviews.map(({ lock: l, base, diff, findings, digestOk }) => (
           <article key={l.id} className="glass card-lg stack" aria-labelledby={`lock-${l.id}`} data-light>

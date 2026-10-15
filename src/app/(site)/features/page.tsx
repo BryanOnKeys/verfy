@@ -4,28 +4,28 @@ import { Icon, type IconName } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: "Atls Guard, Scan, Lock, Receipts and the Team dashboard: what each part does and what it does not do.",
+  description: "Verfy Guard, Scan, Lock, Receipts and the Team dashboard: what each part does and what it does not do.",
 };
 
 const SECTIONS: { id: string; icon: IconName; title: string; intro: string; items: [string, string][]; limits: string }[] = [
   {
     id: "guard",
     icon: "shieldCheck",
-    title: "Atls Guard",
+    title: "Verfy Guard",
     intro: "A deterministic pre-check for every tool call, through a Claude Code PreToolUse hook or the MCP gateway.",
     items: [
       ["Shell", "Recursive deletes of home, root or the project, disk formatting, fork bombs, force-push, publishing and deploy commands, sudo, curl-to-shell, reading secrets in a command that also uses the network."],
-      ["Files", "Writes to protected paths (~/.ssh, /etc, git hooks, shell profiles, the Atls folder), sensitive files such as .env and private keys, writes outside the project."],
+      ["Files", "Writes to protected paths (~/.ssh, /etc, git hooks, shell profiles, the Verfy folder), sensitive files such as .env and private keys, writes outside the project."],
       ["Network", "Cloud metadata endpoints, tunnels and request bins, credentials in URLs, an allow list for everything else."],
       ["Data and money", "Destructive SQL without a WHERE clause, payment limits, daily budgets, unknown recipients, secrets in arguments."],
       ["Your rules", "Tool deny/ask lists, custom regex rules per tool or argument, disabled rules, all in one JSON policy."],
     ],
-    limits: "Pattern matching is not a sandbox. Commands Atls cannot classify are not assumed safe; pair Atls with OS-level isolation for untrusted code.",
+    limits: "Pattern matching is not a sandbox. Commands Verfy cannot classify are not assumed safe; pair Verfy with OS-level isolation for untrusted code.",
   },
   {
     id: "scan",
     icon: "scan",
-    title: "Atls Scan",
+    title: "Verfy Scan",
     intro: "Finds MCP servers in Claude Code (.mcp.json, ~/.claude.json), Cursor and Claude Desktop configs, and checks tool definitions.",
     items: [
       ["Config checks", "Unpinned npx/uvx packages, curl | sh launchers, plain-http remote servers, remote servers without auth, secrets written into configs, privileged containers."],
@@ -37,33 +37,33 @@ const SECTIONS: { id: string; icon: IconName; title: string; intro: string; item
   {
     id: "lock",
     icon: "lock",
-    title: "Atls Lock",
-    intro: "atls.lock pins the SHA-256 of each tool's canonical name, description and input schema.",
+    title: "Verfy Lock",
+    intro: "verfy.lock pins the SHA-256 of each tool's canonical name, description and input schema.",
     items: [
-      ["Drift", "A tool whose definition changed is hidden from the agent and its calls are denied (ATL-TOOL-004) until someone approves the change."],
-      ["New tools", "A tool added to an already locked server needs approval by default (ATL-TOOL-006)."],
-      ["Review", "atls lock diff shows a readable diff with invisible characters spelled out; atls lock approve records who accepted it."],
-      ["Team", "Devices propose changes; an admin approves once in the dashboard and every device picks it up with atls team pull."],
+      ["Drift", "A tool whose definition changed is hidden from the agent and its calls are denied (VFY-TOOL-004) until someone approves the change."],
+      ["New tools", "A tool added to an already locked server needs approval by default (VFY-TOOL-006)."],
+      ["Review", "verfy lock diff shows a readable diff with invisible characters spelled out; verfy lock approve records who accepted it."],
+      ["Team", "Devices propose changes; an admin approves once in the dashboard and every device picks it up with verfy team pull."],
     ],
     limits: "A lock proves a definition did not change since it was approved. It says nothing about whether the approved definition was safe.",
   },
   {
     id: "receipts",
     icon: "receipt",
-    title: "Atls Receipts",
-    intro: "Every decision becomes an atls.receipt/1 record, signed with Ed25519 and chained with SHA-256.",
+    title: "Verfy Receipts",
+    intro: "Every decision becomes an verfy.receipt/1 record, signed with Ed25519 and chained with SHA-256.",
     items: [
       ["Contents", "Sequence number, previous hash, time, agent, session, server, tool, action kind, SHA-256 of the arguments, verdict, rule IDs, policy hash, tool digest and outcome."],
       ["Privacy", "Arguments and results are stored as hashes by default. Storing redacted arguments is an explicit local setting."],
-      ["Verification", "atls verify checks every signature and link offline. The Team server checks them again on upload and on demand."],
+      ["Verification", "verfy verify checks every signature and link offline. The Team server checks them again on upload and on demand."],
     ],
-    limits: "A receipt shows what passed through Atls and that the record was not changed afterwards. It does not show what a tool did internally, or actions that bypassed the hook or gateway.",
+    limits: "A receipt shows what passed through Verfy and that the record was not changed afterwards. It does not show what a tool did internally, or actions that bypassed the hook or gateway.",
   },
 ];
 
 const TEAM: [IconName, string, string][] = [
   ["policy", "Policies with history", "Edit the team policy as JSON, validate it, and see every published version with who published it."],
-  ["gauge", "Policy simulator", "Before publishing, Atls replays a corpus of sample agent actions and refuses a policy that would block most everyday work."],
+  ["gauge", "Policy simulator", "Before publishing, Verfy replays a corpus of sample agent actions and refuses a policy that would block most everyday work."],
   ["lock", "Lock approvals", "Pending tool changes with the diff from the approved version; approve or reject, recorded in the audit log."],
   ["device", "Devices", "Enroll laptops and CI runners with one-time codes, see when they last synced, revoke one instantly."],
   ["receipt", "Receipts", "Search and filter by verdict, tool, device and date; open any receipt to see its signature check and chain position."],
@@ -77,8 +77,8 @@ export default function FeaturesPage() {
     <div className="shell section stack-lg">
       <header className="section-head">
         <span className="eyebrow">Features</span>
-        <h1>What Atls does, and where it stops</h1>
-        <p className="lead">Each capability below lists its limits next to it. Atls only claims what it can show.</p>
+        <h1>What Verfy does, and where it stops</h1>
+        <p className="lead">Each capability below lists its limits next to it. Verfy only claims what it can show.</p>
         <nav aria-label="On this page" className="row">
           {SECTIONS.map((s) => (
             <a key={s.id} href={`#${s.id}`} className="btn btn-secondary btn-sm">
@@ -86,7 +86,7 @@ export default function FeaturesPage() {
             </a>
           ))}
           <a href="#team" className="btn btn-secondary btn-sm">
-            <span>Atls Team</span>
+            <span>Verfy Team</span>
           </a>
         </nav>
       </header>
@@ -123,7 +123,7 @@ export default function FeaturesPage() {
 
       <section id="team" aria-labelledby="team-h" className="stack-lg">
         <div className="section-head" style={{ marginBottom: 0 }}>
-          <span className="eyebrow">Atls Team</span>
+          <span className="eyebrow">Verfy Team</span>
           <h2 id="team-h">The web platform</h2>
           <p className="lead">Runs on your own Vercel and Supabase projects. Every table is protected by row-level security and every change is audited.</p>
         </div>

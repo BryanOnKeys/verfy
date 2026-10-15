@@ -10,7 +10,7 @@ import { getAdvisory } from "@/server/advisories";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  return { title: id, description: `Atls Advisory ${id}` };
+  return { title: id, description: `Verfy Advisory ${id}` };
 }
 
 interface Range {
@@ -50,7 +50,7 @@ export default async function AdvisoryPage({ params }: { params: Promise<{ id: s
       {a.review_status === "unreviewed" && (
         <div className="alert alert-warning">
           <Icon name="info" size={16} />
-          <span>Imported from public sources listed below. Atls has not independently reproduced this issue.</span>
+          <span>Imported from public sources listed below. Verfy has not independently reproduced this issue.</span>
         </div>
       )}
 
@@ -93,7 +93,7 @@ export default async function AdvisoryPage({ params }: { params: Promise<{ id: s
           ))}
         </ul>
         <p className="tiny muted">
-          Published in Atls {new Date(a.published).toISOString().slice(0, 10)} · modified {new Date(a.modified).toISOString().slice(0, 10)}
+          Published in Verfy {new Date(a.published).toISOString().slice(0, 10)} · modified {new Date(a.modified).toISOString().slice(0, 10)}
         </p>
       </section>
     </article>

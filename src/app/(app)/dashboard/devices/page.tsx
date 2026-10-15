@@ -20,7 +20,7 @@ export default async function DevicesPage() {
       <div className="page-head">
         <div>
           <h1>Devices</h1>
-          <p>Laptops and CI runners that upload receipts. Atls stores only each device&apos;s public key; private keys never leave the device.</p>
+          <p>Laptops and CI runners that upload receipts. Verfy stores only each device&apos;s public key; private keys never leave the device.</p>
         </div>
       </div>
 

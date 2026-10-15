@@ -25,7 +25,7 @@ export default async function ExportsPage() {
       <div className="page-head">
         <div>
           <h1>Evidence exports</h1>
-          <p>Signed receipts as JSONL plus a manifest with SHA-256 hashes and device public keys, for auditors who verify without trusting Atls.</p>
+          <p>Signed receipts as JSONL plus a manifest with SHA-256 hashes and device public keys, for auditors who verify without trusting Verfy.</p>
         </div>
       </div>
 
@@ -82,9 +82,9 @@ export default async function ExportsPage() {
             "# 1. the file matches the manifest",
             "$ sha256sum receipts.jsonl          # equals manifest.receipts_sha256",
             "# 2. each chain verifies with its device public key (from manifest.chains)",
-            "$ atls verify --ledger receipts.jsonl --pub <public_key> --kid <chain_id>",
+            "$ verfy verify --ledger receipts.jsonl --pub <public_key> --kid <chain_id>",
             "# if the chain starts mid-way (starts_after is not null):",
-            "$ atls verify --ledger receipts.jsonl --pub <public_key> --kid <chain_id> --start-after <starts_after>",
+            "$ verfy verify --ledger receipts.jsonl --pub <public_key> --kid <chain_id> --start-after <starts_after>",
           ].join("\n")}
         />
         <p className="small muted">The manifest lists each chain (one per device) with its public key, first and last seq, and the hash it starts after.</p>

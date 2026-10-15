@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const body = z.object({ org_id: uuid }).strict();
 
-/** POST /api/v1/devices/enrollments: a one-time code (valid 1 hour) for `atls team enroll` (owner/admin). Shown once. */
+/** POST /api/v1/devices/enrollments: a one-time code (valid 1 hour) for `verfy team enroll` (owner/admin). Shown once. */
 export const POST = route("devices.enrollments.create", async (request) => {
   const input = await readJson(request, body, 1024);
   const { supabase, user } = await requireOrgAccess(request, input.org_id, "devices.enroll", { mutating: true });

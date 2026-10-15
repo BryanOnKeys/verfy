@@ -1,4 +1,4 @@
-// Validate advisories/**/*.json (OSV format with an Atls severity label) and
+// Validate advisories/**/*.json (OSV format with a Verfy severity label) and
 // build the SQL migration that publishes them.
 //
 //   node scripts/advisories.mjs           validate + check the migration is up to date (CI)

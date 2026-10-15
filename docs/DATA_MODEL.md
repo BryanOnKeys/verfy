@@ -19,7 +19,7 @@ All tables live in the `public` schema of the Supabase project, are created by `
 | `locks` | Proposed/approved/rejected tool definitions | `unique(org_id, server_id, tool_name, digest)`; `status='pending' ⇔ decided_at null` | members |
 | `audit_log` | Append-only, hash-chained per org (`prev_hash`, `hash`) | **no UPDATE/DELETE** (trigger); `action ~ ^[a-z_]+\.[a-z_]+$` | owners, admins, auditors |
 | `exports` | Evidence export jobs, manifest and its SHA-256, storage path | `to_ts > from_ts` | owners, admins, auditors |
-| `advisories` | Atls Advisories (OSV) | `id ~ ^ATLS-\d{4}-\d{4,}$` | anyone (incl. anonymous), `status='published'` only |
+| `advisories` | Verfy Advisories (OSV) | `id ~ ^ATLS-\d{4}-\d{4,}$` | anyone (incl. anonymous), `status='published'` only |
 | `rate_limits` | Fixed-window counters | PK `(bucket, window_start)` | **nobody** (server only) |
 
 Indexes cover the dashboard's queries: receipts by `(org_id, issued_at)`, `(org_id, verdict, issued_at)`, `(org_id, tool)`, `(org_id, device_id, issued_at)`; locks by `(org_id, status, created_at)`; audit by `(org_id, id)`.
@@ -54,4 +54,4 @@ Server only (`service_role`): `device_for_token`, `enroll_device`, `ingest_recei
 
 ## Local files (CLI)
 
-`~/.atls/` (or `$ATLS_HOME`): `key.json` (Ed25519 private key, mode 0600), `policy.json`, `team/policy.json`, `atls.lock`, `ledger.jsonl`, `seen/<server>.json`, `scans/`, `team.json` (device token, 0600), `sync-state.json`.
+`~/.verfy/` (or `$VERFY_HOME`): `key.json` (Ed25519 private key, mode 0600), `policy.json`, `team/policy.json`, `verfy.lock`, `ledger.jsonl`, `seen/<server>.json`, `scans/`, `team.json` (device token, 0600), `sync-state.json`.

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
-import vectors from "../../atls-cli/tests/fixtures/receipts.json";
+import vectors from "../../verfy-cli/tests/fixtures/receipts.json";
 import { planIngest, type ReceiptRow } from "../../src/core/ingest";
 import { publicKeyFromB64u } from "../../src/core/receipts";
 import { addUser, anon, as, createDb, service, type Actor } from "./harness";

@@ -43,7 +43,7 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     tone: "violet",
     name: "Lock",
     title: "Tools can't change behind your back",
-    body: "The first time a tool is used, Atls pins the SHA-256 of its exact definition. If it changes later, it is blocked until a person reviews the difference.",
+    body: "The first time a tool is used, Verfy pins the SHA-256 of its exact definition. If it changes later, it is blocked until a person reviews the difference.",
   },
   {
     id: "receipts",
@@ -61,29 +61,29 @@ const FAQ: [string, string][] = [
     "No. Every verdict comes from deterministic rules: the same input always gets the same answer, and you can read, test and change the rules. No language model is ever asked whether something is allowed.",
   ],
   [
-    "What happens if Atls itself fails?",
-    "It fails safe. A broken policy, an unreadable lock file or an internal error becomes \"ask\" (or \"deny\", if you choose). Atls never lets an action through because something went wrong.",
+    "What happens if Verfy itself fails?",
+    "It fails safe. A broken policy, an unreadable lock file or an internal error becomes \"ask\" (or \"deny\", if you choose). Verfy never lets an action through because something went wrong.",
   ],
   [
     "Does my code leave my computer?",
     "No. Checks run locally and never wait for the network. If you join a team, only receipts are uploaded, and by default they hold hashes of the arguments, not the arguments. Private keys never leave the device.",
   ],
   [
-    "Is Atls a sandbox?",
-    "No. Atls checks what passes through its hook or gateway. For untrusted code, use it together with OS-level isolation such as a container or a virtual machine.",
+    "Is Verfy a sandbox?",
+    "No. Verfy checks what passes through its hook or gateway. For untrusted code, use it together with OS-level isolation such as a container or a virtual machine.",
   ],
   [
     "Can someone with access to my machine rewrite the record?",
-    "Not one record at a time: any edit, deletion or reordering makes the check fail at that spot. But whoever holds a device's private key could build a whole new chain from scratch and sign it, and that chain would check out on its own. That is why receipts sync to Atls Team: the server keeps the hash of every receipt it has received and refuses a different one in the same place. A ledger that never left the machine has no such outside copy.",
+    "Not one record at a time: any edit, deletion or reordering makes the check fail at that spot. But whoever holds a device's private key could build a whole new chain from scratch and sign it, and that chain would check out on its own. That is why receipts sync to Verfy Team: the server keeps the hash of every receipt it has received and refuses a different one in the same place. A ledger that never left the machine has no such outside copy.",
   ],
   [
     "What does it cost?",
-    "The CLI is free, under the MIT license. Atls Team is free software too: it runs on your own Vercel and Supabase projects, so you pay only what they charge you.",
+    "The CLI is free, under the MIT license. Verfy Team is free software too: it runs on your own Vercel and Supabase projects, so you pay only what they charge you.",
   ],
 ];
 
 const FLOW_DESC =
-  "A tool call from the coding agent goes to Atls, which checks the policy and the tool lock and writes a signed receipt. Allowed calls continue to the tool; denied calls stop at Atls, and the receipt is still written.";
+  "A tool call from the coding agent goes to Verfy, which checks the policy and the tool lock and writes a signed receipt. Allowed calls continue to the tool; denied calls stop at Verfy, and the receipt is still written.";
 
 const FLOW_ROWS = [
   ["1", "Policy", "allow · ask · deny"],
@@ -94,7 +94,7 @@ const FLOW_ROWS = [
 function FlowDiagram() {
   return (
     <svg className="flow-wide" viewBox="0 0 760 290" role="img" aria-labelledby="flow-t flow-d">
-      <title id="flow-t">Where Atls sits</title>
+      <title id="flow-t">Where Verfy sits</title>
       <desc id="flow-d">{FLOW_DESC}</desc>
       <path className="wire-a" d="M180 100H260" />
       <path className="wire-a" d="M500 100H580" />
@@ -114,7 +114,7 @@ function FlowDiagram() {
       </text>
       <rect className="box-core" x="260" y="24" width="240" height="146" rx="14" />
       <text className="t" x="280" y="54">
-        Atls
+        Verfy
       </text>
       <text className="m m-a" x="480" y="54" textAnchor="end">
         ON YOUR MACHINE
@@ -145,7 +145,7 @@ function FlowDiagram() {
 function FlowDiagramTall() {
   return (
     <svg className="flow-tall" viewBox="0 0 320 384" role="img" aria-labelledby="flow-t2 flow-d2">
-      <title id="flow-t2">Where Atls sits</title>
+      <title id="flow-t2">Where Verfy sits</title>
       <desc id="flow-d2">{FLOW_DESC}</desc>
       <path className="wire-a" d="M160 72V112" />
       <path className="wire-a" d="M88 252V310" />
@@ -159,7 +159,7 @@ function FlowDiagramTall() {
       </text>
       <rect className="box-core" x="16" y="112" width="288" height="140" rx="14" />
       <text className="t" x="36" y="142">
-        Atls
+        Verfy
       </text>
       <text className="m m-a" x="284" y="142" textAnchor="end">
         ON YOUR MACHINE
@@ -216,7 +216,7 @@ export default async function HomePage() {
               </em>
             </h1>
             <p className="hero-desc" {...enter(2)}>
-              Atls sits between your coding agent and its tools. Safe steps go straight through, risky ones wait for your approval, dangerous ones are
+              Verfy sits between your coding agent and its tools. Safe steps go straight through, risky ones wait for your approval, dangerous ones are
               blocked, and every step leaves a signed receipt in which any later edit shows.
             </p>
             <div className="hero-actions" {...enter(3)}>
@@ -275,7 +275,7 @@ export default async function HomePage() {
                   <Icon name={m.icon} size={22} />
                 </span>
                 <span className="module-label">
-                  <b>0{i + 1}</b> · Atls {m.name}
+                  <b>0{i + 1}</b> · Verfy {m.name}
                 </span>
                 <h3>{m.title}</h3>
                 <div className="module-body">
@@ -297,7 +297,7 @@ export default async function HomePage() {
               <span className="num">02</span> How it works
             </span>
             <h2 id="how-title">In the path of every tool call</h2>
-            <p className="lead">Atls decides on your machine, without waiting for the network. The web platform collects evidence; it is never in the way.</p>
+            <p className="lead">Verfy decides on your machine, without waiting for the network. The web platform collects evidence; it is never in the way.</p>
           </div>
           <div className="glass flow reveal">
             <FlowDiagram />
@@ -313,7 +313,7 @@ export default async function HomePage() {
             </div>
             <CodeBlock
               label="Install commands"
-              code={["# not on PyPI yet: install from a copy of the Atls repository", "$ pip install ./atls-cli", "$ atls init", "$ atls hook install --write", "$ atls check \"rm -rf ~\""].join("\n")}
+              code={["# not on PyPI yet: install from a copy of the Verfy repository", "$ pip install ./verfy-cli", "$ verfy init", "$ verfy hook install --write", "$ verfy check \"rm -rf ~\""].join("\n")}
             />
           </div>
         </div>
@@ -328,7 +328,7 @@ export default async function HomePage() {
             <h2 id="proof-title">Records that prove themselves</h2>
             <p className="lead">
               Every receipt is linked to the one before it, so changing a record after the fact breaks the check exactly where it was changed. Once
-              receipts reach Atls Team, the server keeps their hashes and refuses a rewritten history, even one signed with the device&apos;s own key.
+              receipts reach Verfy Team, the server keeps their hashes and refuses a rewritten history, even one signed with the device&apos;s own key.
             </p>
           </div>
           <div className="reveal" style={{ maxWidth: 760 }}>
@@ -351,7 +351,7 @@ export default async function HomePage() {
             </span>
             <h2 id="faq-title">Straight answers</h2>
             <p>
-              Atls only claims what it can show. The <Link href="/security">security model</Link> lists every limit in detail.
+              Verfy only claims what it can show. The <Link href="/security">security model</Link> lists every limit in detail.
             </p>
           </div>
           <div className="faq reveal">
@@ -376,7 +376,7 @@ export default async function HomePage() {
             <div>
               <span className="eyebrow">Start today</span>
               <h2 id="cta-title">Rules you can read. Proof you can check.</h2>
-              <p>Free to start. The CLI is MIT-licensed, and Atls Team runs on your own Vercel and Supabase projects.</p>
+              <p>Free to start. The CLI is MIT-licensed, and Verfy Team runs on your own Vercel and Supabase projects.</p>
             </div>
             <div className="cta-actions">
               <Link href="/auth/sign-up" className="btn btn-light btn-lg">

@@ -1,64 +1,64 @@
 # Requirements traceability
 
-Every requirement of the Atls build brief and the source spec (final decisions in `00_README_va_YAKUNIY_HUKM.md`, `14-redteam-decisions-done.md`, `06_ILOVA_Code-Ready_Spec`) mapped to code, tests and docs. Status: **Done** (implemented and tested), **Partial** (implemented with a stated limit), **Phase 2 / Future** (not built; not claimed anywhere in the product).
+Every requirement of the Verfy build brief and the source spec (final decisions in `00_README_va_YAKUNIY_HUKM.md`, `14-redteam-decisions-done.md`, `06_ILOVA_Code-Ready_Spec`) mapped to code, tests and docs. Status: **Done** (implemented and tested), **Partial** (implemented with a stated limit), **Phase 2 / Future** (not built; not claimed anywhere in the product).
 
-Test locations: `CLI` = `atls-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `supabase/tests/`, `E2E` = the browser + CLI journey run against the local PostgREST stack (see Verification at the end).
+Test locations: `CLI` = `verfy-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `supabase/tests/`, `E2E` = the browser + CLI journey run against the local PostgREST stack (see Verification at the end).
 
 ## Brand
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
-| One brand, Atls, in code, UI, package, CLI, config, receipt format, rule IDs, docs | everywhere; `atls` CLI, `atls.lock`, `.atls/`, `atls.receipt/1`, `ATL-*` rules, `ATLS-*` advisories | `scripts/check-brand.mjs` (CI) | Done |
+| One brand, Verfy, in code, UI, package, CLI, config, receipt format, rule IDs, docs | everywhere; `verfy` CLI, `verfy.lock`, `.verfy/`, `verfy.receipt/1`, `VFY-*` rules; advisory IDs stay `ATLS-*` because they are stored in the production database | `scripts/check-brand.mjs` (CI) | Done |
 | Rename does not break canonical JSON, hashes or signatures | fixtures regenerated: `make_fixtures.py`, `make_receipt_vectors.py` | CLI cross-engine tests, `TS receipts.test.ts` | Done |
 | Third-party licenses untouched | `LICENSE` (MIT, original copyright holder kept) | — | Done |
 
-## Atls Guard
+## Verfy Guard
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
-| Deterministic pre-check: allow / ask / deny with rule ID and reason | `precheck.py`, `atls-engine.mjs` | 104 fixture cases × 2 engines | Done |
+| Deterministic pre-check: allow / ask / deny with rule ID and reason | `precheck.py`, `verfy-engine.mjs` | 104 fixture cases × 2 engines | Done |
 | Shell, file path, URL/network, SQL, secret exposure, payments | same | fixtures | Done |
 | Every verdict linked to a receipt | `hook.py`, `gateway.py` | `HookTests.test_cli_hook_writes_receipt`, gateway tests | Done |
 | Fail-safe: errors never allow; `fail_mode` ask/deny; `open` rejected | `hook.run_hook`, `policy.load_policy`, engine `loadPolicy` | `test_errors_never_allow`, `test_fail_mode_must_not_be_open` | Done |
-| Claude Code PreToolUse adapter + installer | `hook.py`, `atls hook install` | hook tests, `test_install_is_idempotent` | Done |
+| Claude Code PreToolUse adapter + installer | `hook.py`, `verfy hook install` | hook tests, `test_install_is_idempotent` | Done |
 | No network calls inside the hook | `hook.py` (team sync is a separate command) | code review; `team.py` not imported by hook | Done |
 | No LLM in decisions | whole codebase | — (no model calls exist) | Done |
 
-## Atls Scan
+## Verfy Scan
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
 | Discover Claude Code / Cursor / Claude Desktop configs | `discover.py` | `test_discover_reads_project_servers` | Done |
 | Tool poisoning, hidden instructions, secret reads, shadowing, invisible Unicode, drift | `scanner.py` | scan fixtures, gateway tests | Done |
-| Config checks: unpinned packages, curl\|sh, plain http, missing auth, secrets, privileged containers | `discover.py` (`ATL-CFG-001..007`) | `ConfigScanTests` | Done |
+| Config checks: unpinned packages, curl\|sh, plain http, missing auth, secrets, privileged containers | `discover.py` (`VFY-CFG-001..007`) | `ConfigScanTests` | Done |
 | Finding = rule ID, severity, evidence location, remediation | `scanner.py`, `discover.py` | tests | Done |
 | Static by default; servers started only with explicit `--live` | `cli.cmd_scan` | `test_cli_static_scan_exit_code` | Done |
 | Unknown ≠ safe; no claim of runtime audit | UI copy, `SECURITY_LIMITATIONS.md` | — | Done |
 
-## Atls Lock
+## Verfy Lock
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
 | SHA-256 digest of canonical {name, description, inputSchema} | `scanner.tool_pin`, `lock.py`, engine `toolPin` | `test_tool_pin_is_definition_digest`, seed test | Done |
-| `atls.lock` file, deterministic bytes | `lock.py` | `test_deterministic_bytes` | Done |
-| Drift → deny; new tool on locked server → ask; unreadable lock → ask | `gateway.py`, `precheck.py` (`ATL-TOOL-004/006/007`) | `test_rug_pull`, `test_new_tool_on_locked_server_needs_approval`, `test_unreadable_lock_fails_safe` | Done |
-| Review with readable diff, explicit approval | `atls lock diff/approve`, `src/core/diff.ts`, Locks page | `test_cli_lock_flow`, `diff.test.ts`, E2E | Done |
+| `verfy.lock` file, deterministic bytes | `lock.py` | `test_deterministic_bytes` | Done |
+| Drift → deny; new tool on locked server → ask; unreadable lock → ask | `gateway.py`, `precheck.py` (`VFY-TOOL-004/006/007`) | `test_rug_pull`, `test_new_tool_on_locked_server_needs_approval`, `test_unreadable_lock_fails_safe` | Done |
+| Review with readable diff, explicit approval | `verfy lock diff/approve`, `src/core/diff.ts`, Locks page | `test_cli_lock_flow`, `diff.test.ts`, E2E | Done |
 | Tampered lock file rejected | `lock.validate_lock` | `test_tampered_digest_is_rejected` | Done |
-| Team lock proposals and admin approval, pulled by devices | `/api/v1/locks/propose`, `decide_lock`, `atls team propose/pull` | DB tests, E2E | Done |
+| Team lock proposals and admin approval, pulled by devices | `/api/v1/locks/propose`, `decide_lock`, `verfy team propose/pull` | DB tests, E2E | Done |
 
-## Atls Receipts
+## Verfy Receipts
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
 | Ed25519 signature, SHA-256 chain, seq, prev, timestamp, tool digest, policy hash, verdict, rule IDs | `receipts.py`, `src/core/receipts.ts` | Python, JS and TS tamper/delete/reorder tests | Done |
-| Independent verifier | `atls verify` (Python), `verifyChain` (TS), JS engine | cross-implementation vectors | Done |
+| Independent verifier | `verfy verify` (Python), `verifyChain` (TS), JS engine | cross-implementation vectors | Done |
 | Concurrent sessions never fork the chain | `Ledger.append` under OS file lock | `test_parallel_writers_keep_one_chain` (3 processes × 40) | Done |
 | Private key stays on device | `team.enroll` sends public key only | `test_enroll_and_sync` | Done |
 | Arguments hashed by default; redaction when stored | `build_receipt(include_args=False)`, `redact_value` | `test_hash_only_by_default`, redaction tests | Done |
 | Honest statement of what receipts prove | `/security`, receipt page, export manifest, README | — | Done |
 | External timestamping / Merkle anchoring (Rekor) | — | — | Phase 2 |
 
-## Atls Team (web)
+## Verfy Team (web)
 
 | Requirement | Code | Test | Status |
 | --- | --- | --- | --- |
@@ -69,9 +69,9 @@ Test locations: `CLI` = `atls-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `su
 | Receipt search/filter, detail, chain and signature status, JSON download | Receipts pages, `/api/v1/receipts`, `/chains/{id}/verify` | E2E | Done |
 | Policies: edit, validate, version history, simulator, role-gated publish | Policies page, `/policies/*`, `publish_policy`, `src/core/policy.ts` | `policy.test.ts`, E2E | Done |
 | Audit log of every admin action, tamper-evident | `audit_log` + trigger chain, Audit page | DB audit chain test, E2E | Done |
-| Evidence export JSONL + manifest hash + integrity | `/api/v1/exports`, `src/core/evidence.ts`, private bucket, 60 s signed URLs | `evidence.test.ts`, E2E (sha256 + offline `atls verify`) | Done (≤ 20,000 receipts per export) |
+| Evidence export JSONL + manifest hash + integrity | `/api/v1/exports`, `src/core/evidence.ts`, private bucket, 60 s signed URLs | `evidence.test.ts`, E2E (sha256 + offline `verfy verify`) | Done (≤ 20,000 receipts per export) |
 | Large exports via background jobs | — | — | Phase 2 |
-| Public Atls Advisories feed and pages, OSV, sourced | `advisories/`, migration, `/advisories`, `/api/v1/advisories` | `seed.test.ts`, `scripts/advisories.mjs` in CI | Done |
+| Public Verfy Advisories feed and pages, OSV, sourced | `advisories/`, migration, `/advisories`, `/api/v1/advisories` | `seed.test.ts`, `scripts/advisories.mjs` in CI | Done |
 | Advisory submission/moderation portal | — | — | Phase 2 |
 | KPIs only from real queries; DEMO labelled | `org_stats`, Overview page, DEMO ribbon | E2E | Done |
 
@@ -87,7 +87,7 @@ Test locations: `CLI` = `atls-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `su
 | Schema validation, body limits, safe machine-readable errors | `src/server/http.ts`, zod in routes | `http.test.ts` | Done |
 | CSRF / Origin, CSP nonce, HSTS, nosniff, referrer, permissions, frame-ancestors | `http.ts`, `src/lib/csp.ts`, `next.config.ts` | `safe-redirect.test.ts` (CSP), header check | Done |
 | Shared rate limits (IP hash + user/device), fail closed | `ratelimit.ts`, `rate_limit_hit` | DB rate-limit test | Done |
-| SSRF | Atls Team never fetches user-supplied URLs (no fetch-by-URL feature) | — | N/A by design |
+| SSRF | Verfy Team never fetches user-supplied URLs (no fetch-by-URL feature) | — | N/A by design |
 | Structured logs with redaction and request IDs | `src/server/log.ts`, `route()` | `http.test.ts` | Done |
 | Secrets never committed / never in bundle | `.gitignore`, `check-secrets.mjs`, lint rule | CI | Done |
 | CI: lint, types, tests, CLI tests, build, audit, secret scan, CodeQL | `.github/workflows/*` | — | Done |
@@ -99,7 +99,7 @@ Test locations: `CLI` = `atls-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `su
 
 | Item | Phase |
 | --- | --- |
-| Atls Verified (tool certification, badges) | Future |
+| Verfy Verified (tool certification, badges) | Future |
 | Insurance, assurance, guarantees | Future |
 | Payment clearing / agent commerce | Future |
 | Universal tool registry | Future |

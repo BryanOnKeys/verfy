@@ -4,26 +4,26 @@ import { Icon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Docs",
-  description: "Install the Atls CLI, guard Claude Code, scan and lock MCP tools, verify receipts and connect devices to Atls Team.",
+  description: "Install the Verfy CLI, guard Claude Code, scan and lock MCP tools, verify receipts and connect devices to Verfy Team.",
 };
 
 const CLI: [string, string, string][] = [
-  ["atls init", "Create a signing key and a starter policy in ~/.atls", "0"],
-  ["atls scan --discover", "Static check of the MCP servers in your Claude Code, Cursor and Claude Desktop configs", "0 ok · 1 medium · 2 high or worse"],
-  ["atls scan --discover --live", "Also start each stdio server and scan its tool definitions", "0 · 1 with --fail-under"],
-  ["atls scan FILE", "Scan a saved tools/list answer", "0 · 1 with --fail-under"],
-  ["atls check \"CMD\"", "Pre-check one command or --tool NAME --args JSON without running it", "0 allow · 1 ask · 2 deny"],
-  ["atls hook install --write", "Add the PreToolUse hook to ~/.claude/settings.json (--project for this repo)", "0"],
-  ["atls hook pre-tool-use", "The hook entry point Claude Code calls (JSON on stdin and stdout)", "always 0"],
-  ["atls proxy --name N -- CMD", "Run an MCP server behind the Atls gateway", "server's exit code"],
-  ["atls wrap CONFIG --write", "Put every server in an MCP config behind the gateway (keeps a backup)", "0"],
-  ["atls lock status | diff | approve | add | verify", "Inspect and approve tool definition changes in atls.lock", "status: 0 ok · 1 new · 2 drift"],
-  ["atls verify", "Verify every signature and hash link in the local ledger", "0 ok · 1 failed"],
-  ["atls ledger show", "List recent receipts", "0"],
-  ["atls team enroll --url URL --code CODE", "Register this device's public key with your team", "0 · 4 on a team error"],
-  ["atls sync", "Upload new receipts to Atls Team", "0 · 4 on a team error"],
-  ["atls team pull", "Fetch the team policy and team-approved locks", "0"],
-  ["atls team propose SERVER TOOL", "Ask admins to approve a changed tool definition", "0"],
+  ["verfy init", "Create a signing key and a starter policy in ~/.verfy", "0"],
+  ["verfy scan --discover", "Static check of the MCP servers in your Claude Code, Cursor and Claude Desktop configs", "0 ok · 1 medium · 2 high or worse"],
+  ["verfy scan --discover --live", "Also start each stdio server and scan its tool definitions", "0 · 1 with --fail-under"],
+  ["verfy scan FILE", "Scan a saved tools/list answer", "0 · 1 with --fail-under"],
+  ["verfy check \"CMD\"", "Pre-check one command or --tool NAME --args JSON without running it", "0 allow · 1 ask · 2 deny"],
+  ["verfy hook install --write", "Add the PreToolUse hook to ~/.claude/settings.json (--project for this repo)", "0"],
+  ["verfy hook pre-tool-use", "The hook entry point Claude Code calls (JSON on stdin and stdout)", "always 0"],
+  ["verfy proxy --name N -- CMD", "Run an MCP server behind the Verfy gateway", "server's exit code"],
+  ["verfy wrap CONFIG --write", "Put every server in an MCP config behind the gateway (keeps a backup)", "0"],
+  ["verfy lock status | diff | approve | add | verify", "Inspect and approve tool definition changes in verfy.lock", "status: 0 ok · 1 new · 2 drift"],
+  ["verfy verify", "Verify every signature and hash link in the local ledger", "0 ok · 1 failed"],
+  ["verfy ledger show", "List recent receipts", "0"],
+  ["verfy team enroll --url URL --code CODE", "Register this device's public key with your team", "0 · 4 on a team error"],
+  ["verfy sync", "Upload new receipts to Verfy Team", "0 · 4 on a team error"],
+  ["verfy team pull", "Fetch the team policy and team-approved locks", "0"],
+  ["verfy team propose SERVER TOOL", "Ask admins to approve a changed tool definition", "0"],
 ];
 
 const API: [string, string, string, string][] = [
@@ -39,7 +39,7 @@ const API: [string, string, string, string][] = [
   ["GET", "/api/v1/chains/{chain}/verify", "member", "Re-verify a device chain on the server"],
   ["POST", "/api/v1/exports", "owner, admin, auditor", "Build an evidence export"],
   ["GET", "/api/v1/exports/{id}", "owner, admin, auditor", "Export status and 60-second download links"],
-  ["GET", "/api/v1/advisories", "public", "Atls Advisories feed"],
+  ["GET", "/api/v1/advisories", "public", "Verfy Advisories feed"],
 ];
 
 export default function DocsPage() {
@@ -48,13 +48,13 @@ export default function DocsPage() {
       <header className="section-head">
         <span className="eyebrow">Docs</span>
         <h1>Quickstart</h1>
-        <p className="lead">Guard a coding agent on your machine first. Connecting to Atls Team is optional and can come later.</p>
+        <p className="lead">Guard a coding agent on your machine first. Connecting to Verfy Team is optional and can come later.</p>
         <nav aria-label="On this page" className="row">
           {[
             ["#install", "Install"],
             ["#guard", "Guard Claude Code"],
             ["#mcp", "MCP servers"],
-            ["#team", "Atls Team"],
+            ["#team", "Verfy Team"],
             ["#policy", "Policy"],
             ["#cli", "CLI reference"],
             ["#api", "API"],
@@ -70,7 +70,7 @@ export default function DocsPage() {
         <h2 id="install-h">1. Install</h2>
         <p className="text-2">Python 3.10 or newer. No other dependencies (install the optional <code className="inline-code">cryptography</code> extra for faster signing).</p>
         <CodeBlock
-          code={["# from a clone of the Atls repository", "$ pip install ./atls-cli", "$ atls init", "$ atls check \"git push --force\"   # exit 1: needs approval"].join("\n")}
+          code={["# from a clone of the Verfy repository", "$ pip install ./verfy-cli", "$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")}
         />
       </section>
 
@@ -79,37 +79,37 @@ export default function DocsPage() {
         <p className="text-2">
           The hook checks every tool call before it runs and writes a signed receipt. Review the change first (without <code className="inline-code">--write</code> it only prints it).
         </p>
-        <CodeBlock code={["$ atls hook install            # print the settings change", "$ atls hook install --write    # save it (backup kept)", "$ atls ledger show", "$ atls verify"].join("\n")} />
+        <CodeBlock code={["$ verfy hook install            # print the settings change", "$ verfy hook install --write    # save it (backup kept)", "$ verfy ledger show", "$ verfy verify"].join("\n")} />
       </section>
 
       <section id="mcp" className="stack" aria-labelledby="mcp-h">
         <h2 id="mcp-h">3. Scan and lock MCP servers</h2>
         <CodeBlock
           code={[
-            "$ atls scan --discover                       # static: how servers are launched",
-            "$ atls wrap ~/.cursor/mcp.json --write       # put servers behind the gateway",
-            "$ atls lock status                           # after first use, tools are locked",
-            "$ atls lock diff filesystem                  # if a definition drifted",
-            "$ atls lock approve filesystem               # review, then accept",
+            "$ verfy scan --discover                       # static: how servers are launched",
+            "$ verfy wrap ~/.cursor/mcp.json --write       # put servers behind the gateway",
+            "$ verfy lock status                           # after first use, tools are locked",
+            "$ verfy lock diff filesystem                  # if a definition drifted",
+            "$ verfy lock approve filesystem               # review, then accept",
           ].join("\n")}
         />
       </section>
 
       <section id="team" className="stack" aria-labelledby="team-h">
-        <h2 id="team-h">4. Connect to Atls Team</h2>
+        <h2 id="team-h">4. Connect to Verfy Team</h2>
         <p className="text-2">
           In the dashboard, open <strong>Devices → Add device</strong> to get a one-time code (valid for one hour). Only the device&apos;s public key is sent.
         </p>
         <CodeBlock
-          code={["$ atls team enroll --url https://atls.example.com --code atle_…", "$ atls sync            # run it from cron or CI; never inside the hook", "$ atls team pull       # team policy and approved locks"].join("\n")}
+          code={["$ verfy team enroll --url https://verfy.example.com --code atle_…", "$ verfy sync            # run it from cron or CI; never inside the hook", "$ verfy team pull       # team policy and approved locks"].join("\n")}
         />
       </section>
 
       <section id="policy" className="stack" aria-labelledby="policy-h">
         <h2 id="policy-h">Policy</h2>
         <p className="text-2">
-          JSON merged over the defaults. Order of precedence: <code className="inline-code">./atls.policy.json</code>, then the team policy from{" "}
-          <code className="inline-code">atls team pull</code>, then <code className="inline-code">~/.atls/policy.json</code>.
+          JSON merged over the defaults. Order of precedence: <code className="inline-code">./verfy.policy.json</code>, then the team policy from{" "}
+          <code className="inline-code">verfy team pull</code>, then <code className="inline-code">~/.verfy/policy.json</code>.
         </p>
         <CodeBlock
           copy={false}
@@ -133,7 +133,7 @@ export default function DocsPage() {
         <h2 id="cli-h">CLI reference</h2>
         <div className="glass table-wrap">
           <table className="table">
-            <caption className="visually-hidden">Atls CLI commands</caption>
+            <caption className="visually-hidden">Verfy CLI commands</caption>
             <thead>
               <tr>
                 <th scope="col">Command</th>
@@ -162,7 +162,7 @@ export default function DocsPage() {
         </p>
         <div className="glass table-wrap">
           <table className="table">
-            <caption className="visually-hidden">Atls API endpoints</caption>
+            <caption className="visually-hidden">Verfy API endpoints</caption>
             <thead>
               <tr>
                 <th scope="col">Method</th>

@@ -1,5 +1,5 @@
 /**
- * Session cookie settings. Atls never uses the Supabase browser client, so
+ * Session cookie settings. Verfy never uses the Supabase browser client, so
  * the auth cookies can be HttpOnly (page scripts cannot read the tokens) and,
  * on an https deployment, Secure. SameSite=Lax blocks cross-site POSTs.
  */

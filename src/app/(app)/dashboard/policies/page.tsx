@@ -51,7 +51,7 @@ export default async function PoliciesPage() {
           <div className="alert alert-info">
             <Icon name="info" size={16} />
             <span>
-              Publishing is checked by the simulator: Atls replays the sample agent actions from its test corpus under the old and new policy and refuses a
+              Publishing is checked by the simulator: Verfy replays the sample agent actions from its test corpus under the old and new policy and refuses a
               policy that would block most everyday work, unless you confirm it explicitly.
             </span>
           </div>

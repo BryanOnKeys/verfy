@@ -1,7 +1,7 @@
 # Supabase CLI configuration for LOCAL development (`supabase start`).
 # Production settings (site URL, redirect URLs, SMTP, providers) are set in the
 # Supabase dashboard; see deploy/supabase/README.md.
-project_id = "atls"
+project_id = "verfy"
 
 [api]
 enabled = true
@@ -52,7 +52,7 @@ enable_confirmations = true
 secure_password_change = true
 max_frequency = "1m0s"
 
-# Two-factor authentication with an authenticator app. Atls enforces it in RLS once a user has a verified factor.
+# Two-factor authentication with an authenticator app. Verfy enforces it in RLS once a user has a verified factor.
 [auth.mfa]
 max_enrolled_factors = 10
 

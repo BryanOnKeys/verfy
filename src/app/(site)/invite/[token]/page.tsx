@@ -22,7 +22,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   return (
     <div className="shell auth-wrap">
       <div className="auth-card glass card-lg stack" data-light>
-        <h1 style={{ fontSize: "1.6rem" }}>Join a team on Atls</h1>
+        <h1 style={{ fontSize: "1.6rem" }}>Join a team on Verfy</h1>
         {user ? (
           <>
             <p className="text-2">

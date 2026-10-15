@@ -35,7 +35,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     <div className="shell auth-wrap">
       <div className="auth-card glass card-lg stack" data-light>
         <div className="stack" style={{ gap: 6 }}>
-          <h1 style={{ fontSize: "1.7rem" }}>Sign in to Atls</h1>
+          <h1 style={{ fontSize: "1.7rem" }}>Sign in to Verfy</h1>
           <p className="text-2 small">
             New here? <Link href="/auth/sign-up" className="link">Create an account</Link>
           </p>

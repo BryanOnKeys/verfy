@@ -100,7 +100,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
         <EmptyState
           icon="receipt"
           title={filtered ? "No receipts match these filters" : "No receipts yet"}
-          body={filtered ? "Widen the date range or clear a filter." : "Receipts appear after an enrolled device runs atls sync."}
+          body={filtered ? "Widen the date range or clear a filter." : "Receipts appear after an enrolled device runs verfy sync."}
           action={
             !filtered ? (
               <Link href="/dashboard/devices" className="btn btn-secondary btn-sm">

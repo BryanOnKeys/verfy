@@ -1,6 +1,6 @@
 import { generateKeyPairSync, sign as cryptoSign } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import vectors from "../../atls-cli/tests/fixtures/receipts.json";
+import vectors from "../../verfy-cli/tests/fixtures/receipts.json";
 import { canonical, digest, keyId, publicKeyFromB64u, receiptHash, verifyChain, verifyReceiptSignature, type Receipt } from "./receipts";
 import { BATCH_MAX, batchSchema, planIngest } from "./ingest";
 

@@ -4,20 +4,20 @@ import { Icon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "The Atls CLI is free, under the MIT license. Atls Team is free software you run on your own Vercel and Supabase projects.",
+  description: "The Verfy CLI is free, under the MIT license. Verfy Team is free software you run on your own Vercel and Supabase projects.",
 };
 
 const PLANS = [
   {
-    name: "Atls CLI",
+    name: "Verfy CLI",
     price: "Free",
     note: "MIT license",
     body: "Everything that runs on a developer's machine.",
-    items: ["Guard: Claude Code hook and MCP gateway", "Scan: configs and tool definitions", "Lock: atls.lock with drift detection", "Signed, hash-chained receipts and atls verify"],
+    items: ["Guard: Claude Code hook and MCP gateway", "Scan: configs and tool definitions", "Lock: verfy.lock with drift detection", "Signed, hash-chained receipts and verfy verify"],
     cta: { href: "/docs#install", label: "Install the CLI", primary: false },
   },
   {
-    name: "Atls Team (self-hosted)",
+    name: "Verfy Team (self-hosted)",
     price: "Free software",
     note: "You pay only your own Vercel and Supabase usage",
     body: "The web platform in this repository, deployed to your accounts.",
@@ -60,10 +60,10 @@ export default function PricingPage() {
       </div>
       <div className="glass card stack reveal" data-light>
         <div className="row">
-          <h2 style={{ fontSize: "1.1rem" }}>Hosted Atls Team</h2>
+          <h2 style={{ fontSize: "1.1rem" }}>Hosted Verfy Team</h2>
           <span className="badge">Not available</span>
         </div>
-        <p className="text-2 small">A managed version is not offered. Certification, insurance and guarantees are not part of Atls.</p>
+        <p className="text-2 small">A managed version is not offered. Certification, insurance and guarantees are not part of Verfy.</p>
       </div>
     </div>
   );

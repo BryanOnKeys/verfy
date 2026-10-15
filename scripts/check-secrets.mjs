@@ -18,16 +18,16 @@ const RULES = [
   ["GitHub token", /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b|\bgithub_pat_[A-Za-z0-9_]{60,}/],
   ["Stripe live key", /\b(?:sk|rk)_live_[A-Za-z0-9]{20,}/],
   ["Slack token", /\bxox[abprs]-[A-Za-z0-9-]{10,}/],
-  ["Atls device token", /\batd_[A-Za-z0-9_-]{43}\b/],
-  ["Atls enrollment code", /\batle_[0-9a-f]{64}\b/],
-  ["Ed25519 secret in an Atls key file", /"secret"\s*:\s*"[A-Za-z0-9_-]{43}"/],
+  ["Verfy device token", /\batd_[A-Za-z0-9_-]{43}\b/],
+  ["Verfy enrollment code", /\batle_[0-9a-f]{64}\b/],
+  ["Ed25519 secret in a Verfy key file", /"secret"\s*:\s*"[A-Za-z0-9_-]{43}"/],
 ];
 
 // Test fixtures that deliberately contain fake secrets to prove the scanners catch them.
 const ALLOW = [
-  /^atls-cli[\\/]tests[\\/]/,
-  /^atls-cli[\\/]examples[\\/]/,
-  /^atls-cli[\\/]src[\\/]atls[\\/]data[\\/]patterns\.json$/,
+  /^verfy-cli[\\/]tests[\\/]/,
+  /^verfy-cli[\\/]examples[\\/]/,
+  /^verfy-cli[\\/]src[\\/]verfy[\\/]data[\\/]patterns\.json$/,
   /^src[\\/].*\.test\.ts$/,
   /^supabase[\\/]tests[\\/]/,
   /^scripts[\\/]check-secrets\.mjs$/,

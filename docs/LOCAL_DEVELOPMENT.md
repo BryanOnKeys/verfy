@@ -39,20 +39,20 @@ Local email (sign-up confirmations, magic links) is captured by Inbucket at <htt
 npm run dev             # http://localhost:3000
 ```
 
-Sign in with the seeded **DEMO** account: `demo@atls.local` / `atls-demo-password`. Its organization, device and four receipts are labelled DEMO; the receipts are real signatures made with the published test key in `atls-cli/tests/fixtures/receipts.json`, so chain verification passes on them.
+Sign in with the seeded **DEMO** account: `demo@verfy.local` / `verfy-demo-password`. Its organization, device and four receipts are labelled DEMO; the receipts are real signatures made with the published test key in `verfy-cli/tests/fixtures/receipts.json`, so chain verification passes on them.
 
 ## 4. The CLI against your local app
 
 ```bash
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -e ./atls-cli
-export ATLS_HOME=$PWD/.atls                         # keeps your real ~/.atls untouched
-atls init
+pip install -e ./verfy-cli
+export VERFY_HOME=$PWD/.verfy                         # keeps your real ~/.verfy untouched
+verfy init
 # Dashboard → Devices → Add a device, then:
-atls team enroll --url http://localhost:3000 --code atle_…
-atls check "rm -rf ~"; atls check "npm test"
-echo '{"tool_name":"Bash","tool_input":{"command":"git push --force"},"session_id":"dev"}' | atls hook pre-tool-use
-atls sync && atls team pull
+verfy team enroll --url http://localhost:3000 --code atle_…
+verfy check "rm -rf ~"; verfy check "npm test"
+echo '{"tool_name":"Bash","tool_input":{"command":"git push --force"},"session_id":"dev"}' | verfy hook pre-tool-use
+verfy sync && verfy team pull
 ```
 
 `http://` team URLs are accepted only for `localhost`/`127.0.0.1`.
@@ -71,8 +71,8 @@ atls sync && atls team pull
 After a deliberate rule change, regenerate the fixtures and review the diff:
 
 ```bash
-python atls-cli/tests/make_fixtures.py
-python atls-cli/tests/make_receipt_vectors.py
+python verfy-cli/tests/make_fixtures.py
+python verfy-cli/tests/make_receipt_vectors.py
 node scripts/build-seed.mjs
 ```
 

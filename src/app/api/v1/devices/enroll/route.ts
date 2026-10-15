@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 const body = z
   .object({
-    code: z.string().regex(/^atle_[0-9a-f]{64}$/, "is not an Atls enrollment code"),
+    code: z.string().regex(/^atle_[0-9a-f]{64}$/, "is not a Verfy enrollment code"),
     public_key: z.string().regex(/^[A-Za-z0-9_-]{43}$/, "must be a base64url Ed25519 public key"),
     kid: z.string().regex(/^atl_[0-9a-f]{16}$/),
     name: z.string().trim().min(1).max(80),

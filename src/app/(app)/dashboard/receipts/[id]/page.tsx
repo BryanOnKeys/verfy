@@ -126,7 +126,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
       <section className="glass card stack" style={{ marginTop: 16 }} aria-labelledby="raw-h" data-light>
         <h2 id="raw-h" style={{ fontSize: "1rem" }}>Signed receipt</h2>
-        <p className="small muted">This is the exact object the device signed. Verify it offline with <code className="inline-code">atls verify --pub &lt;device public key&gt;</code>.</p>
+        <p className="small muted">This is the exact object the device signed. Verify it offline with <code className="inline-code">verfy verify --pub &lt;device public key&gt;</code>.</p>
         <div className="code">
           <pre>
             <code>{JSON.stringify(r.body, null, 2)}</code>
@@ -137,7 +137,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       <div className="alert alert-info" style={{ marginTop: 16 }}>
         <Icon name="info" size={16} />
         <span>
-          This receipt proves the decision Atls made for this call and that the record has not been changed since it was signed. It does not show what the
+          This receipt proves the decision Verfy made for this call and that the record has not been changed since it was signed. It does not show what the
           tool did internally.
         </span>
       </div>

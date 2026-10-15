@@ -1,4 +1,4 @@
--- Test shim for the parts of a Supabase database that Atls's migrations use:
+-- Test shim for the parts of a Supabase database that Verfy's migrations use:
 -- the anon / authenticated / service_role roles, auth.users, auth.identities, auth.mfa_factors,
 -- auth.uid(), auth.jwt(), storage.buckets and stand-ins for pgcrypto's crypt().
 -- Only for supabase/tests (PGlite). Never apply this to a real Supabase project.
@@ -13,7 +13,7 @@ create table auth.users (
 create table auth.identities (
   id uuid primary key, user_id uuid references auth.users (id), provider_id text, identity_data jsonb, provider text,
   last_sign_in_at timestamptz, created_at timestamptz, updated_at timestamptz, unique (provider_id, provider));
--- the columns of auth.mfa_factors that Atls's MFA checks read (Supabase uses enum types for type and status)
+-- the columns of auth.mfa_factors that Verfy's MFA checks read (Supabase uses enum types for type and status)
 create table auth.mfa_factors (
   id uuid primary key, user_id uuid not null references auth.users (id) on delete cascade, friendly_name text,
   factor_type text not null default 'totp', status text not null default 'unverified', secret text,

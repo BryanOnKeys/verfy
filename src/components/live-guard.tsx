@@ -59,7 +59,7 @@ export function HeroDemo({ initialHashes }: { initialHashes: string[] }) {
             <i />
             <i />
           </div>
-          <span>atls guard · agent session</span>
+          <span>verfy guard · agent session</span>
           <span className="console-tag">live demo</span>
         </div>
         <div className="console-body">
@@ -110,7 +110,7 @@ export function HeroDemo({ initialHashes }: { initialHashes: string[] }) {
           <b>{counts.allow}</b> allowed · <b>{counts.ask}</b> waiting for you · <b>{counts.deny}</b> blocked
         </span>
         <span>
-          <b>ask</b> pauses the agent until you approve. Real Atls rules; nothing leaves this page.
+          <b>ask</b> pauses the agent until you approve. Real Verfy rules; nothing leaves this page.
         </span>
       </div>
     </div>

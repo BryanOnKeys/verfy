@@ -20,7 +20,7 @@ export interface OrgSummary {
   role: Role;
 }
 
-export const ORG_COOKIE = "atls_org";
+export const ORG_COOKIE = "verfy_org";
 
 /**
  * The signed-in user, verified by Supabase (getClaims verifies the JWT).
@@ -67,7 +67,7 @@ export const listMyOrgs = cache(async (): Promise<OrgSummary[]> => {
   });
 });
 
-/** The organization the dashboard is showing: the `atls_org` cookie if it is one of the user's, else the first. */
+/** The organization the dashboard is showing: the `verfy_org` cookie if it is one of the user's, else the first. */
 export async function currentOrg(): Promise<OrgSummary | null> {
   const orgs = await listMyOrgs();
   const wanted = (await cookies()).get(ORG_COOKIE)?.value;

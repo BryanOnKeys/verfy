@@ -45,7 +45,7 @@ export function publicEnv(): PublicEnv {
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined,
   });
   if (!parsed.success) {
-    throw new ConfigError(`Atls is not configured: ${describe(parsed.error)}. See .env.example and docs/DEPLOYMENT.md.`);
+    throw new ConfigError(`Verfy is not configured: ${describe(parsed.error)}. See .env.example and docs/DEPLOYMENT.md.`);
   }
   cachedPublic = parsed.data;
   return cachedPublic;

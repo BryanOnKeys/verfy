@@ -42,7 +42,7 @@ export function AppShell({ orgs, current, email, children }: { orgs: Org[]; curr
   }, [open]);
 
   function switchOrg(id: string) {
-    document.cookie = `atls_org=${id}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+    document.cookie = `verfy_org=${id}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
     router.refresh();
   }
 
@@ -64,7 +64,7 @@ export function AppShell({ orgs, current, email, children }: { orgs: Org[]; curr
       {open && <div className="scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
       <aside id="app-sidebar" className="sidebar" data-open={open} aria-label="Dashboard">
         <div className="row-between">
-          <Link href="/" className="brand" aria-label="Atls home">
+          <Link href="/" className="brand" aria-label="Verfy home">
             <Logo size={26} />
           </Link>
           <button type="button" className="icon-btn app-close" aria-label="Close navigation" onClick={() => setOpen(false)} style={{ display: open ? undefined : "none" }}>

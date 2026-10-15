@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import vectors from "../../atls-cli/tests/fixtures/receipts.json";
+import vectors from "../../verfy-cli/tests/fixtures/receipts.json";
 import { buildEvidence } from "./evidence";
 import { canonical, type Receipt } from "./receipts";
 

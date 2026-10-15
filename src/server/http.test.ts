@@ -5,7 +5,7 @@ import { ApiError, assertSameOrigin, fromDbError, problem, readJson, route } fro
 import { redactForLog } from "./log";
 import { isDeviceToken, newDeviceToken, sha256Hex } from "./device-auth";
 
-const req = (body: string, headers: Record<string, string> = {}, url = "https://atls.test/api/v1/x") =>
+const req = (body: string, headers: Record<string, string> = {}, url = "https://verfy.test/api/v1/x") =>
   new NextRequest(url, { method: "POST", body, headers: { "content-type": "application/json", ...headers } });
 
 describe("error mapping", () => {
@@ -29,7 +29,7 @@ describe("error mapping", () => {
     const res = problem(422, "invalid_request", "Bad", "x", "req-1");
     expect(res.headers.get("content-type")).toBe("application/problem+json");
     const body = await res.json();
-    expect(body).toEqual({ type: "urn:atls:problem:invalid_request", title: "Bad", status: 422, code: "invalid_request", detail: "x", request_id: "req-1" });
+    expect(body).toEqual({ type: "urn:verfy:problem:invalid_request", title: "Bad", status: 422, code: "invalid_request", detail: "x", request_id: "req-1" });
   });
 
   it("the route wrapper turns unexpected exceptions into a generic 500", async () => {
@@ -68,9 +68,9 @@ describe("request validation", () => {
   });
 
   it("refuses cross-site state changes (CSRF)", () => {
-    expect(() => assertSameOrigin(req("{}", { origin: "https://atls.test" }), "https://atls.test")).not.toThrow();
-    expect(() => assertSameOrigin(req("{}", { origin: "https://evil.example" }), "https://atls.test")).toThrow(ApiError);
-    expect(() => assertSameOrigin(req("{}"), "https://atls.test")).toThrow(ApiError);
+    expect(() => assertSameOrigin(req("{}", { origin: "https://verfy.test" }), "https://verfy.test")).not.toThrow();
+    expect(() => assertSameOrigin(req("{}", { origin: "https://evil.example" }), "https://verfy.test")).toThrow(ApiError);
+    expect(() => assertSameOrigin(req("{}"), "https://verfy.test")).toThrow(ApiError);
   });
 });
 

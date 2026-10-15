@@ -1,10 +1,10 @@
 .env
 .env.*
 !.env.example
-.atls/
+.verfy/
 *.pem
 *.key
-atls-home-preview.html
+verfy-home-preview.html
 .next/
 node_modules/
 coverage/

@@ -65,7 +65,7 @@ export function PolicyEditor({ orgId, initial, version, canPublish }: { orgId: s
       }
       return setError(res.error ?? "The policy could not be published.");
     }
-    setDone(`Published as version ${res.data.version}. Devices pick it up with atls team pull.`);
+    setDone(`Published as version ${res.data.version}. Devices pick it up with verfy team pull.`);
     setNote("");
     router.refresh();
   }
@@ -82,7 +82,7 @@ export function PolicyEditor({ orgId, initial, version, canPublish }: { orgId: s
         </div>
       )}
       <div className="field">
-        <label htmlFor="policy-json">Policy (JSON, merged over the Atls defaults)</label>
+        <label htmlFor="policy-json">Policy (JSON, merged over the Verfy defaults)</label>
         <textarea
           id="policy-json"
           className="textarea"
@@ -118,7 +118,7 @@ export function PolicyEditor({ orgId, initial, version, canPublish }: { orgId: s
       {sim && (
         <section className="glass card stack" aria-labelledby="sim-h" aria-live="polite" data-light>
           <div className="row-between">
-            <h3 id="sim-h">Simulation on {sim.total} sample agent actions (Atls test corpus)</h3>
+            <h3 id="sim-h">Simulation on {sim.total} sample agent actions (Verfy test corpus)</h3>
             {stale && <span className="badge badge-warning">out of date: the text changed</span>}
           </div>
           <div className="grid-3" style={{ gap: 12 }}>

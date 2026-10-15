@@ -18,7 +18,7 @@ export default async function OverviewPage() {
       <>
         <div className="page-head">
           <div>
-            <h1>Welcome to Atls</h1>
+            <h1>Welcome to Verfy</h1>
             <p>Create an organization to collect receipts, share a policy and approve tool changes. If a teammate invited you, open their invitation link instead.</p>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default async function OverviewPage() {
           </div>
           {recent.rows.length === 0 ? (
             <div className="empty">
-              <p>No receipts yet. Enroll a device and run <code className="inline-code">atls sync</code>.</p>
+              <p>No receipts yet. Enroll a device and run <code className="inline-code">verfy sync</code>.</p>
             </div>
           ) : (
             <div className="table-wrap">
@@ -173,7 +173,7 @@ export default async function OverviewPage() {
             <EmptyState
               icon="device"
               title="Connect your first device"
-              body="Create an enrollment code, then run atls team enroll on the developer machine or CI runner."
+              body="Create an enrollment code, then run verfy team enroll on the developer machine or CI runner."
               action={
                 <Link href="/dashboard/devices" className="btn btn-primary btn-sm">
                   <span>Add a device</span>

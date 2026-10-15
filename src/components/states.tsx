@@ -34,7 +34,7 @@ export function NotConfigured() {
     <div className="alert alert-warning" role="status">
       <Icon name="alert" size={16} />
       <span>
-        This Atls deployment is not connected to Supabase yet, so live data cannot be shown. Set the environment variables in{" "}
+        This Verfy deployment is not connected to Supabase yet, so live data cannot be shown. Set the environment variables in{" "}
         <code className="inline-code">.env.example</code> (see <code className="inline-code">docs/DEPLOYMENT.md</code>).
       </span>
     </div>

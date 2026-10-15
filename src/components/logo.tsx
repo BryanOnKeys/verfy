@@ -1,11 +1,13 @@
 /**
- * The Verfy mark: two chain links that lean together into a "V". The links are the receipts Verfy chains to each
- * other; the second one is drawn over the first, the way each receipt holds the hash of the one before it. The first
- * link takes the text colour (ink on paper, ivory at night) and the second takes the accent, so the mark follows the
- * theme. src/app/icon.svg and public/verfy-mark.svg are the same drawing on an ink tile, for favicons and app icons.
+ * The Verfy mark: a shield with a V cut into its top, split down the middle. The shield is the control Verfy puts
+ * around an agent; the V is the check it leaves behind. The left half takes the text colour (ink on paper, ivory at
+ * night) and the right half takes the accent, so the mark follows the theme.
+ * src/app/icon.svg and public/verfy-mark.svg are the same drawing on an ink tile, for favicons and app icons.
  */
-const LINK = { x: -8, y: -23, width: 16, height: 46, rx: 8, strokeWidth: 6.5, fill: "none" } as const;
-export const MARK_LINKS = { first: "translate(21 29) rotate(-22)", second: "translate(43 29) rotate(22)" } as const;
+export const MARK_PATHS = {
+  left: "M8 10H24L31 30V58.5C17.5 52.5 8 42.5 8 28.5Z",
+  right: "M33 30L40 10H56V28.5C56 42.5 46.5 52.5 33 58.5Z",
+} as const;
 
 export function LogoMark({ size = 32, className, title }: { size?: number; className?: string; title?: string }) {
   return (
@@ -19,13 +21,8 @@ export function LogoMark({ size = 32, className, title }: { size?: number; class
       aria-hidden={title ? undefined : true}
       focusable="false"
     >
-      {/* the classes sit on groups: CSS animates their transform, which would replace a rect's own rotation */}
-      <g className="logo-base" stroke="currentColor">
-        <rect {...LINK} transform={MARK_LINKS.first} />
-      </g>
-      <g className="logo-cap">
-        <rect {...LINK} transform={MARK_LINKS.second} />
-      </g>
+      <path className="logo-base" d={MARK_PATHS.left} fill="currentColor" />
+      <path className="logo-cap" d={MARK_PATHS.right} />
     </svg>
   );
 }

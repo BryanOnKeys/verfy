@@ -1,2 +1,2 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0B111D"/>
-<g transform="translate(32 32) scale(.72) translate(-32 -32)" fill="none" stroke-width="6.5"><rect x="-8" y="-23" width="16" height="46" rx="8" transform="translate(21 29) rotate(-22)" stroke="#fff"/><rect x="-8" y="-23" width="16" height="46" rx="8" transform="translate(43 29) rotate(22)" stroke="#6E90FF"/></g></svg>
+<g transform="translate(32 32) scale(.72) translate(-32 -34)"><path d="M8 10H24L31 30V58.5C17.5 52.5 8 42.5 8 28.5Z" fill="#fff"/><path d="M33 30L40 10H56V28.5C56 42.5 46.5 52.5 33 58.5Z" fill="#6E90FF"/></g></svg>

@@ -263,15 +263,7 @@ code, kbd, pre, .mono { font-family: var(--font-mono); font-size: 0.88em; }
 .brand-mark { flex: 0 0 auto; }
 .brand-mark { color: var(--text); overflow: visible; }
 .brand-word { font-family: var(--font-serif); font-size: 1.45rem; font-weight: 700; letter-spacing: -0.012em; line-height: 1; padding-bottom: 2px; }
-.logo-cap { stroke: var(--logo-cap); transition: transform 0.45s var(--ease); }
-@media (hover: hover) and (prefers-reduced-motion: no-preference) { .brand:hover .logo-cap { transform: translateY(-3px); } }
-/* the two links come together when the page first loads */
-@media (prefers-reduced-motion: no-preference) {
-  [data-fx] .site-header .logo-mark .logo-base { animation: course-in 0.7s var(--ease) both; }
-  [data-fx] .site-header .logo-mark .logo-cap { animation: cap-in 0.8s var(--ease) 0.24s both; }
-}
-@keyframes course-in { from { opacity: 0; transform: translateY(5px); } }
-@keyframes cap-in { from { opacity: 0; transform: translateY(-9px); } }
+.logo-cap { fill: var(--logo-cap); }
 
 /* ---------------------------------------------------------------- header */
 .site-header { position: sticky; top: 0; z-index: 50; background: var(--header-bg); -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px); border-bottom: 1px solid transparent; transition: border-color var(--medium); }

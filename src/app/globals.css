@@ -263,12 +263,11 @@ code, kbd, pre, .mono { font-family: var(--font-mono); font-size: 0.88em; }
 .brand-mark { flex: 0 0 auto; }
 .brand-mark { color: var(--text); overflow: visible; }
 .brand-word { font-family: var(--font-serif); font-size: 1.45rem; font-weight: 700; letter-spacing: -0.012em; line-height: 1; padding-bottom: 2px; }
-.logo-cap { fill: var(--logo-cap); transition: transform 0.45s var(--ease); }
+.logo-cap { stroke: var(--logo-cap); transition: transform 0.45s var(--ease); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { .brand:hover .logo-cap { transform: translateY(-3px); } }
-/* the mark is laid course by course when the page first loads */
+/* the two links come together when the page first loads */
 @media (prefers-reduced-motion: no-preference) {
-  [data-fx] .site-header .logo-mark path { animation: course-in 0.7s var(--ease) both; }
-  [data-fx] .site-header .logo-mark .logo-mid { animation-delay: 0.1s; }
+  [data-fx] .site-header .logo-mark .logo-base { animation: course-in 0.7s var(--ease) both; }
   [data-fx] .site-header .logo-mark .logo-cap { animation: cap-in 0.8s var(--ease) 0.24s both; }
 }
 @keyframes course-in { from { opacity: 0; transform: translateY(5px); } }

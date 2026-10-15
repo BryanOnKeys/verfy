@@ -1,14 +1,11 @@
 /**
- * The Verfy mark: a "V" laid in three courses that narrow to a blue point. The courses are the records Verfy keeps,
- * each one carrying the one above it; the point is the seal where the chain is checked. The courses take the text
- * colour (ink on paper, ivory at night) and the point takes the accent, so the mark follows the theme.
- * src/app/icon.svg and public/verfy-mark.svg are the same drawing on an ink tile, for favicons and app icons.
+ * The Verfy mark: two chain links that lean together into a "V". The links are the receipts Verfy chains to each
+ * other; the second one is drawn over the first, the way each receipt holds the hash of the one before it. The first
+ * link takes the text colour (ink on paper, ivory at night) and the second takes the accent, so the mark follows the
+ * theme. src/app/icon.svg and public/verfy-mark.svg are the same drawing on an ink tile, for favicons and app icons.
  */
-export const MARK_PATHS = {
-  cap: "M32 59L39.25 44.5H24.75z",
-  mid: "M21.75 38.5H42.25L47.75 27.5H16.25z",
-  base: "M13.25 21.5H50.75L59 5H40.5L32 17.5 23.5 5H5z",
-} as const;
+const LINK = { x: -8, y: -23, width: 16, height: 46, rx: 8, strokeWidth: 6.5, fill: "none" } as const;
+export const MARK_LINKS = { first: "translate(21 29) rotate(-22)", second: "translate(43 29) rotate(22)" } as const;
 
 export function LogoMark({ size = 32, className, title }: { size?: number; className?: string; title?: string }) {
   return (
@@ -22,9 +19,13 @@ export function LogoMark({ size = 32, className, title }: { size?: number; class
       aria-hidden={title ? undefined : true}
       focusable="false"
     >
-      <path className="logo-base" d={MARK_PATHS.base} fill="currentColor" />
-      <path className="logo-mid" d={MARK_PATHS.mid} fill="currentColor" />
-      <path className="logo-cap" d={MARK_PATHS.cap} />
+      {/* the classes sit on groups: CSS animates their transform, which would replace a rect's own rotation */}
+      <g className="logo-base" stroke="currentColor">
+        <rect {...LINK} transform={MARK_LINKS.first} />
+      </g>
+      <g className="logo-cap">
+        <rect {...LINK} transform={MARK_LINKS.second} />
+      </g>
     </svg>
   );
 }

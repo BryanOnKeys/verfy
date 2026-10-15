@@ -14,6 +14,8 @@ const publicSchema = z.object({
   NEXT_PUBLIC_APP_URL: url.transform((u) => u.replace(/\/+$/, "")),
   NEXT_PUBLIC_AUTH_GITHUB_ENABLED: z.enum(["true", "false"]).default("false"),
   NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: z.enum(["true", "false"]).default("false"),
+  // optional: the Google OAuth web client ID; when set, Google returns straight to this app (src/server/google-signin.ts)
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().regex(/^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/).optional(),
   // optional: Cloudflare Turnstile site key; when set, sign-in, sign-up and reset forms require the check
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().regex(/^[\w-]{8,100}$/).optional(),
 });
@@ -42,6 +44,7 @@ export function publicEnv(): PublicEnv {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_AUTH_GITHUB_ENABLED: process.env.NEXT_PUBLIC_AUTH_GITHUB_ENABLED || undefined,
     NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED || undefined,
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || undefined,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined,
   });
   if (!parsed.success) {

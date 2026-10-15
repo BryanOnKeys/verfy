@@ -1,7 +1,7 @@
 "use server";
 
 import { createHash } from "node:crypto";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { publicEnv } from "@/lib/env";
@@ -9,6 +9,7 @@ import { safeNext } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { ApiError, ipHash } from "@/server/http";
 import { serverEnv } from "@/server/env";
+import { encodeAttempt, GOOGLE_COOKIE, GOOGLE_COOKIE_SECONDS, googleAuthUrl, newAttempt } from "@/server/google-signin";
 import { log } from "@/server/log";
 import { secondFactorDue } from "@/server/mfa";
 import { rateLimit } from "@/server/ratelimit";
@@ -173,6 +174,19 @@ export async function signInWithProvider(form: FormData): Promise<void> {
   const p = OAUTH_PROVIDERS[provider as OAuthProvider];
   if (publicEnv()[p.flag] !== "true") redirect(`/auth/sign-in?error=${provider}_disabled`);
   const next = safeNext(String(form.get("next") ?? ""));
+  const googleClientId = publicEnv().NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  if (provider === "google" && googleClientId) {
+    // Google returns straight to this app, so its sign-in page names Verfy's domain (src/server/google-signin.ts)
+    const attempt = newAttempt(next);
+    (await cookies()).set(GOOGLE_COOKIE, encodeAttempt(attempt), {
+      path: "/",
+      secure: true,
+      httpOnly: true,
+      sameSite: "none",
+      maxAge: GOOGLE_COOKIE_SECONDS,
+    });
+    redirect(googleAuthUrl(googleClientId, publicEnv().NEXT_PUBLIC_APP_URL, attempt));
+  }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: provider as OAuthProvider,

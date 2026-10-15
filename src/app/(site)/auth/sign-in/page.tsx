@@ -15,7 +15,8 @@ const ERRORS: Record<string, string> = {
   invalid_link: "That link is invalid or has expired. Request a new one.",
   oauth_failed: "That sign-in option is not available. Use another one or your email.",
   google_disabled: "Google sign-in is not enabled on this deployment.",
-  google_failed: "Google sign-in could not start. Try again or use email.",
+  google_failed: "Google sign-in did not finish. Try again or use email.",
+  rate_limited: "Too many sign-in attempts. Wait a few minutes and try again.",
   github_disabled: "GitHub sign-in is not enabled on this deployment.",
   github_failed: "GitHub sign-in could not start. Try again or use email.",
 };

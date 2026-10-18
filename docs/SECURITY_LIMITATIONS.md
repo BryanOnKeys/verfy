@@ -15,6 +15,7 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - `verfy scan --discover` is static and does not start servers. `--live` starts each configured stdio server to list its tools; only use it for servers you would run anyway.
 - The first time a server is seen, its tools are locked as they are (trust on first use).
 - A lock proves a definition did not change since it was approved, not that it is safe.
+- `verfy lock check` (and the GitHub Action) starts every stdio server command in the given config, like `--live`. In CI that runs those packages on the runner with whatever secrets you pass them; pin versions and keep the job's permissions read-only. A server can serve different definitions to different clients or at different times, so a passing CI check does not replace the lock on each developer's machine.
 
 ## Receipts
 
@@ -22,7 +23,7 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - A device key proves which device signed, not that the device was uncompromised.
 - Whoever holds a device's private key can build a new chain from scratch and sign it, and `verfy verify` will accept that chain on its own: the check catches edits, deletions and reordering inside a chain, not a complete replacement. Receipts already synced to Verfy Team cannot be replaced this way, because the server keeps the hash of every stored receipt and refuses different content for the same position (`chain_conflict`). A ledger that was never synced has no outside copy to compare with.
 - Deleting an entire local ledger together with its key is not detectable locally; it is detectable when the device had already synced to Verfy Team.
-- There is no external timestamping or transparency-log anchoring yet (Phase 2), so receipts show order, not trusted wall-clock time.
+- There is no external timestamping or transparency-log anchoring yet, so receipts show order, not trusted wall-clock time. `verfy scitt export` produces SCITT signed statements that a transparency service could register, but Verfy does not register them anywhere.
 
 ## Verfy Team
 

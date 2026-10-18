@@ -20,7 +20,7 @@ from .gateway import Gateway, verfy_home
 from .mcp_client import MCPError, list_tools
 from .policy import DEFAULT_POLICY, load_policy, policy_digest
 from .precheck import check
-from .receipts import Key, Ledger, key_id, public_from, read_ledger, verify_ledger
+from .receipts import Key, Ledger, key_id, public_from, read_ledger, receipt_hash, verify_ledger
 from .scanner import scan, tool_pin
 
 EXIT = {"allow": 0, "ask": 1, "deny": 2}
@@ -160,17 +160,29 @@ def print_config_scan(report: dict) -> None:
             print(f"           {c(f['severity'].upper().ljust(8), SCOL[f['severity']])} {f['rule']}  {f['message']}")
 
 
+def _stdio_launch(spec: dict) -> tuple[list[str], dict] | None:
+    """How to start a stdio server from its MCP config entry, skipping a Verfy gateway in front of it. None for remote servers."""
+    if "command" not in spec:
+        return None
+    cmd = [str(spec["command"]), *[str(a) for a in spec.get("args", [])]]
+    if Path(cmd[0]).name.lower().startswith("verfy") and "--" in cmd:
+        cmd = cmd[cmd.index("--") + 1:]
+    env = {**os.environ, **{k: str(v) for k, v in (spec.get("env") or {}).items()}}
+    exe = shutil.which(cmd[0], path=env.get("PATH"))  # finds npx.cmd and friends on Windows
+    if exe:
+        cmd[0] = exe
+    return cmd, env
+
+
 def _live_reports(found: list[dict], args) -> list[dict]:
     reports = []
     for cfg in found:
         for name, spec in cfg["servers"].items():
-            if "command" not in spec:
+            launch = _stdio_launch(spec)
+            if launch is None:
                 print(f"[verfy] skipping `{name}` (remote server; save its tools/list answer and scan the file)", file=sys.stderr)
                 continue
-            cmd = [str(spec["command"]), *[str(a) for a in spec.get("args", [])]]
-            if Path(cmd[0]).name.lower().startswith("verfy") and "--" in cmd:
-                cmd = cmd[cmd.index("--") + 1:]
-            env = {**os.environ, **{k: str(v) for k, v in (spec.get("env") or {}).items()}}
+            cmd, env = launch
             try:
                 live = list_tools(cmd, timeout=args.timeout, env=env)
             except MCPError as e:
@@ -347,6 +359,36 @@ def cmd_verify(args) -> int:
     return cmd_ledger_verify(args)
 
 
+def cmd_scitt_export(args) -> int:
+    from .scitt import export_statement
+    key = get_key(args.key)
+    receipts = [r for r in read_ledger(_ledger_path(args)) if isinstance(r, dict) and r.get("kid") == key.kid]
+    if args.last:
+        receipts = receipts[-args.last:]
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    for r in receipts:
+        name = f"{r.get('seq', 0):08d}-{receipt_hash(r)[7:19]}.cose"
+        (out / name).write_bytes(export_statement(r, key, issuer=args.issuer))
+    print(f"Wrote {len(receipts)} SCITT signed statement(s) (COSE_Sign1) to {out}.")
+    return 0
+
+
+def cmd_scitt_verify(args) -> int:
+    from .scitt import CoseError, verify_statement
+    pub = public_from(args.pub) if args.pub else get_key(args.key).public
+    bad = 0
+    for f in args.files:
+        try:
+            res = verify_statement(Path(f).read_bytes(), pub)
+            r = res["receipt"]
+            print(f"{c('VERIFIED', '32;1')}  {f}  receipt #{r.get('seq')} {r.get('decision', {}).get('verdict', '?')}  iss {res['issuer']}")
+        except CoseError as e:
+            bad += 1
+            print(f"{c('FAILED', '31;1')}  {f}: {e}")
+    return 1 if bad else 0
+
+
 # ---------------------------------------------------------------- lock
 
 LSTAT = {"ok": "32", "drift": "31;1", "new": "33", "removed": "36"}
@@ -463,6 +505,142 @@ def cmd_lock_verify(args) -> int:
         print(f"{c('INVALID', '31;1')}  {e}")
         return 2
     print(f"{c('VALID', '32;1')}  {path}: every digest matches its definition. lock digest {locks.lock_digest(lock)}")
+    return 0
+
+
+def _gh(kind: str, msg: str) -> None:
+    """A GitHub Actions annotation, printed only when running inside GitHub Actions."""
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        msg = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::{kind} title=Verfy Lock::{msg}")
+
+
+def _step_summary(rows: list[dict], errors: list[str], path: Path) -> None:
+    out = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not out:
+        return
+    bad = [r for r in rows if r["status"] != "ok"]
+    lines = ["### Verfy Lock", ""]
+    if not bad and not errors:
+        lines.append(f"All {len(rows)} tool definitions match `{path}`.")
+    else:
+        lines += ["| Status | Server / tool | Locked | Now |", "| --- | --- | --- | --- |"]
+        lines += [f"| {r['status']} | `{r['server']}/{r['tool']}` | `{(r['locked'] or '-')[:19]}` | `{(r['current'] or '-')[:19]}` |" for r in bad]
+        lines += [f"| error | {e} | | |" for e in errors]
+        lines += ["", "Review the change, then run `verfy lock check --update` locally and commit `verfy.lock`."]
+    with open(out, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def cmd_lock_check(args) -> int:
+    """Start every stdio server in an MCP config, read its tools and compare them with verfy.lock (for CI)."""
+    cfg = Path(args.config)
+    if not cfg.is_file():
+        print(f"verfy lock check: no such config file: {cfg}", file=sys.stderr)
+        return 3
+    found = cfgscan.read_configs([("given", cfg)])
+    if not found or found[0].get("error"):
+        print(f"verfy lock check: {cfg}: {found[0].get('error') if found else 'unreadable'}", file=sys.stderr)
+        return 3
+    servers = {name: spec for f in found for name, spec in f["servers"].items()}
+    path = Path(args.lock)
+    lock = locks.load_lock(path)
+    wanted = set(args.server or [])
+    rows: list[dict] = []
+    errors: list[str] = []
+    current: dict[str, list[dict]] = {}
+    for name, spec in sorted(servers.items()):
+        if wanted and name not in wanted:
+            continue
+        launch = _stdio_launch(spec)
+        if launch is None:
+            print(f"[verfy] skipping `{name}`: remote servers are not started by `lock check`", file=sys.stderr)
+            continue
+        try:
+            current[name] = list_tools(launch[0], timeout=args.timeout, env=launch[1])["tools"]
+        except MCPError as e:
+            errors.append(f"`{name}`: {e}")
+            continue
+        rows += [{"server": name, **r} for r in locks.compare(lock, name, current[name])]
+    gone = [s for s in lock["servers"] if s not in servers and (not wanted or s in wanted)]
+    for name in gone:
+        rows += [{"server": name, **r} for r in locks.compare(lock, name, [])]
+
+    if args.update:
+        return _lock_check_update(args, path, lock, current, gone, rows, errors)
+
+    if args.json:
+        print(json.dumps({"lock": str(path), "config": str(cfg), "tools": rows, "errors": errors}, indent=2))
+    else:
+        print(f"{c('Verfy Lock check', '1')}  {cfg} against {path}")
+        for r in rows:
+            print(f"  {c(r['status'].ljust(7), LSTAT[r['status']])} {r['server']}/{r['tool']}  {(r['locked'] or '-')[:19]}  ->  {(r['current'] or '-')[:19]}")
+        for e in errors:
+            print(f"  {c('error  ', '31;1')} {e}")
+    for r in rows:
+        if r["status"] == "drift":
+            old = lock["servers"][r["server"]]["tools"][r["tool"]]["definition"]
+            new = next(locks.definition(t) for t in current[r["server"]] if t.get("name") == r["tool"])
+            if not args.json:
+                print(locks.diff(old, new, f"{r['server']}/{r['tool']}"))
+            _gh("error", f"{r['server']}/{r['tool']} changed since it was locked (possible rug pull). Locked {r['locked']}, now {r['current']}.")
+        elif r["status"] == "new":
+            _gh("error", f"{r['server']}/{r['tool']} is not in {path}. Review it, then run `verfy lock check --update` and commit the lock.")
+        elif r["status"] == "removed":
+            _gh("warning", f"{r['server']}/{r['tool']} is in {path} but the server no longer serves it.")
+    for e in errors:
+        _gh("error", f"could not read tools from {e}")
+    _step_summary(rows, errors, path)
+    if any(r["status"] == "drift" for r in rows):
+        return 2
+    if errors:
+        return 3
+    if any(r["status"] in ("new", "removed") for r in rows):
+        return 1
+    if not args.json:
+        print(f"{c('OK', '32;1')}  {len(rows)} tool definitions match {path}.")
+    return 0
+
+
+def _lock_check_update(args, path: Path, lock: dict, current: dict, gone: list[str], rows: list[dict], errors: list[str]) -> int:
+    if errors:
+        for e in errors:
+            print(f"verfy lock check: could not read tools from {e}", file=sys.stderr)
+        print("Nothing changed: every server must answer before the lock is rewritten.", file=sys.stderr)
+        return 3
+    todo = [r for r in rows if r["status"] != "ok"]
+    if not todo:
+        print(f"{path} already matches every server.")
+        return 0
+    for r in todo:
+        old = ((lock["servers"].get(r["server"]) or {}).get("tools", {}).get(r["tool"]) or {}).get("definition")
+        new = next((locks.definition(t) for t in current.get(r["server"], []) if t.get("name") == r["tool"]), None)
+        print(locks.diff(old, new, f"{r['server']}/{r['tool']}") or f"{r['server']}/{r['tool']}: removed")
+        if new is not None:
+            for f in scan([new], r["server"])["tools"][0]["findings"]:
+                print(f"  {c(f['severity'].upper().ljust(8), SCOL[f['severity']])} {f['rule']}  {f['message']}")
+    if not args.yes:
+        if not sys.stdin.isatty():
+            raise SystemExit("verfy lock check --update: review the changes above, then run again with --yes")
+        if input(f"Write {len(todo)} change(s) to {path}? [y/N] ").strip().lower() not in ("y", "yes"):
+            print("Nothing changed.")
+            return 1
+
+    def apply(lk: dict) -> None:
+        for name, tools in current.items():
+            entry = lk["servers"].setdefault(name, {"tools": {}})
+            names = set()
+            for t in tools:
+                d = locks.definition(t)
+                names.add(d["name"])
+                if (entry["tools"].get(d["name"]) or {}).get("digest") != tool_pin(d):
+                    locks.pin(lk, name, t, "user")
+            for old in set(entry["tools"]) - names:
+                del entry["tools"][old]
+        for name in gone:
+            lk["servers"].pop(name, None)
+    locks.update(path, apply)
+    print(f"Wrote {len(todo)} change(s) to {path}. Commit it so the pull request shows what changed.")
     return 0
 
 
@@ -724,6 +902,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_verify)
 
+    p = sub.add_parser("scitt", help="export receipts as SCITT signed statements (COSE_Sign1) and verify them")
+    sc = p.add_subparsers(dest="scitt_cmd", metavar="action")
+    x = sc.add_parser("export", help="write one COSE_Sign1 signed statement per receipt")
+    x.add_argument("--out", required=True, help="folder for the .cose files")
+    x.add_argument("--ledger")
+    x.add_argument("--key")
+    x.add_argument("--issuer", help="CWT issuer (default: the device key id)")
+    x.add_argument("--last", type=int, help="only the newest N receipts")
+    x.set_defaults(fn=cmd_scitt_export)
+    x = sc.add_parser("verify", help="check .cose statements: COSE signature, subject and the receipt inside")
+    x.add_argument("files", nargs="+")
+    x.add_argument("--pub", help="public key (base64url or key file) of the signer")
+    x.add_argument("--key")
+    x.set_defaults(fn=cmd_scitt_verify)
+
     p = sub.add_parser("lock", help="Verfy Lock: pinned MCP tool definitions and drift")
     lk = p.add_subparsers(dest="lock_cmd", metavar="action")
     x = lk.add_parser("status", help="locked vs last seen digests (exit 2 on drift)")
@@ -747,6 +940,15 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("--server", required=True)
     x.add_argument("--lock")
     x.set_defaults(fn=cmd_lock_add)
+    x = lk.add_parser("check", help="start the servers in an MCP config and compare their tools with verfy.lock (for CI)")
+    x.add_argument("--config", default=".mcp.json", help="MCP config with the servers to check (default .mcp.json)")
+    x.add_argument("--lock", default="verfy.lock", help="lock file to compare with (default ./verfy.lock)")
+    x.add_argument("--server", action="append", help="only check this server (repeatable)")
+    x.add_argument("--update", action="store_true", help="show every change and write the current definitions to the lock")
+    x.add_argument("--yes", action="store_true", help="with --update: write without the interactive prompt (after reviewing)")
+    x.add_argument("--timeout", type=float, default=60.0)
+    x.add_argument("--json", action="store_true")
+    x.set_defaults(fn=cmd_lock_check)
     x = lk.add_parser("verify", help="check that verfy.lock is well formed and untampered")
     x.add_argument("--lock")
     x.set_defaults(fn=cmd_lock_verify)
@@ -801,7 +1003,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     args.cmd = cmd_after
     if not hasattr(args, "fn"):
-        if getattr(args, "command_name", None) in ("ledger", "lock", "team"):
+        if getattr(args, "command_name", None) in ("ledger", "lock", "team", "scitt"):
             ap.parse_args([args.command_name, "--help"])
         ap.print_help()
         return 0

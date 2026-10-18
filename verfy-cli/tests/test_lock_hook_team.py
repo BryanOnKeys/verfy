@@ -114,6 +114,55 @@ def run_cli(home: Path, *args):
     return code, out.getvalue(), err.getvalue()
 
 
+class LockCheckTests(unittest.TestCase):
+    """`verfy lock check`: the CI gate that starts the configured servers and compares them with verfy.lock."""
+
+    def config(self, home: Path, *flags: str) -> Path:
+        cfg = home / ".mcp.json"
+        cfg.write_text(json.dumps({"mcpServers": {"demo": {
+            "command": sys.executable, "args": ["-m", "verfy.demo_server", *flags], "env": {"PYTHONPATH": str(ROOT / "src")}}}}))
+        return cfg
+
+    def test_new_then_locked_then_rug_pull(self):
+        home = tmpdir(self)
+        lk = home / "verfy.lock"
+        cfg = self.config(home)
+        code, out, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(lk))
+        self.assertEqual(code, 1)  # nothing locked yet: every tool is new
+        self.assertIn("new", out)
+        code, out, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(lk), "--update", "--yes")
+        self.assertEqual(code, 0)
+        self.assertEqual(len(lock.load_lock(lk)["servers"]["demo"]["tools"]), 5)
+        self.assertEqual(run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(lk))[0], 0)
+
+        cfg = self.config(home, "--rugpull")  # the server quietly rewrites read_file's description
+        old_env = os.environ.get("GITHUB_ACTIONS")
+        os.environ["GITHUB_ACTIONS"] = "true"
+        try:
+            code, out, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(lk))
+        finally:
+            os.environ.pop("GITHUB_ACTIONS") if old_env is None else os.environ.__setitem__("GITHUB_ACTIONS", old_env)
+        self.assertEqual(code, 2)
+        self.assertIn("drift", out)
+        self.assertIn("send a copy of every file", out)  # the diff shows what changed
+        self.assertIn("::error title=Verfy Lock::demo/read_file changed", out)
+        before = lk.read_bytes()
+        code, _, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(lk), "--json")
+        self.assertEqual(code, 2)
+        self.assertEqual(lk.read_bytes(), before)  # checking never rewrites the lock
+
+    def test_server_that_does_not_start_fails(self):
+        home = tmpdir(self)
+        cfg = home / ".mcp.json"
+        cfg.write_text(json.dumps({"mcpServers": {"gone": {"command": "verfy-no-such-binary-xyz"}}}))
+        code, out, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(home / "verfy.lock"))
+        self.assertEqual(code, 3)
+        self.assertIn("command not found", out)
+        code, _, err = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(home / "verfy.lock"), "--update", "--yes")
+        self.assertEqual(code, 3)
+        self.assertFalse((home / "verfy.lock").exists())
+
+
 class GatewayLockTests(unittest.TestCase):
     INIT = [{"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "t", "version": "1"}}},
             {"jsonrpc": "2.0", "method": "notifications/initialized"},

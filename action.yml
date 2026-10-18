@@ -1,0 +1,36 @@
+name: Verfy Lock
+description: Fail the check when an MCP tool your agents use changed since it was locked in verfy.lock.
+author: Verfy
+branding:
+  icon: lock
+  color: blue
+
+inputs:
+  config:
+    description: MCP config whose stdio servers are started and checked.
+    default: .mcp.json
+  lock:
+    description: The committed lock file to compare with.
+    default: verfy.lock
+  servers:
+    description: Optional space-separated server names to check (default all stdio servers in the config).
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install the Verfy CLI
+      shell: bash
+      run: |
+        PY="$(command -v python3 || command -v python)"
+        "$PY" -m pip install --disable-pip-version-check --quiet "$GITHUB_ACTION_PATH/verfy-cli"
+    - name: Compare tool definitions with the lock
+      shell: bash
+      env:
+        VERFY_CONFIG: ${{ inputs.config }}
+        VERFY_LOCK: ${{ inputs.lock }}
+        VERFY_SERVERS: ${{ inputs.servers }}
+      run: |
+        args=(lock check --config "$VERFY_CONFIG" --lock "$VERFY_LOCK")
+        for s in $VERFY_SERVERS; do args+=(--server "$s"); done
+        verfy "${args[@]}"

@@ -48,6 +48,24 @@ verfy lock verify                 # verfy.lock is well formed and untampered
 
 A project-level `./verfy.lock` is used when present, otherwise `~/.verfy/verfy.lock`.
 
+### In CI
+
+```bash
+verfy lock check --update         # start the servers in .mcp.json, review every definition, write ./verfy.lock
+verfy lock check                  # 0 ok · 1 new/removed · 2 drift · 3 a server did not answer
+```
+
+Commit `verfy.lock`; a pull request that changes a tool then fails until someone reviews the diff and runs `--update`. Inside GitHub Actions the command also writes annotations and a step summary. The repository root has an `action.yml` that installs this CLI and runs the check:
+
+```yaml
+- uses: actions/setup-python@v7
+  with: { python-version: "3.13" }
+- uses: ./            # or <owner>/verfy@<ref> once the repository is public
+  with: { config: .mcp.json, lock: verfy.lock }
+```
+
+`lock check` starts each stdio server command from the config, as your MCP client would: pin package versions and pass keys as CI secrets. Remote servers are skipped.
+
 ## Check and verify
 
 ```bash
@@ -89,6 +107,15 @@ JSON merged over `src/verfy/data/default_policy.json`. Precedence: `--policy FIL
 ## Receipt format (`verfy.receipt/1`)
 
 One JSON object per line in `~/.verfy/ledger.jsonl`: `v, id, seq, prev, issued_at, agent, session, action{server, tool, kind, args_sha256, args?}, decision{verdict, rules, policy_sha256, approved_by?}, outcome{status, result_sha256}, tool_sha256, kid, sig`. `sig` is Ed25519 over the canonical JSON of all other fields; `prev` is the SHA-256 of the previous receipt. Writes are serialized with an OS file lock, so parallel sessions never fork the chain.
+
+### SCITT signed statements
+
+```bash
+verfy scitt export --out statements/ [--issuer URL]     # one COSE_Sign1 per receipt
+verfy scitt verify statements/*.cose --pub signer.json  # COSE signature, CWT subject and the receipt's own signature
+```
+
+Each statement is a COSE_Sign1 (RFC 9052) with alg EdDSA, content type `application/json`, the key id and CWT claims (`iss`, `sub` = the receipt hash) in the protected header, and the canonical receipt as payload: the signed-statement envelope of the IETF SCITT architecture draft. Verfy does not run a transparency service or issue SCITT receipts.
 
 ## Tests
 

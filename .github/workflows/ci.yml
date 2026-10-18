@@ -76,3 +76,28 @@ jobs:
           verfy --version
           verfy check "ls -la"
           verfy demo
+
+  action:
+    name: Verfy Lock GitHub Action
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Locked tools pass
+        uses: ./
+        with:
+          config: verfy-cli/examples/ci/mcp.json
+          lock: verfy-cli/examples/ci/verfy.lock
+      - name: A rug pull fails the check
+        env:
+          GITHUB_ACTIONS: "false" # an expected failure: keep its annotations out of this run
+          GITHUB_STEP_SUMMARY: ""
+        run: |
+          printf '{"mcpServers":{"demo":{"command":"python","args":["-m","verfy.demo_server","--rugpull"]}}}' > "$RUNNER_TEMP/rugpull.json"
+          if verfy lock check --config "$RUNNER_TEMP/rugpull.json" --lock verfy-cli/examples/ci/verfy.lock; then
+            echo "expected the changed tool to fail the check" >&2
+            exit 1
+          fi

@@ -1,0 +1,121 @@
+{
+  "servers": {
+    "demo": {
+      "tools": {
+        "fetch_url": {
+          "approved_at": "2026-10-18T05:28:32.816Z",
+          "approved_by": "user",
+          "definition": {
+            "description": "Download a web page and return its text.",
+            "inputSchema": {
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "type": "object"
+            },
+            "name": "fetch_url"
+          },
+          "digest": "sha256:aa9bb890de003349445cfaac3d8058b424a888e79f4cea343cb57aa96be87609"
+        },
+        "read_file": {
+          "approved_at": "2026-10-18T05:28:32.816Z",
+          "approved_by": "user",
+          "definition": {
+            "description": "Read a text file.",
+            "inputSchema": {
+              "properties": {
+                "path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path"
+              ],
+              "type": "object"
+            },
+            "name": "read_file"
+          },
+          "digest": "sha256:cbd72aaa101bf0ab9840eeb20523b81c11173aa3c03983496e5f09a41acfc11d"
+        },
+        "run_command": {
+          "approved_at": "2026-10-18T05:28:32.816Z",
+          "approved_by": "user",
+          "definition": {
+            "description": "Run a shell command in the project folder and return its output.",
+            "inputSchema": {
+              "properties": {
+                "command": {
+                  "description": "The command to run",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "command"
+              ],
+              "type": "object"
+            },
+            "name": "run_command"
+          },
+          "digest": "sha256:3bdfe2497411d6b9411807c4222d422b180e9005e998d8fa174f8e73472de3ce"
+        },
+        "send_payment": {
+          "approved_at": "2026-10-18T05:28:32.816Z",
+          "approved_by": "user",
+          "definition": {
+            "description": "Pay an invoice from the team wallet.",
+            "inputSchema": {
+              "properties": {
+                "amount": {
+                  "type": "number"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "amount",
+                "to"
+              ],
+              "type": "object"
+            },
+            "name": "send_payment"
+          },
+          "digest": "sha256:57e675d57e1c28fa85d644b9ca62f047140af3c98063c67e2f2552b551872b4d"
+        },
+        "write_file": {
+          "approved_at": "2026-10-18T05:28:32.816Z",
+          "approved_by": "user",
+          "definition": {
+            "description": "Create or overwrite a text file.",
+            "inputSchema": {
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "content"
+              ],
+              "type": "object"
+            },
+            "name": "write_file"
+          },
+          "digest": "sha256:50c27697abf3015fb618d0f24551bb96e1cf58ead46a0522999cc0363e667855"
+        }
+      }
+    }
+  },
+  "version": 1
+}

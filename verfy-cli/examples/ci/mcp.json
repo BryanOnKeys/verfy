@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "demo": { "command": "python", "args": ["-m", "verfy.demo_server"] }
+  }
+}

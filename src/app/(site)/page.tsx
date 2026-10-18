@@ -3,7 +3,8 @@ import { Fragment, type CSSProperties } from "react";
 import { CodeBlock } from "@/components/copy-button";
 import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/live-guard";
-import { buildChain, consoleChain, judge, PRESET, verifyChain } from "@/components/demo-chains";
+import { buildChain, consoleChain, judge, PRESET, RUG_UPDATE, rugPull, verifyChain } from "@/components/demo-chains";
+import { LockDemo } from "@/components/lock-demo";
 import { TamperDemo } from "@/components/proof";
 import { TeamPreview } from "@/components/team-preview";
 
@@ -23,6 +24,22 @@ function Words({ text, from = 0 }: { text: string; from?: number }) {
 
 const MODULES: { id: string; icon: IconName; tone?: string; name: string; title: string; body: string }[] = [
   {
+    id: "lock",
+    icon: "lock",
+    tone: "violet",
+    name: "Lock",
+    title: "Tools can't change behind your back",
+    body: "Verfy pins the SHA-256 of each tool's exact definition when you approve it. If the server changes it later, the tool is blocked on every machine and the pull request fails in CI until a person reviews the diff.",
+  },
+  {
+    id: "receipts",
+    icon: "receipt",
+    tone: "green",
+    name: "Receipts",
+    title: "Proof of every call",
+    body: "Every decision becomes a receipt, signed on the device with Ed25519 and chained with SHA-256. Anyone can check it with verfy verify, and it exports as a standard SCITT signed statement.",
+  },
+  {
     id: "guard",
     icon: "shieldCheck",
     name: "Guard",
@@ -34,28 +51,16 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     icon: "scan",
     tone: "cyan",
     name: "Scan",
-    title: "Finds risky MCP servers",
-    body: "Reads Claude Code, Cursor and Claude Desktop settings and flags hidden instructions, unpinned packages, plain-HTTP servers and leaked keys.",
-  },
-  {
-    id: "lock",
-    icon: "lock",
-    tone: "violet",
-    name: "Lock",
-    title: "Tools can't change behind your back",
-    body: "The first time a tool is used, Verfy pins the SHA-256 of its exact definition. If it changes later, it is blocked until a person reviews the difference.",
-  },
-  {
-    id: "receipts",
-    icon: "receipt",
-    tone: "green",
-    name: "Receipts",
-    title: "A record that proves itself",
-    body: "Every decision becomes a receipt, signed on the device with Ed25519 and chained to the one before it with SHA-256.",
+    title: "A first look at new servers",
+    body: "Flags hidden instructions, unpinned packages, plain-HTTP servers and leaked keys before you approve a tool. Use it next to any other scanner: a scan looks once, the lock keeps watching.",
   },
 ];
 
 const FAQ: [string, string][] = [
+  [
+    "How is this different from an MCP scanner?",
+    "A scanner reads a tool once. Verfy pins the exact definition you approved and checks it again on every connection and in CI. A tool that turns malicious after you approved it, a \"rug pull\", is blocked even though it passed the scan. Keep using any scanner you like alongside it.",
+  ],
   [
     "Does an AI decide what my agent may do?",
     "No. Every verdict comes from deterministic rules: the same input always gets the same answer, and you can read, test and change the rules. No language model is ever asked whether something is allowed.",
@@ -78,7 +83,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "What does it cost?",
-    "The CLI is free, under the MIT license. Verfy Team is free software too: it runs on your own Vercel and Supabase projects, so you pay only what they charge you.",
+    "Today everything is free: the CLI and the GitHub Action under the MIT license, and the self-hosted Verfy Team on your own Vercel and Supabase projects. A hosted Verfy Team (shared policy, receipt archive and audit-ready evidence exports) is planned at $19 per seat per month. It is not on sale yet.",
   ],
 ];
 
@@ -196,9 +201,10 @@ function FlowDiagramTall() {
 export default async function HomePage() {
   // both demos are computed here first, so the page is correct before (or without) JavaScript
   const chainRows = await buildChain();
-  const [chainStates, consoleHashes] = await Promise.all([
+  const [chainStates, consoleHashes, rugState] = await Promise.all([
     verifyChain(chainRows, false),
     consoleChain(PRESET.map((e) => ({ tool: e.tool, verdict: judge(e).verdict }))),
+    rugPull(RUG_UPDATE),
   ]);
   return (
     <>
@@ -207,42 +213,38 @@ export default async function HomePage() {
           <div>
             <span className="chip" {...enter(0)}>
               <span className="chip-dot" aria-hidden="true" />
-              Security for coding agents and MCP tools
+              For teams using Claude Code and Cursor
             </span>
             <h1 id="hero-title">
-              <Words text="Control what your AI agents do." />{" "}
+              <Words text="If a tool your agent uses changes in secret, Verfy stops it" />{" "}
               <em>
-                <Words text="Prove what they did." from={6} />
+                <Words text="and proves every call." from={12} />
               </em>
             </h1>
-            <p className="hero-desc" {...enter(2)}>
-              Verfy sits between your coding agent and its tools. Safe steps go straight through, risky ones wait for your approval, dangerous ones are
-              blocked, and every step leaves a signed receipt in which any later edit shows.
-            </p>
-            <div className="hero-actions" {...enter(3)}>
-              <Link href="/auth/sign-up" className="btn btn-primary btn-lg">
-                <span>Get started free</span>
+            <div className="hero-actions" {...enter(2)}>
+              <Link href="/docs#install" className="btn btn-primary btn-lg">
+                <span>Install the CLI</span>
                 <Icon name="arrowRight" size={17} className="arrow" />
               </Link>
-              <Link href="/docs" className="btn btn-lg">
+              <Link href="/docs#ci" className="btn btn-lg">
                 <Icon name="terminal" size={17} />
-                <span>Install the CLI</span>
+                <span>Add it to CI</span>
               </Link>
             </div>
-            <ul className="hero-facts" {...enter(4)}>
+            <ul className="hero-facts" {...enter(3)}>
               <li>
-                <Icon name="check" size={15} /> No AI decides what is allowed
+                <Icon name="check" size={15} /> Fails the pull request when a tool changes
               </li>
               <li>
-                <Icon name="check" size={15} /> Works offline
+                <Icon name="check" size={15} /> No AI decides what is allowed
               </li>
               <li>
                 <Icon name="check" size={15} /> MIT-licensed CLI
               </li>
             </ul>
           </div>
-          <div {...enter(5)}>
-            <HeroDemo initialHashes={consoleHashes} />
+          <div {...enter(4)}>
+            <LockDemo initial={rugState} />
           </div>
         </div>
       </section>
@@ -265,8 +267,8 @@ export default async function HomePage() {
             <span className="eyebrow">
               <span className="num">01</span> The product
             </span>
-            <h2 id="product-title">Four controls. One record you can trust.</h2>
-            <p className="lead">Each works on its own on a developer&apos;s laptop. Together they answer: what did the agent do, with which tool, and who allowed it?</p>
+            <h2 id="product-title">Lock first. Proof for everything.</h2>
+            <p className="lead">Scanners judge a tool on the day you add it. Verfy notices the day it changes, blocks it, and keeps a record anyone can check.</p>
           </div>
           <div className="modules reveal stagger">
             {MODULES.map((m, i) => (
@@ -303,17 +305,26 @@ export default async function HomePage() {
             <FlowDiagram />
             <FlowDiagramTall />
           </div>
+          <div className="grid-2 reveal" style={{ marginTop: 48, alignItems: "center" }}>
+            <div className="stack">
+              <h3 style={{ fontSize: "1.3rem" }}>Every other call is checked too</h3>
+              <p className="text-2">
+                Guard runs the same deterministic rules on shell commands, file writes and web requests. Type a command to see what it would decide.
+              </p>
+            </div>
+            <HeroDemo initialHashes={consoleHashes} />
+          </div>
           <div className="grid-2 reveal" id="install" style={{ marginTop: 48, alignItems: "center" }}>
             <div className="stack">
               <h3 style={{ fontSize: "1.3rem" }}>Running in two minutes</h3>
               <p className="text-2">
-                The CLI is plain Python with no required dependencies, and it never touches the network from inside a check.{" "}
-                <Link href="/docs">Read the quickstart</Link>.
+                Lock the servers in your repository&apos;s <code className="inline-code">.mcp.json</code>, commit <code className="inline-code">verfy.lock</code>, and
+                let CI fail any pull request in which a tool changed. <Link href="/docs#ci">Set up the GitHub Action</Link>.
               </p>
             </div>
             <CodeBlock
               label="Install commands"
-              code={["# not on PyPI yet: install from a copy of the Verfy repository", "$ pip install ./verfy-cli", "$ verfy init", "$ verfy hook install --write", "$ verfy check \"rm -rf ~\""].join("\n")}
+              code={["# not on PyPI yet: install from a copy of the Verfy repository", "$ pip install ./verfy-cli", "$ verfy lock check --update   # review and lock today's tools", "$ git add verfy.lock && git commit -m \"Lock MCP tools\"", "$ verfy lock check            # in CI: exit 2 if a tool changed"].join("\n")}
             />
           </div>
         </div>
@@ -375,7 +386,7 @@ export default async function HomePage() {
           <div className="cta-band reveal">
             <div>
               <span className="eyebrow">Start today</span>
-              <h2 id="cta-title">Rules you can read. Proof you can check.</h2>
+              <h2 id="cta-title">Lock your agent&apos;s tools today.</h2>
               <p>Free to start. The CLI is MIT-licensed, and Verfy Team runs on your own Vercel and Supabase projects.</p>
             </div>
             <div className="cta-actions">

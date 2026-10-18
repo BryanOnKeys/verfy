@@ -1,15 +1,15 @@
 # Verfy
 
-**Security, policy and verifiable evidence for coding agents and the MCP tools they use.**
+**For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and proves every call.**
 
 Verfy checks every tool call a coding agent makes against your policy before it runs, locks the MCP tool definitions the agent may use, and writes an Ed25519-signed, hash-chained receipt for every action. Verfy Team gives an organization one policy, tool-change approvals, device management, an audit log and evidence exports that anyone can verify offline.
 
 | Part | What it does |
 | --- | --- |
+| **Verfy Lock** | `verfy.lock` pins the SHA-256 of every tool definition; a changed tool is hidden and denied until someone reviews the diff, and `verfy lock check` (or the GitHub Action in `action.yml`) fails CI. |
+| **Verfy Receipts** | `verfy.receipt/1`: signed, chained, hash-only by default; `verfy verify` detects edits, deletions and reordering; `verfy scitt export` writes SCITT signed statements (COSE_Sign1). |
 | **Verfy Guard** | Deterministic `allow` / `ask` / `deny` for shell commands, file paths, URLs, SQL, payments and leaked secrets, through a Claude Code `PreToolUse` hook or an MCP gateway. Errors never become allow. |
 | **Verfy Scan** | Finds MCP servers in Claude Code, Cursor and Claude Desktop configs; flags tool poisoning, hidden instructions, shadowing, invisible Unicode, unpinned packages, plain-http servers and secrets in configs. |
-| **Verfy Lock** | `verfy.lock` pins the SHA-256 of every tool definition; a changed tool is hidden and denied until someone reviews the diff. |
-| **Verfy Receipts** | `verfy.receipt/1`: signed, chained, hash-only by default; `verfy verify` detects edits, deletions and reordering. |
 | **Verfy Team** | Next.js + Supabase web platform: orgs and roles, devices, server-verified receipts, policy simulator and versions, lock approvals, audit log, exports, public Verfy Advisories. |
 
 ## Quick start: the CLI
@@ -18,6 +18,7 @@ Verfy checks every tool call a coding agent makes against your policy before it 
 pip install ./verfy-cli          # Python ≥ 3.10, no dependencies
 verfy init                       # signing key + starter policy in ~/.verfy
 verfy scan --discover            # check the MCP servers your agents can reach
+verfy lock check --update        # lock the tools in .mcp.json into ./verfy.lock (commit it)
 verfy hook install --write       # guard every Claude Code tool call
 verfy check "rm -rf ~"           # exit 2: deny (VFY-SH-001)
 verfy demo                       # a poisoned MCP server behind the gateway

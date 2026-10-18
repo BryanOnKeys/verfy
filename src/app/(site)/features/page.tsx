@@ -4,10 +4,37 @@ import { Icon, type IconName } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: "Verfy Guard, Scan, Lock, Receipts and the Team dashboard: what each part does and what it does not do.",
+  description: "Verfy Lock, Receipts, Guard, Scan and the Team dashboard: what each part does and what it does not do.",
 };
 
 const SECTIONS: { id: string; icon: IconName; title: string; intro: string; items: [string, string][]; limits: string }[] = [
+  {
+    id: "lock",
+    icon: "lock",
+    title: "Verfy Lock",
+    intro: "verfy.lock pins the SHA-256 of each tool's canonical name, description and input schema.",
+    items: [
+      ["Drift", "A tool whose definition changed is hidden from the agent and its calls are denied (VFY-TOOL-004) until someone approves the change."],
+      ["New tools", "A tool added to an already locked server needs approval by default (VFY-TOOL-006)."],
+      ["Review", "verfy lock diff shows a readable diff with invisible characters spelled out; verfy lock approve records who accepted it."],
+      ["CI", "verfy lock check starts the servers in .mcp.json and compares them with the committed verfy.lock. The GitHub Action runs it on every pull request and fails the check when a tool changed."],
+      ["Team", "Devices propose changes; an admin approves once in the dashboard and every device picks it up with verfy team pull."],
+    ],
+    limits: "A lock proves a definition did not change since it was approved. It says nothing about whether the approved definition was safe.",
+  },
+  {
+    id: "receipts",
+    icon: "receipt",
+    title: "Verfy Receipts",
+    intro: "Every decision becomes a verfy.receipt/1 record, signed with Ed25519 and chained with SHA-256.",
+    items: [
+      ["Contents", "Sequence number, previous hash, time, agent, session, server, tool, action kind, SHA-256 of the arguments, verdict, rule IDs, policy hash, tool digest and outcome."],
+      ["Privacy", "Arguments and results are stored as hashes by default. Storing redacted arguments is an explicit local setting."],
+      ["Verification", "verfy verify checks every signature and link offline. The Team server checks them again on upload and on demand."],
+      ["Standard format", "verfy scitt export writes each receipt as an IETF SCITT signed statement (COSE_Sign1 with CWT claims), so a SCITT transparency service or any COSE library can check it. Verfy does not run a transparency service."],
+    ],
+    limits: "A receipt shows what passed through Verfy and that the record was not changed afterwards. It does not show what a tool did internally, or actions that bypassed the hook or gateway.",
+  },
   {
     id: "guard",
     icon: "shieldCheck",
@@ -33,31 +60,6 @@ const SECTIONS: { id: string; icon: IconName; title: string; intro: string; item
       ["Results", "Each finding has a rule ID, severity, where it was found and what to do. --json output and exit codes for CI."],
     ],
     limits: "The config check is static and never starts a server. Fetching tool lists (--live) starts each stdio server you configured, only when you ask. A clean scan is not a guarantee that a tool is safe.",
-  },
-  {
-    id: "lock",
-    icon: "lock",
-    title: "Verfy Lock",
-    intro: "verfy.lock pins the SHA-256 of each tool's canonical name, description and input schema.",
-    items: [
-      ["Drift", "A tool whose definition changed is hidden from the agent and its calls are denied (VFY-TOOL-004) until someone approves the change."],
-      ["New tools", "A tool added to an already locked server needs approval by default (VFY-TOOL-006)."],
-      ["Review", "verfy lock diff shows a readable diff with invisible characters spelled out; verfy lock approve records who accepted it."],
-      ["Team", "Devices propose changes; an admin approves once in the dashboard and every device picks it up with verfy team pull."],
-    ],
-    limits: "A lock proves a definition did not change since it was approved. It says nothing about whether the approved definition was safe.",
-  },
-  {
-    id: "receipts",
-    icon: "receipt",
-    title: "Verfy Receipts",
-    intro: "Every decision becomes an verfy.receipt/1 record, signed with Ed25519 and chained with SHA-256.",
-    items: [
-      ["Contents", "Sequence number, previous hash, time, agent, session, server, tool, action kind, SHA-256 of the arguments, verdict, rule IDs, policy hash, tool digest and outcome."],
-      ["Privacy", "Arguments and results are stored as hashes by default. Storing redacted arguments is an explicit local setting."],
-      ["Verification", "verfy verify checks every signature and link offline. The Team server checks them again on upload and on demand."],
-    ],
-    limits: "A receipt shows what passed through Verfy and that the record was not changed afterwards. It does not show what a tool did internally, or actions that bypassed the hook or gateway.",
   },
 ];
 

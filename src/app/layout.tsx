@@ -13,17 +13,17 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
-  title: { default: "Verfy: control what your AI agents do, and prove what they did", template: "%s · Verfy" },
+  title: { default: "Verfy: stop MCP tools that change in secret", template: "%s · Verfy" },
   description:
-    "Verfy sits between your coding agent and its tools. It allows safe actions, asks about risky ones, blocks dangerous ones, locks MCP tools and keeps a signed record of everything.",
+    "For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it, fails the pull request in CI, and keeps a signed receipt of every call.",
   applicationName: "Verfy",
   openGraph: {
     type: "website",
     siteName: "Verfy",
-    title: "Verfy: control what your AI agents do, and prove what they did",
-    description: "Readable rules, MCP tool locks and signed receipts for Claude Code, Cursor and MCP.",
+    title: "Verfy: stop MCP tools that change in secret",
+    description: "MCP tool locks, a GitHub Action and signed receipts for teams using Claude Code and Cursor.",
   },
-  twitter: { card: "summary_large_image", title: "Verfy", description: "Control what your AI agents do. Prove what they did." },
+  twitter: { card: "summary_large_image", title: "Verfy", description: "If a tool your agent uses changes in secret, Verfy stops it and proves every call." },
   robots: { index: true, follow: true },
 };
 

@@ -4,7 +4,7 @@ import { Icon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Docs",
-  description: "Install the Verfy CLI, guard Claude Code, scan and lock MCP tools, verify receipts and connect devices to Verfy Team.",
+  description: "Install the Verfy CLI, lock MCP tools and fail CI when one changes, guard Claude Code, verify and export receipts, and connect devices to Verfy Team.",
 };
 
 const CLI: [string, string, string][] = [
@@ -17,9 +17,12 @@ const CLI: [string, string, string][] = [
   ["verfy hook pre-tool-use", "The hook entry point Claude Code calls (JSON on stdin and stdout)", "always 0"],
   ["verfy proxy --name N -- CMD", "Run an MCP server behind the Verfy gateway", "server's exit code"],
   ["verfy wrap CONFIG --write", "Put every server in an MCP config behind the gateway (keeps a backup)", "0"],
+  ["verfy lock check", "Start the servers in .mcp.json and compare their tools with ./verfy.lock (for CI); --update writes reviewed changes", "0 ok · 1 new or removed · 2 drift · 3 a server did not answer"],
   ["verfy lock status | diff | approve | add | verify", "Inspect and approve tool definition changes in verfy.lock", "status: 0 ok · 1 new · 2 drift"],
   ["verfy verify", "Verify every signature and hash link in the local ledger", "0 ok · 1 failed"],
   ["verfy ledger show", "List recent receipts", "0"],
+  ["verfy scitt export --out DIR", "Write each receipt as a SCITT signed statement (COSE_Sign1)", "0"],
+  ["verfy scitt verify FILE…", "Check statements: COSE signature, subject and the receipt inside", "0 ok · 1 failed"],
   ["verfy team enroll --url URL --code CODE", "Register this device's public key with your team", "0 · 4 on a team error"],
   ["verfy sync", "Upload new receipts to Verfy Team", "0 · 4 on a team error"],
   ["verfy team pull", "Fetch the team policy and team-approved locks", "0"],
@@ -54,6 +57,8 @@ export default function DocsPage() {
             ["#install", "Install"],
             ["#guard", "Guard Claude Code"],
             ["#mcp", "MCP servers"],
+            ["#ci", "GitHub Action"],
+            ["#scitt", "SCITT export"],
             ["#team", "Verfy Team"],
             ["#policy", "Policy"],
             ["#cli", "CLI reference"],
@@ -95,8 +100,59 @@ export default function DocsPage() {
         />
       </section>
 
+      <section id="ci" className="stack" aria-labelledby="ci-h">
+        <h2 id="ci-h">4. Fail the pull request when a tool changes</h2>
+        <p className="text-2">
+          Lock the servers your repository configures and commit the lock. In CI, <code className="inline-code">verfy lock check</code> starts each stdio
+          server from <code className="inline-code">.mcp.json</code>, reads its tools and fails if any definition differs from{" "}
+          <code className="inline-code">verfy.lock</code>. The diff appears in the log and as an annotation on the pull request.
+        </p>
+        <CodeBlock
+          code={[
+            "$ verfy lock check --update     # shows each definition and its scan findings, then writes verfy.lock",
+            "$ git add verfy.lock .mcp.json && git commit -m \"Lock MCP tools\"",
+          ].join("\n")}
+        />
+        <CodeBlock
+          label=".github/workflows/verfy.yml"
+          code={[
+            "name: Verfy Lock",
+            "on: [pull_request, push]",
+            "permissions:",
+            "  contents: read",
+            "jobs:",
+            "  lock:",
+            "    runs-on: ubuntu-latest",
+            "    steps:",
+            "      - uses: actions/checkout@v7",
+            "      - uses: actions/setup-python@v7",
+            "        with:",
+            "          python-version: \"3.13\"",
+            "      - uses: anvarbekovjavohir277-dot/verfy@main   # not public yet; see the note below",
+            "        with:",
+            "          config: .mcp.json",
+            "          lock: verfy.lock",
+          ].join("\n")}
+        />
+        <p className="text-2 small">
+          The check runs the server commands in your config, as your MCP client would, so pin package versions and pass any keys they need as CI
+          secrets. Remote (HTTP) servers are skipped. The action lives in the Verfy repository, which is not public yet; until it is, copy{" "}
+          <code className="inline-code">action.yml</code> and <code className="inline-code">verfy-cli/</code> into your own repository and use{" "}
+          <code className="inline-code">uses: ./</code>.
+        </p>
+      </section>
+
+      <section id="scitt" className="stack" aria-labelledby="scitt-h">
+        <h2 id="scitt-h">Export receipts as SCITT signed statements</h2>
+        <p className="text-2">
+          Each receipt can be written as a COSE_Sign1 signed statement with CWT claims, the envelope the IETF SCITT architecture (an Internet-Draft)
+          registers with a transparency service. Anyone with your public key can check one offline. Verfy does not run a transparency service.
+        </p>
+        <CodeBlock code={["$ verfy scitt export --out statements/ --issuer https://acme.example/devices/laptop-1", "$ verfy key --json > signer.json", "$ verfy scitt verify statements/*.cose --pub signer.json"].join("\n")} />
+      </section>
+
       <section id="team" className="stack" aria-labelledby="team-h">
-        <h2 id="team-h">4. Connect to Verfy Team</h2>
+        <h2 id="team-h">5. Connect to Verfy Team</h2>
         <p className="text-2">
           In the dashboard, open <strong>Devices → Add device</strong> to get a one-time code (valid for one hour). Only the device&apos;s public key is sent.
         </p>

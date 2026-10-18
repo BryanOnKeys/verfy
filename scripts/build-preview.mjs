@@ -58,11 +58,11 @@ body = body
 const swaps = [
   // header and hero: the first step that works from this file is installing the CLI
   [/(<a class="btn btn-primary btn-sm hide-mobile") href="\/auth\/sign-up">(<span>)Get started(<\/span>)/, '$1 href="#install">$2Install the CLI$3'],
-  [/(<a class="btn btn-primary btn-lg") href="\/auth\/sign-up">(<span>)Get started free(<\/span>)/, '$1 href="#install">$2Install the CLI$3'],
-  [/<a class="btn btn-lg" href="\/docs">(<svg[\s\S]*?<\/svg>)<span>Install the CLI<\/span><\/a>/, '<a class="btn btn-lg" href="#how"><span>See how it works</span></a>'],
+  [/(<a class="btn btn-primary btn-lg") href="\/docs#install">/, '$1 href="#install">'],
+  [/(<a class="btn btn-lg") href="\/docs#ci">/, '$1 href="#install">'],
+  [/ <a href="\/docs#ci">Set up the GitHub Action<\/a>\./, " The GitHub Action is in the repository's action.yml."],
   // "How Guard works" and the others lead to the features page, which is not in this file
   [/<a class="module-link" href="\/features#[a-z]+">[\s\S]*?<\/a>/g, ""],
-  [/ <a href="\/docs">Read the quickstart<\/a>\./, ""],
   [/The <a href="\/security">security model<\/a> lists every limit in detail\./, "Its known limits are listed in docs/SECURITY_LIMITATIONS.md in the repository."],
   // the closing band
   [/(<a class="btn btn-light btn-lg") href="\/auth\/sign-up">(<span>)Create your team(<\/span>)/, '$1 href="#install">$2Install the CLI$3'],
@@ -83,7 +83,7 @@ const leftover = [...body.matchAll(/href="(\/[^"]*)"/g)].map((m) => m[1]);
 if (leftover.length) throw new Error(`preview: links to other pages left over: ${[...new Set(leftover)].join(" ")}`);
 
 const note =
-  '<div class="preview-bar" role="note"><div class="shell">Preview: the Verfy home page in one file. The console and the chain demo run the real Verfy rules in your browser. Sign-up and the team dashboard are part of the web app.</div></div>';
+  '<div class="preview-bar" role="note"><div class="shell">Preview: the Verfy home page in one file. The lock demo, the console and the chain demo run the real Verfy rules in your browser. Sign-up and the team dashboard are part of the web app.</div></div>';
 
 /* ---------------------------------------------------------------- styles */
 const css = [
@@ -99,7 +99,7 @@ const css = [
 const engineSource = read("src/core/engine/verfy-engine.mjs");
 if ((engineSource.match(/^export\b/gm) ?? []).length !== 1) throw new Error("verfy-engine.mjs: expected exactly one export");
 const iconSource = read("src/components/icons.tsx");
-const ICON_NAMES = ["check", "x", "alert", "shieldCheck", "history", "file", "copy", "menu", "link"];
+const ICON_NAMES = ["check", "x", "alert", "shieldCheck", "history", "file", "copy", "menu", "link", "receipt"];
 const icons = Object.fromEntries(
   ICON_NAMES.map((name) => {
     const m = iconSource.match(new RegExp(`\\n  ${name}: "([^"]+)"`));
@@ -128,9 +128,9 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Verfy sits between your coding agent and its tools: deterministic allow, ask or deny for every step, and signed receipts that prove what happened.">
+<meta name="description" content="For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and proves every call.">
 <meta name="theme-color" content="#f6f5f1">
-<title>Preview · Verfy: control what your AI agents do, and prove what they did</title>
+<title>Preview · Verfy: stop MCP tools that change in secret</title>
 <link rel="icon" href="${favicon}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,600..700&display=swap" rel="stylesheet">

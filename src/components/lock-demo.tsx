@@ -28,7 +28,7 @@ export function LockDemo({ initial }: { initial: RugState }) {
   const changed = state.current !== state.locked;
   const tool = `${RUG_SERVER}/${RUG_TOOL.name}`;
   return (
-    <div>
+    <div data-demo="lock">
       <div className="console">
         <div className="console-head">
           <div className="dots" aria-hidden="true">

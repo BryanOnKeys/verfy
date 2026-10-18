@@ -51,7 +51,7 @@ export function HeroDemo({ initialHashes }: { initialHashes: string[] }) {
   }
 
   return (
-    <div>
+    <div data-demo="guard">
       <div className="console">
         <div className="console-head">
           <div className="dots" aria-hidden="true">

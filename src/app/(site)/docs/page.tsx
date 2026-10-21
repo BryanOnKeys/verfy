@@ -75,7 +75,7 @@ export default function DocsPage() {
         <h2 id="install-h">1. Install</h2>
         <p className="text-2">Python 3.10 or newer. No other dependencies (install the optional <code className="inline-code">cryptography</code> extra for faster signing).</p>
         <CodeBlock
-          code={["# from a clone of the Verfy repository", "$ pip install ./verfy-cli", "$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")}
+          code={["$ pip install verfy", "$ pip install \"verfy[fast]\"      # optional: faster signing", "$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")}
         />
       </section>
 

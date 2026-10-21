@@ -54,7 +54,7 @@ curl -s -X POST $APP/api/v1/receipts/batch -H "content-type: application/json" -
 Then in a browser: sign up → confirm email → create an organization → Devices → Add a device → on a laptop:
 
 ```bash
-pip install ./verfy-cli && verfy init
+pip install verfy && verfy init
 verfy team enroll --url $APP --code <code>
 verfy check "npm test" && verfy hook install --write
 verfy sync

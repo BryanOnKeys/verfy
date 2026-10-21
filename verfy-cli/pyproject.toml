@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "verfy-guard"
+name = "verfy"
 version = "0.2.0"
 description = "Verfy: guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable receipt for every action."
 readme = "README.md"
@@ -12,11 +12,19 @@ license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["mcp", "ai-agents", "security", "model-context-protocol", "claude-code", "audit", "receipts"]
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Topic :: Security",
   "Operating System :: OS Independent",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://verfy-tech.vercel.app"
+Documentation = "https://verfy-tech.vercel.app/docs"
 
 [project.optional-dependencies]
 fast = ["cryptography>=43"]
@@ -26,7 +34,7 @@ verfy = "verfy.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["verfy"]
+packages = ["verfy", "verfy.data"]
 
 [tool.setuptools.package-data]
 verfy = ["data/*.json"]

@@ -3,8 +3,8 @@
 Guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable receipt for every action. Plain Python (≥ 3.10), no required dependencies, MIT.
 
 ```bash
-pip install ./verfy-cli            # from the Verfy repository
-pip install "./verfy-cli[fast]"    # optional: faster Ed25519 via `cryptography`
+pip install verfy                  # Python ≥ 3.10, no dependencies
+pip install "verfy[fast]"          # optional: faster Ed25519 via `cryptography`
 ```
 
 ## Guard Claude Code

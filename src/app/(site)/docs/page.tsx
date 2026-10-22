@@ -73,10 +73,20 @@ export default function DocsPage() {
 
       <section id="install" className="stack" aria-labelledby="install-h">
         <h2 id="install-h">1. Install</h2>
-        <p className="text-2">Python 3.10 or newer. No other dependencies (install the optional <code className="inline-code">cryptography</code> extra for faster signing).</p>
-        <CodeBlock
-          code={["$ pip install verfy", "$ pip install \"verfy[fast]\"      # optional: faster signing", "$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")}
-        />
+        <p className="text-2">One line, with nothing to install first: the script downloads a build of verfy that carries its own Python.</p>
+        <CodeBlock label="macOS (Apple silicon) and Linux" code="$ curl -fsSL https://verfy-tech.vercel.app/install.sh | sh" />
+        <CodeBlock label="Windows PowerShell" code="irm https://verfy-tech.vercel.app/install.ps1 | iex" />
+        <p className="text-2 small">
+          The script takes the build for your system from the{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy-releases/releases" target="_blank" rel="noopener noreferrer">
+            verfy-releases
+          </a>{" "}
+          repository, checks it against that release&apos;s SHA-256 list and puts <code className="inline-code">verfy</code> on your PATH. The builds are
+          not code-signed. To read the script before running it, open its address in a browser.
+        </p>
+        <p className="text-2">With Python 3.10 or newer you can use pip instead. There are no dependencies; the optional extra makes signing faster.</p>
+        <CodeBlock code={["$ pip install verfy", "$ pip install \"verfy[fast]\""].join("\n")} />
+        <CodeBlock label="Then" code={["$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")} />
       </section>
 
       <section id="guard" className="stack" aria-labelledby="guard-h">

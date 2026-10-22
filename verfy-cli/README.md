@@ -3,6 +3,8 @@
 Guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable receipt for every action. Plain Python (≥ 3.10), no required dependencies, MIT.
 
 ```bash
+curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # macOS, Linux: standalone build, Python included
+irm https://verfy-tech.vercel.app/install.ps1 | iex        # Windows PowerShell: the same
 pip install verfy                  # Python ≥ 3.10, no dependencies
 pip install "verfy[fast]"          # optional: faster Ed25519 via `cryptography`
 ```

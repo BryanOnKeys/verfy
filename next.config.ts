@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: securityHeaders },
       { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] },
+      // served as text so `irm … | iex` gets a string and browsers show the script instead of downloading it
+      ...["/install.sh", "/install.ps1"].map((source) => ({
+        source,
+        headers: [
+          { key: "Content-Type", value: "text/plain; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=300" },
+        ],
+      })),
     ];
   },
 };

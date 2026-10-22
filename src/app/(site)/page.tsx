@@ -324,7 +324,7 @@ export default async function HomePage() {
             </div>
             <CodeBlock
               label="Install commands"
-              code={["$ pip install verfy", "$ verfy lock check --update   # review and lock today's tools", "$ git add verfy.lock && git commit -m \"Lock MCP tools\"", "$ verfy lock check            # in CI: exit 2 if a tool changed"].join("\n")}
+              code={["$ curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # Windows: irm https://verfy-tech.vercel.app/install.ps1 | iex", "$ verfy lock check --update   # review and lock today's tools", "$ git add verfy.lock && git commit -m \"Lock MCP tools\"", "$ verfy lock check            # in CI: exit 2 if a tool changed"].join("\n")}
             />
           </div>
         </div>

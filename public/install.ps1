@@ -42,8 +42,9 @@
 
     Expand-Archive -Path (Join-Path $tmp $file) -DestinationPath $tmp
     $exe = Join-Path $tmp "verfy\verfy.exe"
-    $version = ((& $exe --version) -split " ")[1]
-    if (-not $version) { throw "the downloaded verfy does not run on this system; use: pip install verfy" }
+    $out = (& $exe --version | Out-String).Trim()
+    if ($out -match "^verfy (\S+)$") { $version = $Matches[1] }
+    else { throw "the downloaded verfy did not start on this system (it printed: $out); use: pip install verfy" }
 
     if ($env:VERFY_INSTALL_DIR) { $root = $env:VERFY_INSTALL_DIR } else { $root = Join-Path $env:LOCALAPPDATA "Programs\verfy" }
     $dest = Join-Path $root "current"

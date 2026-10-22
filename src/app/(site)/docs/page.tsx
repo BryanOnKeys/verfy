@@ -76,6 +76,7 @@ export default function DocsPage() {
         <p className="text-2">One line, with nothing to install first: the script downloads a build of verfy that carries its own Python.</p>
         <CodeBlock label="macOS (Apple silicon) and Linux" code="$ curl -fsSL https://verfy-tech.vercel.app/install.sh | sh" />
         <CodeBlock label="Windows PowerShell" code="irm https://verfy-tech.vercel.app/install.ps1 | iex" />
+        <CodeBlock label="Windows Command Prompt (cmd)" code={'powershell -c "irm https://verfy-tech.vercel.app/install.ps1 | iex"'} />
         <p className="text-2 small">
           The script takes the build for your system from the{" "}
           <a href="https://github.com/anvarbekovjavohir277-dot/verfy-releases/releases" target="_blank" rel="noopener noreferrer">

@@ -17,7 +17,7 @@ from typing import Any
 
 from ._util import (
     PATTERNS, VERDICT_RANK, first_match, flatten_strings, host_match, is_within, name_match, normpath,
-    resolve, rx, scan_secrets, words,
+    resolve, rx, scan_secrets, to_posix, words,
 )
 from .policy import DEFAULT_POLICY, load_policy
 
@@ -28,6 +28,7 @@ WRAPPERS = {"nohup", "time", "command", "builtin", "exec", "nice", "ionice", "st
 NETWORK_CMDS = {"curl", "wget", "nc", "ncat", "netcat", "scp", "rsync", "ftp", "sftp", "http", "https", "httpie", "telnet", "socat", "aria2c", "Invoke-WebRequest", "iwr", "irm"}
 READERS = {"cat", "less", "more", "head", "tail", "base64", "xxd", "od", "strings", "grep", "egrep", "rg", "awk", "sed", "cut", "sort", "uniq", "tac", "nl", "bat", "jq", "gpg", "openssl", "cp", "scp", "rsync", "tar", "zip", "7z", "source", "."}
 SYSTEM_DIRS = {"/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/lib64", "/opt", "/proc", "/root", "/sbin", "/srv", "/sys", "/usr", "/var", "/System", "/Library", "/Applications", "/Users", "/private"}
+WINDOWS_DIRS = {"/c/windows", "/c/program files", "/c/program files (x86)", "/c/programdata", "/c/users"}
 SECRET_ENV = r"\$\{?[A-Za-z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API_?KEY|PRIVATE|CREDENTIAL|ACCESS_KEY|AUTH)[A-Za-z0-9_]*\}?"
 CONTENT_KEYS = {"content", "contents", "text", "data", "body", "new_string", "old_string", "patch", "diff", "new_str", "file_text", "edits"}
 EXAMPLE_SUFFIXES = (".example", ".sample", ".template", ".dist")
@@ -322,7 +323,7 @@ def _written(s: dict) -> list[str]:
         p.extend(ops[1:])
     elif n == "dd":
         p.extend(x[3:] for x in a if x.startswith("of="))
-    return [x for x in p if x and "://" not in x and not re.match(r"^[^/]*@?[^/]+:", x)]
+    return [x for x in p if x and "://" not in x and (re.match(r"^[A-Za-z]:[\\/]", x) or not re.match(r"^[^/]*@?[^/]+:", x))]
 
 
 def _read(s: dict) -> list[str]:
@@ -387,26 +388,75 @@ def _urls(text: str) -> list[str]:
 class _Ctx:
     def __init__(self, policy: dict):
         self.p = policy
-        self.home = normpath(policy["home"])
-        self.ws = resolve(policy["workspace"], self.home, "/")
+        self.home = normpath(to_posix(policy["home"]))
+        # a home folder on a drive letter means Windows, where file names ignore case
+        self.win = bool(re.match(r"^/[a-z](?:/|$)", self.home))
+        if self.win:
+            self.home = self.home.lower()
+        self.ws = self.path(policy["workspace"], "/")
 
     def path(self, p: str, cwd: str | None = None) -> str:
-        return resolve(p, self.home, cwd or self.ws)
+        out = resolve(p, self.home, cwd or self.ws)
+        return out.lower() if self.win else out
+
+    def match(self, patterns: list[str], path: str) -> str | None:
+        """The first pattern that matches, reported as written."""
+        for pat in patterns or []:
+            if first_match([to_posix(pat).lower() if self.win else pat], path, self.home):
+                return pat
+        return None
 
     def sensitive(self, path: str) -> str | None:
         base = path.rsplit("/", 1)[-1]
         if base.endswith(EXAMPLE_SUFFIXES):
             return None
-        return first_match(self.p["files"]["sensitive"], path, self.home)
+        return self.match(self.p["files"]["sensitive"], path)
 
     def protected(self, path: str) -> str | None:
-        return first_match(self.p["files"]["deny_write"], path, self.home)
+        return self.match(self.p["files"]["deny_write"], path)
+
+    def guards_verfy(self, path: str) -> tuple[str, str] | None:
+        """(verdict, pattern) when changing ``path`` could switch Verfy off or approve something for the agent."""
+        for verdict in ("deny", "ask"):
+            hit = self.match(PATTERNS["self_protect"][verdict], path)
+            if hit:
+                return verdict, hit
+        return None
 
     def allowed_outside(self, path: str) -> bool:
-        return first_match(self.p["files"]["allow_write"], path, self.home) is not None
+        return self.match(self.p["files"]["allow_write"], path) is not None
 
     def catastrophic(self, path: str) -> bool:
+        if self.win and (re.match(r"^/[a-z]$", path) or path in WINDOWS_DIRS):
+            return True
         return path in ("/", self.home, self.ws) or path in SYSTEM_DIRS or is_within(self.ws, path)
+
+
+def _self_finding(hit: tuple[str, str], p: str) -> dict:
+    verdict, pat = hit
+    if verdict == "deny":
+        return _f("VFY-SELF-001", "deny", f"Changes {p}, which Verfy relies on to guard this agent (`{pat}`). Make this change yourself if you meant it.")
+    return _f("VFY-SELF-002", "ask", f"Changes the MCP config {p}, which could take a server out from behind the Verfy gateway.")
+
+
+def _verfy_command(s: dict) -> dict | None:
+    """A finding when the agent runs Verfy (or pip) to approve, reset or remove Verfy itself."""
+    n, a = s["name"].lower().removesuffix(".exe"), s["args"]
+    if re.match(r"^python[0-9.]*$|^py$", n) and a[:2] == ["-m", "verfy"]:
+        n, a = "verfy", a[2:]
+    if n == "verfy":
+        words_ = [x for x in a if not x.startswith("-")]
+        if words_[:2] in (["lock", "approve"], ["lock", "add"]):
+            return _f("VFY-SELF-003", "deny", f"`verfy {' '.join(words_[:2])}` approves a tool change for the agent. A person has to review and run it.")
+        if words_[:2] == ["lock", "check"] and "--update" in a:
+            return _f("VFY-SELF-003", "deny", "`verfy lock check --update` writes verfy.lock for the agent. A person has to review and run it.")
+        if words_[:1] == ["init"] and "--force" in a:
+            return _f("VFY-SELF-003", "deny", "`verfy init --force` replaces the signing key, which starts a new receipt chain.")
+        return None
+    pip = n in ("pip", "pip3", "pipx") or (n == "uv" and a[:1] in (["pip"], ["tool"])) or (re.match(r"^python[0-9.]*$|^py$", n) and a[:2] == ["-m", "pip"])
+    if pip and "uninstall" in a and any(x.lower() == "verfy" for x in a):
+        return _f("VFY-SELF-004", "deny", "Uninstalls Verfy.")
+    return None
 
 
 def check_url(url: str, ctx: _Ctx) -> list[dict]:
@@ -574,10 +624,17 @@ def check_shell(cmd: str, ctx: _Ctx) -> tuple[list[dict], bool]:
             mode = ops[0] if ops else ""
             if re.match(r"^0?[0-7]?[0-7][0-7][2367]$", mode) or re.search(r"(?:^|,)[ao]*[+=][rwxXst]*w", mode) or re.match(r"^\+?w$", mode):
                 out.append(_f("VFY-SH-012", "ask", f"`chmod {mode}` lets every user change these files."))
+        own = _verfy_command(s)
+        if own:
+            out.append(own)
         for p in _written(s):
             if "$" in p or "`" in p:
                 continue
             abs_ = ctx.path(p, here)
+            own = ctx.guards_verfy(abs_)
+            if own:
+                out.append(_self_finding(own, p))
+                continue
             hit = ctx.protected(abs_)
             if hit:
                 out.append(_f("VFY-SH-011", "deny", f"Changes {p}, which is protected (`{hit}`)."))
@@ -756,6 +813,10 @@ def check(action: dict, policy: dict | None = None, context: dict | None = None)
                     hit = ctx.sensitive(abs_)
                     if hit:
                         out.append(_f("VFY-FS-003", "ask", f"Reads the sensitive file {p} (`{hit}`)."))
+                    continue
+                own = ctx.guards_verfy(abs_)
+                if own:
+                    out.append(_self_finding(own, p))
                     continue
                 hit = ctx.protected(abs_)
                 if hit:

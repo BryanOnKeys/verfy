@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from . import __version__
@@ -16,6 +17,7 @@ from . import discover as cfgscan
 from . import hook as hooks
 from . import lock as locks
 from . import team as teamlib
+from . import update as updates
 from .gateway import Gateway, verfy_home
 from .mcp_client import MCPError, list_tools
 from .policy import DEFAULT_POLICY, load_policy, policy_digest
@@ -105,10 +107,70 @@ def cmd_init(args) -> int:
         print(f"Policy        {pp}  (new; everything not listed uses the defaults)")
     print(f"Ledger        {home / 'ledger.jsonl'}")
     print(f"Public key    {k.to_json(False)['public']}")
+    known = updates.settings(home).get("mode")
+    mode = args.updates or known or (_ask_update_mode() if _interactive() else "manual")
+    if mode != known:
+        updates.save_settings(home, mode=mode)
+    how = "checked once a day, installed in the background" if mode == "auto" else "only when you run `verfy update`"
+    print(f"Updates       {mode}: {how} (change with `verfy update --auto {'off' if mode == 'auto' else 'on'}`)")
     print("\nNext:")
     print("  verfy scan --discover           check the MCP servers in your Claude Code / Cursor configs")
     print("  verfy hook install --write      guard every Claude Code tool call (PreToolUse hook)")
     print("  verfy wrap <config.json>        put MCP servers behind the gateway (scan, lock, pre-check, receipts)")
+    return 0
+
+
+def _interactive() -> bool:
+    return sys.stdin.isatty() and sys.stdout.isatty()
+
+
+def _ask_update_mode() -> str:
+    print()
+    print("How should Verfy update itself?")
+    print("  1  manual     only when you run `verfy update`; Verfy never goes online on its own (default)")
+    print("  2  automatic  once a day, when you run a verfy command, check for a new version and install it in the background")
+    try:
+        answer = input("Choose 1 or 2 [1]: ").strip().lower()
+    except EOFError:
+        answer = ""
+    print()
+    return "auto" if answer in ("2", "a", "auto", "automatic") else "manual"
+
+
+def cmd_update(args) -> int:
+    home = verfy_home()
+    if args.auto:
+        mode = "auto" if args.auto == "on" else "manual"
+        updates.save_settings(home, mode=mode)
+        if mode == "auto":
+            print("Automatic updates on: once a day, when you run a verfy command, Verfy checks for a new version and installs it in the background.")
+        else:
+            print("Automatic updates off: Verfy goes online to update only when you run `verfy update`.")
+        return 0
+    how = updates.method()
+    try:
+        latest = updates.latest(how)
+    except updates.UpdateError as e:
+        print(f"verfy update: {e}", file=sys.stderr)
+        return 3
+    updates.save_settings(home, checked_at=time.time())
+    mode = updates.settings(home).get("mode", "manual")
+    if not updates.newer(latest, __version__):
+        print(f"verfy {__version__} is the newest version. Automatic updates: {'on' if mode == 'auto' else 'off'}.")
+        return 0
+    print(f"verfy {__version__} -> {latest} ({how} install)")
+    if args.check:
+        print("Run `verfy update` to install it.")
+        return 1
+    try:
+        code = updates.run(how)
+    except updates.UpdateError as e:
+        print(f"verfy update: {e}", file=sys.stderr)
+        return 3
+    if code != 0:
+        print(f"verfy update: the update did not finish (exit {code}); verfy {__version__} is still installed.", file=sys.stderr)
+        return 3
+    print(f"Updated to verfy {latest}. Open a new terminal to use it.")
     return 0
 
 
@@ -833,7 +895,13 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("init", help="create a signing key and a starter policy")
     p.add_argument("--project", action="store_true", help="write verfy.policy.json in this folder instead of ~/.verfy")
     p.add_argument("--force", action="store_true")
+    p.add_argument("--updates", choices=updates.MODES, help="update automatically, or only when you run `verfy update` (asked the first time)")
     p.set_defaults(fn=cmd_init)
+
+    p = sub.add_parser("update", help="install the newest version, or choose automatic updates")
+    p.add_argument("--check", action="store_true", help="only report whether a newer version exists (exit 1 if it does)")
+    p.add_argument("--auto", choices=["on", "off"], help="turn automatic updates on or off")
+    p.set_defaults(fn=cmd_update)
 
     p = sub.add_parser("key", help="show the public signing key")
     p.add_argument("--key")
@@ -1008,7 +1076,7 @@ def main(argv: list[str] | None = None) -> int:
         ap.print_help()
         return 0
     try:
-        return args.fn(args)
+        code = args.fn(args)
     except BrokenPipeError:
         return 0
     except (FileNotFoundError, PermissionError) as e:
@@ -1020,6 +1088,15 @@ def main(argv: list[str] | None = None) -> int:
     except locks.LockError as e:
         print(f"verfy: {e}", file=sys.stderr)
         return 2
+    # the opt-in daily update check: only for commands a person types, never the hook, gateway or sync
+    if args.command_name in AUTO_UPDATE_AFTER and sys.stderr.isatty() and not os.environ.get("CI"):
+        line = updates.maybe_auto(verfy_home(), __version__)
+        if line:
+            print(line, file=sys.stderr)
+    return code
+
+
+AUTO_UPDATE_AFTER = {"init", "key", "scan", "check", "wrap", "ledger", "verify", "scitt", "lock", "team", "demo"}
 
 
 if __name__ == "__main__":

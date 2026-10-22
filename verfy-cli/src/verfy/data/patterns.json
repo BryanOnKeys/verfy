@@ -238,6 +238,13 @@
    "disableAllHooks",
    "",
    "Tries to switch off agent hooks, including Verfy."
+  ],
+  [
+   "VFY-SELF-005",
+   "ask",
+   "(?:\\b(?:python[0-9.]*|py|node|deno|bun|perl|ruby|php|pwsh|powershell)\\b|\\b(?:Set-Content|Add-Content|Out-File|Clear-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|del|erase|rd|rmdir)\\b)[^\\n]*?(?:\\.claude[\\/]+settings(?:\\.local)?\\.json|\\bverfy\\.lock\\b|\\bverfy\\.policy\\.json\\b|[\\/]\\.verfy(?:[\\/]|\\b)|[\\/]Programs[\\/]+verfy\\b|\\.local[\\/]+share[\\/]+verfy\\b)",
+   "i",
+   "Touches a file Verfy relies on (hook settings, verfy.lock, the policy or the Verfy install) in a way Verfy cannot follow."
   ]
  ],
  "sql_patterns": [
@@ -732,6 +739,27 @@
    "comment",
    "dm",
    "sms"
+  ]
+ },
+ "self_protect": {
+  "deny": [
+   "~/.claude/settings.json",
+   "~/.claude/settings.local.json",
+   "**/.claude/settings.json",
+   "**/.claude/settings.local.json",
+   "**/verfy.lock",
+   "**/verfy.policy.json",
+   "~/.local/share/verfy/**",
+   "~/.local/bin/verfy",
+   "~/AppData/Local/Programs/verfy/**"
+  ],
+  "ask": [
+   "**/.mcp.json",
+   "~/.claude.json",
+   "**/.cursor/mcp.json",
+   "**/.vscode/mcp.json",
+   "**/claude_desktop_config.json",
+   "~/.codeium/windsurf/mcp_config.json"
   ]
  }
 }

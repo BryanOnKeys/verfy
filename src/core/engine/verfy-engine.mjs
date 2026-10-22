@@ -100,8 +100,13 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     var s = parts.join("/");
     return absolute ? "/" + s : (s || ".");
   }
+  function toPosix(p) {
+    p = p.replace(/\\/g, "/");
+    var m = /^([A-Za-z]):(?=\/|$)/.exec(p);
+    return m ? "/" + m[1].toLowerCase() + p.slice(2) : p;
+  }
   function resolve(p, home, cwd) {
-    p = String(p || "").trim();
+    p = toPosix(String(p || "").trim());
     if (p === "~" || p.indexOf("~/") === 0) p = home + p.slice(1);
     else if (p.indexOf("$HOME") === 0) p = home + p.slice(5);
     else if (p.indexOf("${HOME}") === 0) p = home + p.slice(7);
@@ -337,6 +342,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
   var NETWORK_CMDS = ["curl", "wget", "nc", "ncat", "netcat", "scp", "rsync", "ftp", "sftp", "http", "https", "httpie", "telnet", "socat", "aria2c", "Invoke-WebRequest", "iwr", "irm"];
   var READERS = ["cat", "less", "more", "head", "tail", "base64", "xxd", "od", "strings", "grep", "egrep", "rg", "awk", "sed", "cut", "sort", "uniq", "tac", "nl", "bat", "jq", "gpg", "openssl", "cp", "scp", "rsync", "tar", "zip", "7z", "source", "."];
   var SYSTEM_DIRS = ["/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/lib64", "/opt", "/proc", "/root", "/sbin", "/srv", "/sys", "/usr", "/var", "/System", "/Library", "/Applications", "/Users", "/private"];
+  var WINDOWS_DIRS = ["/c/windows", "/c/program files", "/c/program files (x86)", "/c/programdata", "/c/users"];
   var SECRET_ENV = "\\$\\{?[A-Za-z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API_?KEY|PRIVATE|CREDENTIAL|ACCESS_KEY|AUTH)[A-Za-z0-9_]*\\}?";
   var CONTENT_KEYS = ["content", "contents", "text", "data", "body", "new_string", "old_string", "patch", "diff", "new_str", "file_text", "edits"];
   var EXAMPLE_SUFFIXES = [".example", ".sample", ".template", ".dist"];
@@ -528,7 +534,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     else if (has(["chmod", "chown", "chgrp"], n)) p = p.concat(ops.slice(1));
     else if (n === "sed" && a.some(function (x) { return x === "-i" || (x.indexOf("-i") === 0 && x.indexOf("--") !== 0) || x.indexOf("--in-place") === 0; })) p = p.concat(ops.slice(1));
     else if (n === "dd") a.forEach(function (x) { if (x.indexOf("of=") === 0) p.push(x.slice(3)); });
-    return p.filter(function (x) { return x && x.indexOf("://") < 0 && !/^[^/]*@?[^/]+:/.test(x); });
+    return p.filter(function (x) { return x && x.indexOf("://") < 0 && (/^[A-Za-z]:[\\/]/.test(x) || !/^[^/]*@?[^/]+:/.test(x)); });
   }
   function readPaths(s) {
     var p = s.inp.slice();
@@ -575,20 +581,61 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
 
   function Ctx(policy) {
     this.p = policy;
-    this.home = normpath(policy.home);
-    this.ws = resolve(policy.workspace, this.home, "/");
+    this.home = normpath(toPosix(policy.home));
+    // a home folder on a drive letter means Windows, where file names ignore case
+    this.win = /^\/[a-z](?:\/|$)/.test(this.home);
+    if (this.win) this.home = this.home.toLowerCase();
+    this.ws = this.path(policy.workspace, "/");
   }
-  Ctx.prototype.path = function (p, cwd) { return resolve(p, this.home, cwd || this.ws); };
+  Ctx.prototype.path = function (p, cwd) {
+    var out = resolve(p, this.home, cwd || this.ws);
+    return this.win ? out.toLowerCase() : out;
+  };
+  Ctx.prototype.match = function (patterns, path) {
+    patterns = patterns || [];
+    for (var i = 0; i < patterns.length; i++) {
+      if (firstMatch([this.win ? toPosix(patterns[i]).toLowerCase() : patterns[i]], path, this.home) !== null) return patterns[i];
+    }
+    return null;
+  };
   Ctx.prototype.sensitive = function (path) {
     var base = basename(path);
     if (EXAMPLE_SUFFIXES.some(function (s) { return base.slice(-s.length) === s; })) return null;
-    return firstMatch(this.p.files.sensitive, path, this.home);
+    return this.match(this.p.files.sensitive, path);
   };
-  Ctx.prototype.protected_ = function (path) { return firstMatch(this.p.files.deny_write, path, this.home); };
-  Ctx.prototype.allowedOutside = function (path) { return firstMatch(this.p.files.allow_write, path, this.home) !== null; };
+  Ctx.prototype.protected_ = function (path) { return this.match(this.p.files.deny_write, path); };
+  Ctx.prototype.guardsVerfy = function (path) {
+    var verdicts = ["deny", "ask"];
+    for (var i = 0; i < verdicts.length; i++) {
+      var hit = this.match(PATTERNS.self_protect[verdicts[i]], path);
+      if (hit !== null) return [verdicts[i], hit];
+    }
+    return null;
+  };
+  Ctx.prototype.allowedOutside = function (path) { return this.match(this.p.files.allow_write, path) !== null; };
   Ctx.prototype.catastrophic = function (path) {
+    if (this.win && (/^\/[a-z]$/.test(path) || has(WINDOWS_DIRS, path))) return true;
     return path === "/" || path === this.home || path === this.ws || has(SYSTEM_DIRS, path) || isWithin(this.ws, path);
   };
+
+  function selfFinding(hit, p) {
+    if (hit[0] === "deny") return F("VFY-SELF-001", "deny", "Changes " + p + ", which Verfy relies on to guard this agent (`" + hit[1] + "`). Make this change yourself if you meant it.");
+    return F("VFY-SELF-002", "ask", "Changes the MCP config " + p + ", which could take a server out from behind the Verfy gateway.");
+  }
+  function verfyCommand(s) {
+    var n = s.name.toLowerCase().replace(/\.exe$/, ""), a = s.args, py = /^python[0-9.]*$|^py$/.test(n);
+    if (py && a[0] === "-m" && a[1] === "verfy") { n = "verfy"; a = a.slice(2); }
+    if (n === "verfy") {
+      var w = a.filter(function (x) { return x.charAt(0) !== "-"; });
+      if (w[0] === "lock" && (w[1] === "approve" || w[1] === "add")) return F("VFY-SELF-003", "deny", "`verfy " + w.slice(0, 2).join(" ") + "` approves a tool change for the agent. A person has to review and run it.");
+      if (w[0] === "lock" && w[1] === "check" && has(a, "--update")) return F("VFY-SELF-003", "deny", "`verfy lock check --update` writes verfy.lock for the agent. A person has to review and run it.");
+      if (w[0] === "init" && has(a, "--force")) return F("VFY-SELF-003", "deny", "`verfy init --force` replaces the signing key, which starts a new receipt chain.");
+      return null;
+    }
+    var pip = has(["pip", "pip3", "pipx"], n) || (n === "uv" && (a[0] === "pip" || a[0] === "tool")) || (py && a[0] === "-m" && a[1] === "pip");
+    if (pip && has(a, "uninstall") && a.some(function (x) { return x.toLowerCase() === "verfy"; })) return F("VFY-SELF-004", "deny", "Uninstalls Verfy.");
+    return null;
+  }
 
   function checkUrl(url, ctx) {
     var out = [];
@@ -711,9 +758,13 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
         var mode = ops.length ? ops[0] : "";
         if (/^0?[0-7]?[0-7][0-7][2367]$/.test(mode) || /(?:^|,)[ao]*[+=][rwxXst]*w/.test(mode) || /^\+?w$/.test(mode)) out.push(F("VFY-SH-012", "ask", "`chmod " + mode + "` lets every user change these files."));
       }
+      var own = verfyCommand(s);
+      if (own) out.push(own);
       written(s).forEach(function (wp) {
         if (wp.indexOf("$") >= 0 || wp.indexOf("`") >= 0) return;
         abs = ctx.path(wp, here);
+        var mine = ctx.guardsVerfy(abs);
+        if (mine) { out.push(selfFinding(mine, wp)); return; }
         hit = ctx.protected_(abs);
         if (hit) out.push(F("VFY-SH-011", "deny", "Changes " + wp + ", which is protected (`" + hit + "`)."));
       });
@@ -887,6 +938,8 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
             if (h) out.push(F("VFY-FS-003", "ask", "Reads the sensitive file " + p + " (`" + h + "`)."));
             return;
           }
+          var mine = ctx.guardsVerfy(abs);
+          if (mine) { out.push(selfFinding(mine, p)); return; }
           h = ctx.protected_(abs);
           if (h) { out.push(F("VFY-FS-001", "deny", "Changes " + p + ", which is protected (`" + h + "`).")); return; }
           if (kind === "file_delete" && ctx.catastrophic(abs)) { out.push(F("VFY-FS-004", "deny", "Deletes " + p + ", which would wipe the system, the home folder or the whole project.")); return; }

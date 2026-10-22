@@ -8,7 +8,8 @@ export const metadata: Metadata = {
 };
 
 const CLI: [string, string, string][] = [
-  ["verfy init", "Create a signing key and a starter policy in ~/.verfy", "0"],
+  ["verfy init", "Create a signing key and a starter policy in ~/.verfy, and choose manual or automatic updates", "0"],
+  ["verfy update", "Install the newest version; --check only reports; --auto on|off turns automatic updates on or off", "0 · 1 newer version (with --check) · 3 failed"],
   ["verfy scan --discover", "Static check of the MCP servers in your Claude Code, Cursor and Claude Desktop configs", "0 ok · 1 medium · 2 high or worse"],
   ["verfy scan --discover --live", "Also start each stdio server and scan its tool definitions", "0 · 1 with --fail-under"],
   ["verfy scan FILE", "Scan a saved tools/list answer", "0 · 1 with --fail-under"],
@@ -88,12 +89,23 @@ export default function DocsPage() {
         <p className="text-2">With Python 3.10 or newer you can use pip instead. There are no dependencies; the optional extra makes signing faster.</p>
         <CodeBlock code={["$ pip install verfy", "$ pip install \"verfy[fast]\""].join("\n")} />
         <CodeBlock label="Then" code={["$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")} />
+        <p className="text-2">
+          <code className="inline-code">verfy init</code> asks how Verfy should update: manually, when you run <code className="inline-code">verfy update</code>
+          , or automatically, checking once a day when you use a verfy command. Manual is the default, and then Verfy never goes online on its own. The
+          hook never checks for updates.
+        </p>
+        <CodeBlock code={["$ verfy update                 # install the newest version", "$ verfy update --auto on       # or off"].join("\n")} />
       </section>
 
       <section id="guard" className="stack" aria-labelledby="guard-h">
         <h2 id="guard-h">2. Guard Claude Code</h2>
         <p className="text-2">
           The hook checks every tool call before it runs and writes a signed receipt. Review the change first (without <code className="inline-code">--write</code> it only prints it).
+        </p>
+        <p className="text-2">
+          The agent cannot use its own tools to switch Verfy off: changing the hook settings, <code className="inline-code">verfy.lock</code>, the
+          policy or the Verfy install is denied, and so is running <code className="inline-code">verfy lock approve</code> to approve a tool change for
+          itself. Changes to MCP configs need your approval.
         </p>
         <CodeBlock code={["$ verfy hook install            # print the settings change", "$ verfy hook install --write    # save it (backup kept)", "$ verfy ledger show", "$ verfy verify"].join("\n")} />
       </section>

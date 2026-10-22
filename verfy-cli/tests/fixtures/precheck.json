@@ -851,7 +851,244 @@
     "verdict": "deny",
     "kind": "shell",
     "rules": [
+     "VFY-SELF-001",
      "VFY-SH-011"
+    ]
+   }
+  },
+  {
+   "name": "edit hook settings",
+   "action": {
+    "tool": "Edit",
+    "arguments": {
+     "file_path": "/home/you/.claude/settings.json",
+     "old_string": "verfy",
+     "new_string": ""
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "write project hook settings",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "/home/you/project/.claude/settings.local.json",
+     "content": "{}"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "write verfy.lock",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "/home/you/project/verfy.lock",
+     "content": "{}"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "edit mcp config",
+   "action": {
+    "tool": "Edit",
+    "arguments": {
+     "file_path": "/home/you/project/.mcp.json",
+     "old_string": "verfy",
+     "new_string": "npx"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "ask",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-002"
+    ]
+   }
+  },
+  {
+   "name": "shell writes verfy.lock",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "cp /tmp/lock.json verfy.lock"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "agent approves lock",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy lock approve filesystem --yes"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
+   "name": "agent updates lock in ci mode",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "python -m verfy lock check --update --yes"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
+   "name": "agent resets key",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy init --force"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
+   "name": "agent uninstalls verfy",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "pip uninstall -y verfy"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-004"
+    ]
+   }
+  },
+  {
+   "name": "lock status is fine",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy lock status && verfy lock diff filesystem"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "allow",
+    "kind": "shell",
+    "rules": []
+   }
+  },
+  {
+   "name": "mentioning lock approve is fine",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "git commit -m 'docs: explain verfy lock approve'"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "allow",
+    "kind": "shell",
+    "rules": []
+   }
+  },
+  {
+   "name": "inline script edits hook settings",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "python -c \"open('.claude/settings.json', 'w').write('{}')\""
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "ask",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-005"
+    ]
+   }
+  },
+  {
+   "name": "powershell removes verfy install",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "Remove-Item -Recurse $env:LOCALAPPDATA/Programs/verfy"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "ask",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-005"
     ]
    }
   },
@@ -1926,6 +2163,198 @@
     "verdict": "allow",
     "kind": "file_write",
     "rules": []
+   }
+  },
+  {
+   "name": "windows: write ssh config",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "C:\\Users\\you\\.ssh\\config",
+     "content": "x"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-FS-001"
+    ]
+   }
+  },
+  {
+   "name": "windows: read env, other case",
+   "action": {
+    "tool": "Read",
+    "arguments": {
+     "file_path": "C:\\Users\\You\\Project\\.env"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "ask",
+    "kind": "file_read",
+    "rules": [
+     "VFY-FS-003"
+    ]
+   }
+  },
+  {
+   "name": "windows: edit hook settings",
+   "action": {
+    "tool": "Edit",
+    "arguments": {
+     "file_path": "C:\\Users\\you\\.claude\\settings.json",
+     "old_string": "a",
+     "new_string": "b"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "windows: write in project",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "C:\\Users\\you\\project\\src\\app.py",
+     "content": "x"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "allow",
+    "kind": "file_write",
+    "rules": []
+   }
+  },
+  {
+   "name": "windows: write outside project",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "D:/data/x.txt",
+     "content": "x"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "ask",
+    "kind": "file_write",
+    "rules": [
+     "VFY-FS-002"
+    ]
+   }
+  },
+  {
+   "name": "windows: delete drive",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "rm -rf C:/"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SH-001"
+    ]
+   }
+  },
+  {
+   "name": "windows: delete program files",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "rm -rf '/c/Program Files'"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SH-001"
+    ]
+   }
+  },
+  {
+   "name": "windows: shell writes hook settings",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "echo {} > C:/Users/you/.claude/settings.json"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "windows: delete standalone verfy",
+   "action": {
+    "tool": "delete_file",
+    "arguments": {
+     "path": "C:\\Users\\you\\AppData\\Local\\Programs\\verfy\\current\\verfy.exe"
+    }
+   },
+   "policy": {
+    "home": "C:\\Users\\you",
+    "workspace": "C:\\Users\\you\\project"
+   },
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_delete",
+    "rules": [
+     "VFY-SELF-001"
+    ]
    }
   }
  ]

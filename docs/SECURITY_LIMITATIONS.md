@@ -8,6 +8,8 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - Verfy only sees calls that go through its Claude Code hook or its MCP gateway. Tools an agent reaches another way are not checked.
 - The hook answers deny or ask, never allow; Claude Code's own permission settings still decide allowed actions.
 - Anyone with write access to the developer's machine can remove the hook or edit the policy. Team policy and receipts make that visible, not impossible.
+- The guard stops the agent from switching Verfy off through the paths it understands: editing Claude Code's hook settings, `verfy.lock`, `verfy.policy.json`, `~/.verfy` or the Verfy install (deny), editing MCP configs (ask), and running `verfy lock approve`, `verfy lock check --update`, `verfy init --force` or `pip uninstall verfy` (deny). A script the agent writes and then runs, or an interpreter one-liner, can still do these things; Verfy asks for the obvious one-liners but cannot follow every program.
+- On Windows, paths are compared without regard to case and in the `/c/...` form Git Bash uses. Rules written for Unix system folders do not apply there.
 
 ## The scanner and locks
 
@@ -16,6 +18,12 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - The first time a server is seen, its tools are locked as they are (trust on first use).
 - A lock proves a definition did not change since it was approved, not that it is safe.
 - `verfy lock check` (and the GitHub Action) starts every stdio server command in the given config, like `--live`. In CI that runs those packages on the runner with whatever secrets you pass them; pin versions and keep the job's permissions read-only. A server can serve different definitions to different clients or at different times, so a passing CI check does not replace the lock on each developer's machine.
+
+## Updates
+
+- `verfy update`, and the once-a-day check when automatic updates are on, ask GitHub (standalone builds) or PyPI (pip installs) for the newest version and then run the same install script or `pip install --upgrade` you would run by hand. Updating trusts those services and this project's release process exactly as much as the first install did.
+- The standalone build is checked against `SHA256SUMS` from the same GitHub release. That catches a broken download, not a release someone was able to replace. The builds are not code-signed.
+- Automatic updates are off unless you choose them in `verfy init` or with `verfy update --auto on`. The hook, the gateway and `verfy sync` never check for updates.
 
 ## Receipts
 

@@ -118,8 +118,18 @@ def normpath(p: str) -> str:
     return ("/" + s) if absolute else (s or ".")
 
 
+_DRIVE = re.compile(r"^([A-Za-z]):(?=/|$)")
+
+
+def to_posix(p: str) -> str:
+    """Windows paths (``C:/Users/x``, also with backslashes) as Git Bash writes them: ``/c/Users/x``."""
+    p = p.replace("\\", "/")
+    m = _DRIVE.match(p)
+    return "/" + m.group(1).lower() + p[2:] if m else p
+
+
 def resolve(p: str, home: str, cwd: str) -> str:
-    p = (p or "").strip()
+    p = to_posix((p or "").strip())
     if p == "~" or p.startswith("~/"):
         p = home + p[1:]
     elif p.startswith("$HOME") or p.startswith("${HOME}"):

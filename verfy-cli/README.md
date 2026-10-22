@@ -17,7 +17,17 @@ verfy hook install              # shows the change to ~/.claude/settings.json
 verfy hook install --write      # saves it (a backup is kept); --project for ./.claude/settings.json
 ```
 
-Claude Code then runs `verfy hook pre-tool-use` before every tool call. Verfy answers **deny** or **ask** with the rule and reason, or stays silent so Claude Code's own permissions decide; it never answers allow itself. Any error becomes `ask` (or `deny` with `"fail_mode": "deny"`). The hook never touches the network.
+Claude Code then runs `verfy hook pre-tool-use` before every tool call. The agent cannot switch Verfy off through what Verfy sees: changes to the hook settings, `verfy.lock`, the policy, `~/.verfy` or the Verfy install are denied, changes to MCP configs need approval, and so do `verfy lock approve`, `verfy lock check --update`, `verfy init --force` and `pip uninstall verfy` when the agent runs them (denied). Verfy answers **deny** or **ask** with the rule and reason, or stays silent so Claude Code's own permissions decide; it never answers allow itself. Any error becomes `ask` (or `deny` with `"fail_mode": "deny"`). The hook never touches the network.
+
+## Update
+
+```bash
+verfy update                    # install the newest version (standalone build, pip, pipx or uv: whichever you used)
+verfy update --check            # only report; exit 1 when a newer version exists
+verfy update --auto on          # once a day, when you run a verfy command, update in the background (off: --auto off)
+```
+
+`verfy init` asks which you prefer the first time; the default is manual, so Verfy never goes online on its own. The hook, the gateway and `verfy sync` never check for updates.
 
 ## Guard MCP servers (gateway)
 

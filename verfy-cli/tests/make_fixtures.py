@@ -67,6 +67,19 @@ CASES = [
     ("vercel prod", S("vercel deploy --prod")),
     ("drop table", S("psql -c 'DROP TABLE users;'")),
     ("disable hooks", S("echo '{\"disableAllHooks\": true}' > .claude/settings.json")),
+    ("edit hook settings", A("Edit", {"file_path": "/home/you/.claude/settings.json", "old_string": "verfy", "new_string": ""})),
+    ("write project hook settings", A("Write", {"file_path": "/home/you/project/.claude/settings.local.json", "content": "{}"})),
+    ("write verfy.lock", A("Write", {"file_path": "/home/you/project/verfy.lock", "content": "{}"})),
+    ("edit mcp config", A("Edit", {"file_path": "/home/you/project/.mcp.json", "old_string": "verfy", "new_string": "npx"})),
+    ("shell writes verfy.lock", S("cp /tmp/lock.json verfy.lock")),
+    ("agent approves lock", S("verfy lock approve filesystem --yes")),
+    ("agent updates lock in ci mode", S("python -m verfy lock check --update --yes")),
+    ("agent resets key", S("verfy init --force")),
+    ("agent uninstalls verfy", S("pip uninstall -y verfy")),
+    ("lock status is fine", S("verfy lock status && verfy lock diff filesystem")),
+    ("mentioning lock approve is fine", S("git commit -m 'docs: explain verfy lock approve'")),
+    ("inline script edits hook settings", S("python -c \"open('.claude/settings.json', 'w').write('{}')\"")),
+    ("powershell removes verfy install", S("Remove-Item -Recurse $env:LOCALAPPDATA/Programs/verfy")),
     ("token in command", S("git remote add origin https://ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@github.com/x/y.git")),
     ("tests", S("pytest -q && npm test")),
     ("list files", S("ls -la src | head -20")),
@@ -116,6 +129,8 @@ CASES = [
     ("unknown tool", A("secret_tool", {}), {"known_tools": ["read_file"]}),
 ]
 
+WIN = {"home": "C:\\Users\\you", "workspace": "C:\\Users\\you\\project"}
+
 POLICY_CASES = [
     ("deny listed tool", A("delete_repo", {"name": "x"}, server="github"), {"tools": {"deny": ["github/delete_*"]}}),
     ("ask listed tool", A("merge_pr", {"n": 1}, server="github"), {"tools": {"ask": ["merge_pr"]}}),
@@ -126,6 +141,15 @@ POLICY_CASES = [
     ("disabled rule", S("sudo apt update"), {"disabled_rules": ["VFY-SH-006"]}),
     ("recipient allow list", A("send_payment", {"amount": 5, "to": "stranger"}), {"payments": {"recipients": ["acme", "vendor-*"]}}),
     ("outside workspace allowed", A("write_file", {"path": "/srv/data/x", "content": "1"}), {"files": {"outside_workspace": "allow"}}),
+    ("windows: write ssh config", A("Write", {"file_path": "C:\\Users\\you\\.ssh\\config", "content": "x"}), WIN),
+    ("windows: read env, other case", A("Read", {"file_path": "C:\\Users\\You\\Project\\.env"}), WIN),
+    ("windows: edit hook settings", A("Edit", {"file_path": "C:\\Users\\you\\.claude\\settings.json", "old_string": "a", "new_string": "b"}), WIN),
+    ("windows: write in project", A("Write", {"file_path": "C:\\Users\\you\\project\\src\\app.py", "content": "x"}), WIN),
+    ("windows: write outside project", A("Write", {"file_path": "D:/data/x.txt", "content": "x"}), WIN),
+    ("windows: delete drive", S("rm -rf C:/"), WIN),
+    ("windows: delete program files", S("rm -rf '/c/Program Files'"), WIN),
+    ("windows: shell writes hook settings", S("echo {} > C:/Users/you/.claude/settings.json"), WIN),
+    ("windows: delete standalone verfy", A("delete_file", {"path": "C:\\Users\\you\\AppData\\Local\\Programs\\verfy\\current\\verfy.exe"}), WIN),
 ]
 
 

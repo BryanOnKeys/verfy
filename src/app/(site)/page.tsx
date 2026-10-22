@@ -71,7 +71,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "Does my code leave my computer?",
-    "No. Checks run locally and never wait for the network. If you join a team, only receipts are uploaded, and by default they hold hashes of the arguments, not the arguments. Private keys never leave the device.",
+    "No. Checks run locally and never wait for the network. If you join a team, only receipts are uploaded, and by default they hold hashes of the arguments, not the arguments. Private keys never leave the device. Verfy itself goes online only when you run verfy update, or once a day if you turned on automatic updates, to ask GitHub or PyPI for the newest version number.",
   ],
   [
     "Is Verfy a sandbox?",

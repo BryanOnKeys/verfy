@@ -77,7 +77,7 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
             </div>
             <h2 style={{ fontSize: "1.08rem" }}>{a.summary}</h2>
             <p className="small muted">
-              {a.ecosystem} · <span className="mono">{a.package}</span>
+              {a.ecosystem} · <span className="mono">{a.package}</span> · added <time dateTime={a.published}>{a.published.slice(0, 10)}</time>
             </p>
           </Link>
         ))}

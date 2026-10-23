@@ -1,6 +1,10 @@
 # Verfy
 
-**For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and proves every call.**
+[![CI](https://github.com/anvarbekovjavohir277-dot/verfy/actions/workflows/ci.yml/badge.svg)](https://github.com/anvarbekovjavohir277-dot/verfy/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/verfy)](https://pypi.org/project/verfy/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and signs a receipt for every call it checks.**
 
 Verfy checks every tool call a coding agent makes against your policy before it runs, locks the MCP tool definitions the agent may use, and writes an Ed25519-signed, hash-chained receipt for every action. Verfy Team gives an organization one policy, tool-change approvals, device management, an audit log and evidence exports that anyone can verify offline.
 

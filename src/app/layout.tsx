@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "Verfy: stop MCP tools that change in secret",
     description: "MCP tool locks, a GitHub Action and signed receipts for teams using Claude Code and Cursor.",
   },
-  twitter: { card: "summary_large_image", title: "Verfy", description: "If a tool your agent uses changes in secret, Verfy stops it and proves every call." },
+  twitter: { card: "summary_large_image", title: "Verfy", description: "If a tool your agent uses changes in secret, Verfy stops it and signs a receipt for every call it checks." },
   robots: { index: true, follow: true },
 };
 

@@ -1,6 +1,6 @@
 # Verfy CLI
 
-Guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable receipt for every action. Plain Python (≥ 3.10), no required dependencies, MIT.
+Guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable receipt for every call Verfy checks. Plain Python (≥ 3.10), no required dependencies, MIT.
 
 ```bash
 pip install verfy                  # Python ≥ 3.10, no dependencies

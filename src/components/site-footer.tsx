@@ -15,7 +15,7 @@ export function SiteFooter() {
           <Link href="/" className="brand" aria-label="Verfy home">
             <Logo size={26} />
           </Link>
-          <p>Readable rules for AI agents, tools that cannot change behind your back, and a signed record of every action.</p>
+          <p>Readable rules for AI agents, tools that can&apos;t change without you knowing, and a signed receipt for every call that passes through Verfy.</p>
         </div>
         {COLS.map(([title, links]) => (
           <nav key={title} className="footer-col" aria-label={title}>

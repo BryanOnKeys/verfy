@@ -128,7 +128,10 @@ export default function FeaturesPage() {
         <div className="section-head" style={{ marginBottom: 0 }}>
           <span className="eyebrow">Verfy Team</span>
           <h2 id="team-h">The web platform</h2>
-          <p className="lead">Runs on your own Vercel and Supabase projects. Every table is protected by row-level security and every change is audited.</p>
+          <p className="lead">
+            Runs on your own Vercel and Supabase projects, with row-level security on every table and an audit entry for every change made through the
+            app. The <Link href="/security">security model</Link> shows how that is enforced and tested, and where it stops.
+          </p>
         </div>
         <div className="grid-4">
           {TEAM.map(([icon, title, body], i) => (

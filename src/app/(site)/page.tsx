@@ -29,7 +29,7 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     icon: "lock",
     tone: "violet",
     name: "Lock",
-    title: "Tools can't change behind your back",
+    title: "Tools can't change without you knowing",
     body: "Verfy pins the SHA-256 of each tool's exact definition when you approve it. If the server changes it later, the tool is blocked on every machine and the pull request fails in CI until a person reviews the diff.",
   },
   {
@@ -37,7 +37,7 @@ const MODULES: { id: string; icon: IconName; tone?: string; name: string; title:
     icon: "receipt",
     tone: "green",
     name: "Receipts",
-    title: "Proof of every call",
+    title: "A signed receipt for every checked call",
     body: "Every decision becomes a receipt, signed on the device with Ed25519 and chained with SHA-256. Anyone can check it with verfy verify, and it exports as a standard SCITT signed statement.",
   },
   {
@@ -223,7 +223,7 @@ export default async function HomePage() {
             <h1 id="hero-title">
               <Words text="If a tool your agent uses changes in secret, Verfy stops it" />{" "}
               <em>
-                <Words text="and proves every call." from={12} />
+                <Words text="and signs a receipt for every call it checks." from={12} />
               </em>
             </h1>
             <div className="hero-actions" {...enter(2)}>

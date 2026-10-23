@@ -4,8 +4,9 @@
 
 Please report security issues **privately**:
 
-1. Preferred: GitHub → this repository → **Security** → **Report a vulnerability** (private vulnerability reporting).
-2. Or email: `security@<your-domain>` — **maintainers: replace this placeholder with a monitored address before going public.**
+Use GitHub → this repository → **Security** → **Report a vulnerability** (private vulnerability reporting, [direct link](https://github.com/anvarbekovjavohir277-dot/verfy/security/advisories/new)). Only the maintainers see the report.
+
+A way for an agent to get past Verfy (a command, path or tool call that should be denied or asked about but is allowed) counts as a vulnerability: report it privately the same way.
 
 Include the affected component (CLI, web app, database migration), the version or commit, steps to reproduce, and the impact you observed. Please do not open public issues for vulnerabilities.
 

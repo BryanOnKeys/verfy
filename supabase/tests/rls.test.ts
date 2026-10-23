@@ -81,6 +81,21 @@ describe("tenant isolation", () => {
     await expectDenied(as(db, alice, (q) => q("select * from public.device_tokens")));
     await expectDenied(as(db, alice, (q) => q("select * from public.rate_limits")));
   });
+
+  it("the waitlist is written by the server only, and checks what it stores", async () => {
+    await expectDenied(as(db, anon, (q) => q("select * from public.waitlist")));
+    await expectDenied(as(db, alice, (q) => q("select * from public.waitlist")));
+    await expectDenied(as(db, anon, (q) => q("insert into public.waitlist (email) values ('x@y.test')")));
+    const add = (email: string, agents = "{cursor}") =>
+      as(db, service, (q) => q("insert into public.waitlist (email, team_size, agents) values ($1, '2-10', $2) on conflict (email) do nothing", [email, agents]));
+    await add("lead@team.test");
+    await add("lead@team.test"); // the same address joins once
+    const rows = await as(db, service, (q) => q<{ n: number }>("select count(*)::int as n from public.waitlist where email = 'lead@team.test'"));
+    expect(rows[0]!.n).toBe(1);
+    await expect(add("Lead@Team.test")).rejects.toThrow(/check constraint/);
+    await expect(add("not-an-email")).rejects.toThrow(/check constraint/);
+    await expect(add("x@y.test", "{cursor,doom}")).rejects.toThrow(/check constraint/);
+  });
 });
 
 describe("no direct writes from clients", () => {

@@ -26,6 +26,7 @@ export const LIMITS = {
   userWrite: { windowSeconds: 60, max: 60 },
   export: { windowSeconds: 3600, max: 10 },
   simulate: { windowSeconds: 60, max: 30 },
+  waitlist: { windowSeconds: 3600, max: 5 },
 } as const;
 
 export type LimitName = keyof typeof LIMITS;

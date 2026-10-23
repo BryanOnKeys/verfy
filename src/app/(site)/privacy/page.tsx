@@ -13,6 +13,7 @@ const STORED: [string, string][] = [
   ["Devices", "For each enrolled device: its name, platform and public key. Device tokens are stored only as SHA-256 hashes."],
   ["Receipts", "The receipts your devices upload: which tool was called, by which agent, when, the verdict and the rules that fired. Arguments and results are stored as hashes unless a device is configured to include redacted arguments."],
   ["Audit log", "Who changed what in an organization and when (policies, locks, members, devices, exports)."],
+  ["Waitlist", "If you join the Verfy Cloud waitlist: your email address, and the company, team size and agents you chose to give. It is used only to tell you when Verfy Cloud opens, never sold or shared, and removed when you ask."],
   ["Rate limiting", "A salted hash of your IP address, kept briefly in counters that slow down repeated sign-in attempts and abuse. The IP address itself is not stored."],
 ];
 

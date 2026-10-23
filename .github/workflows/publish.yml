@@ -63,7 +63,5 @@ jobs:
         with:
           name: dist
           path: dist/
+      # Sigstore attestations (PEP 740): PyPI shows which workflow in this repository built each file
       - uses: pypa/gh-action-pypi-publish@v1.14.2
-        with:
-          # Sigstore attestations would publish this private repository's name to a public log
-          attestations: false

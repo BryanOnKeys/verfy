@@ -108,7 +108,8 @@ Test locations: `CLI` = `verfy-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `s
 | Merkle checkpoints, RFC 3161 / Rekor anchoring | Phase 2 |
 | Approve-from-Slack, incident workflow, LLM explanations | Phase 2 |
 | PyPI release (`pip install verfy`, Trusted Publishing from `.github/workflows/publish.yml`) | Done in 0.2.0 |
-| SARIF output, Sigstore attestations on PyPI (off while the repository is private) | Phase 2 |
+| Sigstore attestations on PyPI (from the next release, now that the repository is public) | Done in publish.yml |
+| SARIF output | Phase 2 |
 
 ## Verification performed for this release
 

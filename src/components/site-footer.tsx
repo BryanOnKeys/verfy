@@ -4,7 +4,7 @@ import { Logo } from "./logo";
 const COLS: [string, [string, string][]][] = [
   ["Product", [["/features", "Features"], ["/how-it-works", "How it works"], ["/pricing", "Pricing"]]],
   ["Security", [["/security", "Security model"], ["/advisories", "Verfy Advisories"], ["/security#disclosure", "Report a vulnerability"]]],
-  ["Developers", [["/docs", "Quickstart"], ["/docs#cli", "CLI reference"], ["/docs#api", "API"]]],
+  ["Developers", [["/docs", "Quickstart"], ["/docs#cli", "CLI reference"], ["/docs#api", "API"], ["https://github.com/anvarbekovjavohir277-dot/verfy", "Source on GitHub"], ["https://pypi.org/project/verfy/", "PyPI"]]],
 ];
 
 export function SiteFooter() {
@@ -23,7 +23,13 @@ export function SiteFooter() {
             <ul>
               {links.map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href}>{label}</Link>
+                  {href.startsWith("https://") ? (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {label}
+                    </a>
+                  ) : (
+                    <Link href={href}>{label}</Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -32,7 +38,11 @@ export function SiteFooter() {
       </div>
       <div className="shell footer-bottom">
         <span>
-          The Verfy CLI is released under the MIT license. <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+          The Verfy CLI is{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy" target="_blank" rel="noopener noreferrer">
+            open source
+          </a>{" "}
+          under the MIT license. <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
         </span>
         <span>Verfy is not a sandbox. The security model lists what it does not cover.</span>
       </div>

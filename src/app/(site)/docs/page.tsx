@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AgentCoverage } from "@/components/agent-coverage";
 import { CodeBlock } from "@/components/copy-button";
 import { Icon } from "@/components/icons";
 
@@ -56,6 +57,7 @@ export default function DocsPage() {
         <nav aria-label="On this page" className="row">
           {[
             ["#install", "Install"],
+            ["#agents", "Agents"],
             ["#guard", "Guard Claude Code"],
             ["#mcp", "MCP servers"],
             ["#ci", "GitHub Action"],
@@ -74,20 +76,26 @@ export default function DocsPage() {
 
       <section id="install" className="stack" aria-labelledby="install-h">
         <h2 id="install-h">1. Install</h2>
-        <p className="text-2">One line, with nothing to install first: the script downloads a build of verfy that carries its own Python.</p>
+        <p className="text-2">With Python 3.10 or newer (there are no other dependencies):</p>
+        <CodeBlock code={["$ pip install verfy", "$ pip install \"verfy[fast]\"      # optional: faster signing"].join("\n")} />
+        <p className="text-2">Without Python, one line downloads a build of verfy that carries its own Python:</p>
         <CodeBlock label="macOS (Apple silicon) and Linux" code="$ curl -fsSL https://verfy-tech.vercel.app/install.sh | sh" />
         <CodeBlock label="Windows PowerShell" code="irm https://verfy-tech.vercel.app/install.ps1 | iex" />
         <CodeBlock label="Windows Command Prompt (cmd)" code={'powershell -c "irm https://verfy-tech.vercel.app/install.ps1 | iex"'} />
         <p className="text-2 small">
-          The script takes the build for your system from the{" "}
+          Piping a download into a shell is exactly what Verfy asks about when an agent does it (rule VFY-SH-005), so read the script first: open{" "}
+          <a href="/install.sh" target="_blank" rel="noopener noreferrer">install.sh</a> or{" "}
+          <a href="/install.ps1" target="_blank" rel="noopener noreferrer">install.ps1</a> in a browser. It takes the build for your system from the{" "}
           <a href="https://github.com/anvarbekovjavohir277-dot/verfy-releases/releases" target="_blank" rel="noopener noreferrer">
             verfy-releases
           </a>{" "}
           repository, checks it against that release&apos;s SHA-256 list and puts <code className="inline-code">verfy</code> on your PATH. The builds are
-          not code-signed. To read the script before running it, open its address in a browser.
+          not code-signed. The source is on{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          .
         </p>
-        <p className="text-2">With Python 3.10 or newer you can use pip instead. There are no dependencies; the optional extra makes signing faster.</p>
-        <CodeBlock code={["$ pip install verfy", "$ pip install \"verfy[fast]\""].join("\n")} />
         <CodeBlock label="Then" code={["$ verfy init", "$ verfy check \"git push --force\"   # exit 1: needs approval"].join("\n")} />
         <p className="text-2">
           <code className="inline-code">verfy init</code> asks how Verfy should update: manually, when you run <code className="inline-code">verfy update</code>
@@ -95,6 +103,15 @@ export default function DocsPage() {
           hook never checks for updates.
         </p>
         <CodeBlock code={["$ verfy update                 # install the newest version", "$ verfy update --auto on       # or off"].join("\n")} />
+      </section>
+
+      <section id="agents" className="stack" aria-labelledby="agents-h">
+        <h2 id="agents-h">What Verfy sees in each agent</h2>
+        <p className="text-2">
+          The hook sees every tool call Claude Code makes. The MCP gateway sees only the tools that come from MCP servers, so in Cursor or Claude Desktop the
+          agent&apos;s built-in terminal and file tools are not checked.
+        </p>
+        <AgentCoverage />
       </section>
 
       <section id="guard" className="stack" aria-labelledby="guard-h">
@@ -151,7 +168,7 @@ export default function DocsPage() {
             "      - uses: actions/setup-python@v7",
             "        with:",
             "          python-version: \"3.13\"",
-            "      - uses: anvarbekovjavohir277-dot/verfy@main   # not public yet; see the note below",
+            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.3.0",
             "        with:",
             "          config: .mcp.json",
             "          lock: verfy.lock",
@@ -159,9 +176,11 @@ export default function DocsPage() {
         />
         <p className="text-2 small">
           The check runs the server commands in your config, as your MCP client would, so pin package versions and pass any keys they need as CI
-          secrets. Remote (HTTP) servers are skipped. The action lives in the Verfy repository, which is not public yet; until it is, copy{" "}
-          <code className="inline-code">action.yml</code> and <code className="inline-code">verfy-cli/</code> into your own repository and use{" "}
-          <code className="inline-code">uses: ./</code>.
+          secrets. Remote (HTTP) servers are skipped. Pin the action to a release tag, as above, and read{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/action.yml" target="_blank" rel="noopener noreferrer">
+            action.yml
+          </a>{" "}
+          before you trust it with your repository.
         </p>
       </section>
 

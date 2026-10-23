@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Fragment, type CSSProperties } from "react";
+import { AgentCoverage } from "@/components/agent-coverage";
 import { CodeBlock } from "@/components/copy-button";
 import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/live-guard";
@@ -72,6 +73,10 @@ const FAQ: [string, string][] = [
   [
     "Does my code leave my computer?",
     "No. Checks run locally and never wait for the network. If you join a team, only receipts are uploaded, and by default they hold hashes of the arguments, not the arguments. Private keys never leave the device. Verfy itself goes online only when you run verfy update, or once a day if you turned on automatic updates, to ask GitHub or PyPI for the newest version number.",
+  ],
+  [
+    "Can the agent switch Verfy off?",
+    "Not through the tools Verfy checks. Editing Claude Code's hook settings, verfy.lock, the policy or the Verfy install is denied, and so is the agent running verfy lock approve to accept a changed tool for itself. Changes to MCP configs need your approval. A program the agent writes and then runs can still do things Verfy does not follow, which is why it is not a sandbox.",
   ],
   [
     "Is Verfy a sandbox?",
@@ -249,15 +254,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="works" aria-label="Works with">
-        <div className="shell">
-          <span className="label">Works with</span>
-          <ul>
-            <li>Claude Code</li>
-            <li>Cursor</li>
-            <li>Claude Desktop</li>
-            <li>Any MCP client</li>
-          </ul>
+      <section className="section section-rule" id="agents" aria-labelledby="agents-title">
+        <div className="shell stack-lg">
+          <div className="section-head split reveal">
+            <span className="eyebrow">Works with</span>
+            <h2 id="agents-title">What Verfy sees in each agent</h2>
+            <p className="lead">Claude Code asks Verfy before every tool call. Other agents reach Verfy through their MCP servers, so it sees those tools and not the agent&apos;s built-in ones.</p>
+          </div>
+          <div className="reveal">
+            <AgentCoverage />
+          </div>
         </div>
       </section>
 
@@ -324,7 +330,7 @@ export default async function HomePage() {
             </div>
             <CodeBlock
               label="Install commands"
-              code={["$ curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # Windows: irm https://verfy-tech.vercel.app/install.ps1 | iex", "$ verfy lock check --update   # review and lock today's tools", "$ git add verfy.lock && git commit -m \"Lock MCP tools\"", "$ verfy lock check            # in CI: exit 2 if a tool changed"].join("\n")}
+              code={["$ pip install verfy            # no Python? the docs have a one-line installer", "$ verfy lock check --update   # review and lock today's tools", "$ git add verfy.lock && git commit -m \"Lock MCP tools\"", "$ verfy lock check            # in CI: exit 2 if a tool changed"].join("\n")}
             />
           </div>
         </div>

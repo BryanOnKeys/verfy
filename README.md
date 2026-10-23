@@ -15,9 +15,9 @@ Verfy checks every tool call a coding agent makes against your policy before it 
 ## Quick start: the CLI
 
 ```bash
-curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # macOS, Linux; Python included
-irm https://verfy-tech.vercel.app/install.ps1 | iex        # Windows PowerShell
-pip install verfy                                          # or with Python ≥ 3.10
+pip install verfy                                          # Python ≥ 3.10, no dependencies
+curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # no Python: macOS, Linux (read the script first)
+irm https://verfy-tech.vercel.app/install.ps1 | iex        # no Python: Windows PowerShell
 verfy init                       # signing key + starter policy in ~/.verfy
 verfy scan --discover            # check the MCP servers your agents can reach
 verfy lock check --update        # lock the tools in .mcp.json into ./verfy.lock (commit it)

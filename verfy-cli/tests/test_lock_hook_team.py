@@ -262,6 +262,26 @@ class HookTests(unittest.TestCase):
         _, out, _ = self.run_hook({"tool_name": "mcp__github__delete_repo", "tool_input": {}}, policy={"tools": {"deny": ["github/delete_*"]}})
         self.assertEqual(self.decision(out), "deny")
 
+    def test_agent_cannot_switch_verfy_off(self):
+        """What Claude Code sends when asked to "remove the Verfy hook" or to accept a changed tool."""
+        attempts = [
+            ({"tool_name": "Edit", "tool_input": {"file_path": "/home/you/.claude/settings.json", "old_string": '"command": "verfy hook pre-tool-use"', "new_string": ""}}, "deny", "VFY-SELF-001"),
+            ({"tool_name": "Write", "tool_input": {"file_path": "/home/you/project/.claude/settings.local.json", "content": '{"disableAllHooks": true}'}}, "deny", "VFY-SELF-001"),
+            ({"tool_name": "Bash", "tool_input": {"command": "sed -i '/verfy hook/d' ~/.claude/settings.json"}}, "deny", "VFY-SELF-001"),
+            ({"tool_name": "Write", "tool_input": {"file_path": "/home/you/project/verfy.lock", "content": "{}"}}, "deny", "VFY-SELF-001"),
+            ({"tool_name": "Write", "tool_input": {"file_path": "/home/you/.verfy/policy.json", "content": "{}"}}, "deny", "VFY-FS-001"),
+            ({"tool_name": "Bash", "tool_input": {"command": "verfy lock approve filesystem --yes"}}, "deny", "VFY-SELF-003"),
+            ({"tool_name": "Bash", "tool_input": {"command": "pip uninstall -y verfy"}}, "deny", "VFY-SELF-004"),
+            ({"tool_name": "Edit", "tool_input": {"file_path": "/home/you/project/.mcp.json", "old_string": '"command": "verfy"', "new_string": '"command": "npx"'}}, "ask", "VFY-SELF-002"),
+        ]
+        for payload, verdict, rule in attempts:
+            _, out, recs = self.run_hook(payload)
+            self.assertEqual(self.decision(out), verdict, payload)
+            self.assertIn(rule, out["hookSpecificOutput"]["permissionDecisionReason"], payload)
+            self.assertEqual(recs[0]["decision"]["verdict"], verdict)
+        _, out, _ = self.run_hook({"tool_name": "Read", "tool_input": {"file_path": "/home/you/.claude/settings.json"}})
+        self.assertIsNone(out)  # reading the settings is fine
+
     def test_errors_never_allow(self):
         for raw in ("not json", "[]", "null"):
             _, out, _ = self.run_hook(None, raw=raw)

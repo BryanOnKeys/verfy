@@ -25,7 +25,7 @@ Security research instead of ads. Check 20–50 popular MCP servers and publish 
 | CLI + GitHub Action | Free, MIT | Lock, CI check, Guard, Scan, receipts, `verfy verify`, SCITT export |
 | Verfy Team (hosted) | $19 per seat per month, planned | Team policy, receipt archive, evidence exports for SOC 2 / EU AI Act reviews |
 
-Payments through a merchant of record (Lemon Squeezy or Paddle). Not built yet: it needs an account owned by an adult founder or guardian, who also signs contracts.
+Payments through a merchant of record (Lemon Squeezy or Paddle). Not built yet: it needs a registered business to own the account and sign the contracts.
 
 ## Not now
 

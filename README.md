@@ -4,6 +4,10 @@
 [![PyPI](https://img.shields.io/pypi/v/verfy)](https://pypi.org/project/verfy/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+<img src="docs/assets/verfy-lock-demo.gif" width="494" alt="Verfy lock demo: the approved read_file tool is allowed; after the server quietly adds an instruction to its description, the same call is denied with VFY-TOOL-004.">
+
+*The server changes the tool's description after you approved it. Verfy notices the new SHA-256 and blocks the call. Try it on [the website](https://verfy-tech.vercel.app/).*
+
 **For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and signs a receipt for every call it checks.**
 
 Verfy checks every tool call a coding agent makes against your policy before it runs, locks the MCP tool definitions the agent may use, and writes an Ed25519-signed, hash-chained receipt for every action. Verfy Team gives an organization one policy, tool-change approvals, device management, an audit log and evidence exports that anyone can verify offline.

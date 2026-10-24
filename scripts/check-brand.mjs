@@ -12,6 +12,9 @@ const SKIP_DIRS = new Set(["node_modules", ".git", ".next", "coverage", ".venv",
 const OLD = ["at" + "las", "k" + "afil", "agent" + "cve", "kaf" + "-id", "kf" + "-scan", "kf" + "-sh-", "kf" + "_"];
 const RE = new RegExp(OLD.map((s) => s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&")).join("|"), "i");
 
+// real words that contain an old name (the Atlassian MCP server in research/servers.json)
+const ALLOWED = new RegExp("atl" + "assian", "gi");
+
 const hits = [];
 function walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -21,10 +24,10 @@ function walk(dir) {
     if (RE.test(name)) hits.push(`${rel}: old name in file name`);
     const st = statSync(full);
     if (st.isDirectory()) walk(full);
-    else if (st.size < 3_000_000 && !/\.(png|jpe?g|gif|ico|woff2?|zip|whl|exe|dll)$/i.test(name)) {
+    else if (st.size < 3_000_000 && !/\.(png|jpe?g|gif|ico|mp4|woff2?|zip|whl|exe|dll)$/i.test(name)) {
       const lines = readFileSync(full, "utf8").split("\n");
       lines.forEach((line, i) => {
-        if (RE.test(line)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 120)}`);
+        if (RE.test(line.replace(ALLOWED, ""))) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 120)}`);
       });
     }
   }

@@ -1,0 +1,33 @@
+{
+  "_note": "Phrasing seen in popular MCP servers (paraphrased) that older Verfy versions flagged by mistake. None of these should get a high or critical finding.",
+  "tools": [
+    {
+      "name": "search_docs",
+      "description": "Search the documentation. The query is sent to the docs service for processing. Do not include any sensitive or confidential information such as API keys, passwords or credentials in the query. After that, use read_page to open a result.",
+      "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}
+    },
+    {
+      "name": "read_page",
+      "description": "Read one page found with search_docs. Choose which fields to include in the response to save tokens.",
+      "inputSchema": {"type": "object", "properties": {"url": {"type": "string"}, "fields": {"type": "array", "items": {"type": "string"}}}, "required": ["url"]},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "get_issue",
+      "description": "Fetch an issue by ID, or pass a conversation URL to fetch the linked thread. If the issue does not exist, this returns an empty result silently.",
+      "inputSchema": {"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "make_folder",
+      "description": "Create a folder. If it already exists, this succeeds silently.",
+      "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}
+    },
+    {
+      "name": "find_files",
+      "description": "Find files by name, for example configuration files such as .env or tsconfig.json.",
+      "inputSchema": {"type": "object", "properties": {"pattern": {"type": "string"}}, "required": ["pattern"]},
+      "annotations": {"readOnlyHint": true}
+    }
+  ]
+}

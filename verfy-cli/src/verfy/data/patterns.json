@@ -309,7 +309,7 @@
   [
    "VFY-SCAN-001",
    "high",
-   "\\b(?:secretly|covertly|silently|surreptitiously)\\b",
+   "\\b(?:secretly|covertly|surreptitiously)\\b",
    "i",
    "Asks for something to be done secretly."
   ],
@@ -323,7 +323,7 @@
   [
    "VFY-SCAN-002",
    "critical",
-   "\\b(?:pass|include|send|put|add|append|attach|provide|upload|forward|copy)\\b[^.]{0,80}\\b(?:conversation|chat\\s+history|system\\s+prompt|previous\\s+messages|api\\s+keys?|passwords?|credentials|secrets?|private\\s+keys?|ssh\\s+keys?|tokens?|env(?:ironment)?\\s+variables)\\b",
+   "\\b(?:pass|include|send|put|add|append|attach|provide|upload|forward|copy)\\b[^.]{0,80}\\b(?:(?:entire|whole|full|complete|previous|prior)\\s+(?:conversation|chat)|(?:conversation|chat)\\s+(?:history|so\\s+far|transcript|log)|system\\s+prompt|previous\\s+messages|api\\s+keys?|passwords?|credentials|secrets?|private\\s+keys?|ssh\\s+keys?|(?:access|auth(?:entication)?|api|bearer|session|refresh|oauth|personal\\s+access)\\s+tokens?|env(?:ironment)?\\s+variables)\\b",
    "i",
    "Asks the model to hand over sensitive data."
   ],
@@ -336,7 +336,7 @@
   ],
   [
    "VFY-SCAN-002",
-   "high",
+   "medium",
    "(?:~/\\.ssh|\\.ssh/|\\bid_rsa\\b|\\bid_ed25519\\b|(?:^|[\\s/'\"`(])\\.env\\b|\\.aws/credentials|\\bmcp\\.json\\b|claude_desktop_config|\\.cursor/|\\.netrc\\b|/etc/shadow|/etc/passwd|\\bwallet\\.dat\\b|\\bseed\\s+phrase\\b|\\bmnemonic\\b)",
    "i",
    "Mentions a sensitive file or secret store."

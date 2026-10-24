@@ -59,7 +59,7 @@ const SECTIONS: { id: string; icon: IconName; title: string; intro: string; item
     intro: "Finds MCP servers in Claude Code (.mcp.json, ~/.claude.json), Cursor and Claude Desktop configs, and checks tool definitions.",
     items: [
       ["Config checks", "Unpinned npx/uvx packages, curl | sh launchers, plain-http remote servers, remote servers without auth, secrets written into configs, privileged containers."],
-      ["Tool checks", "Hidden instructions and tool poisoning, references to other tools (shadowing), invisible Unicode, long encoded blobs, secrets, misleading read-only hints."],
+      ["Tool checks", "Hidden instructions and tool poisoning, instructions that change how other tools behave (shadowing), invisible Unicode, long encoded blobs, secrets, misleading read-only hints."],
       ["Results", "Each finding has a rule ID, severity, where it was found and what to do. --json output and exit codes for CI."],
     ],
     limits: "The config check is static and never starts a server. Fetching tool lists (--live) starts each stdio server you configured, only when you ask. A clean scan is not a guarantee that a tool is safe.",

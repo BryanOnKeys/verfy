@@ -2,6 +2,15 @@
 
 What changed in the Verfy CLI (`pip install verfy`) and the website. Newest first. Every CLI version is on [PyPI](https://pypi.org/project/verfy/#history) and on the [GitHub releases page](https://github.com/anvarbekovjavohir277-dot/verfy/releases).
 
+## 0.5.2 (2026-10-24)
+
+Scanner fixes, found by scanning the newest releases of 34 popular MCP servers ([the research](https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/docs/research/2026-10-mcp-tool-changes.md)). Version 0.5.1 raised 163 high or critical findings there, all false alarms; 0.5.2 raises none.
+
+- A tool that mentions another tool on the same server is no longer flagged as tool shadowing.
+- A match right after a negation ("Do not include API keys") is skipped. Before, this hid tools from Context7, Apify and Sentry behind the gateway.
+- "tokens" and "conversation" only count in their sensitive senses (access tokens, the conversation history).
+- "silently" no longer counts as "secretly"; mentioning a file such as `.env` is medium instead of high.
+
 ## 0.5.1 (2026-10-24)
 
 Fixes found while scanning public `.mcp.json` files and recording the demo video.

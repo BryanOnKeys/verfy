@@ -234,7 +234,7 @@ export default function DocsPage() {
             "      - uses: actions/setup-python@v7",
             "        with:",
             "          python-version: \"3.13\"",
-            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.1",
+            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.2",
             "        with:",
             "          config: .mcp.json",
             "          lock: verfy.lock",

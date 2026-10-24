@@ -36,6 +36,28 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
         </p>
       </header>
 
+      <section className="glass card-lg stack" aria-labelledby="research-h" data-light>
+        <span className="eyebrow">Our research, October 2026</span>
+        <h2 id="research-h" style={{ fontSize: "1.3rem" }}>
+          MCP tool definitions change between releases, often in patch releases
+        </h2>
+        <p className="text-2">
+          We installed the newest releases of 46 popular MCP servers on throwaway machines and compared the tools each release served. Of the 34 that
+          started, 28 added, removed or changed a tool definition, and 26 of 73 patch releases changed one: a version range like{" "}
+          <code className="inline-code">^1.2.3</code> does not freeze what your agent reads. We found no malicious change. The same run showed 163 false
+          alarms in Verfy&apos;s own scanner, which 0.5.2 fixes.
+        </p>
+        <p className="small">
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/docs/research/2026-10-mcp-tool-changes.md" target="_blank" rel="noopener noreferrer">
+            Method, numbers and limits
+          </a>{" "}
+          ·{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/tree/main/research" target="_blank" rel="noopener noreferrer">
+            Code to re-run it
+          </a>
+        </p>
+      </section>
+
       {!isConfigured() && <NotConfigured />}
       {failed && <ErrorNote message="The advisories could not be loaded right now. Try again in a moment." />}
 

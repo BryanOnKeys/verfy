@@ -92,7 +92,8 @@ def main() -> int:
             tools = res["tools"]
             report = scan(tools, server["id"])
             entry.update(status="ok", server_info=res.get("server"), tools=[
-                {"name": t.get("name"), "pin": tool_pin(t), "description": t.get("description", ""), "inputSchema": t.get("inputSchema")}
+                {"name": t.get("name"), "pin": tool_pin(t), "description": t.get("description", ""), "inputSchema": t.get("inputSchema"),
+                 **{k: t[k] for k in ("title", "annotations") if k in t}}
                 for t in tools if isinstance(t, dict)
             ], scan={"grade": report["grade"], "score": report["score"],
                      "findings": [{"tool": r["name"], **f} for r in report["tools"] for f in r["findings"]]})

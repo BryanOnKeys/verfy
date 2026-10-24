@@ -11,6 +11,9 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "verfy-cli" / "src"))
+from verfy.scanner import scan  # noqa: E402
+
 
 def bump(a: str, b: str) -> str:
     pa, pb = (a.split(".") + ["0", "0"])[:3], (b.split(".") + ["0", "0"])[:3]
@@ -42,6 +45,13 @@ def main(folder: str) -> None:
     for f in sorted(Path(folder).rglob("*.json")):
         d = json.loads(f.read_text("utf-8"))
         ok = [r for r in d["releases"] if r["status"] == "ok"]
+        for r in ok:  # rescan with this checkout's scanner; the run's own result stays in "scan_at_collection"
+            rep = scan(r["tools"], d["server"]["id"])
+            r["scan_at_collection"] = r["scan"]
+            r["scan"] = {"grade": rep["grade"], "score": rep["score"], "findings": [{"tool": t["name"], **f} for t in rep["tools"] for f in t["findings"]]}
+            if not any("annotations" in t for t in r["tools"]):
+                # older runs did not keep annotations, which VFY-SCAN-012 reads; that rule is unchanged, so keep its result
+                r["scan"]["findings"] += [f for f in r["scan_at_collection"]["findings"] if f["rule"] == "VFY-SCAN-012"]
         steps = [changes(a, b) for a, b in zip(ok, ok[1:])]
         servers.append({"id": d["server"]["id"], "pkg": d["server"]["pkg"], "eco": d["server"]["eco"], "releases": d["releases"], "ok": ok, "steps": steps})
 
@@ -87,6 +97,16 @@ def main(folder: str) -> None:
                 rules[(f["rule"], f["severity"])] += 1
                 print(f"- {s['id']} `{f['tool']}`: {f['severity']} {f['rule']} {f['message']}")
     print("\nBy rule: " + ", ".join(f"{r} ({sev}) {n}" for (r, sev), n in rules.most_common()))
+
+    def serious(sc: dict) -> int:
+        return sum(1 for f in sc["findings"] if f["severity"] in ("high", "critical"))
+
+    before = sum(serious(s["ok"][-1]["scan_at_collection"]) for s in started)
+    after = sum(serious(s["ok"][-1]["scan"]) for s in started)
+    crit_before = sum(1 for s in started for f in s["ok"][-1]["scan_at_collection"]["findings"] if f["severity"] == "critical")
+    crit_after = sum(1 for s in started for f in s["ok"][-1]["scan"]["findings"] if f["severity"] == "critical")
+    print(f"\nHigh and critical findings on the latest releases: {before} with the scanner the run used, {after} with this checkout's scanner. "
+          f"Critical ones (the gateway hides those tools): {crit_before} before, {crit_after} now.")
 
     print("\n## Did not start\n")
     for s in servers:

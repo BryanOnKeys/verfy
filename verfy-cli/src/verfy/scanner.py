@@ -84,6 +84,18 @@ def _texts(tool: dict) -> list[tuple[str, str]]:
     return out
 
 
+# "Do not include API keys" is the opposite of asking for them: a match right after a negation is skipped
+NEGATION = re.compile(r"\b(?:do\s+not|don'?t|never|must\s+not|should\s+not|shouldn'?t|avoid|no)\s+(?:[A-Za-z']+\s+){0,2}$", re.IGNORECASE)
+
+
+def _affirmed(pattern: "re.Pattern[str]", text: str) -> bool:
+    for m in pattern.finditer(text):
+        before = re.split(r"[.!?\n]", text[max(0, m.start() - 40):m.start()])[-1]
+        if not NEGATION.search(before):
+            return True
+    return False
+
+
 def scan_tool(tool: dict, all_names: list[str] | None = None, pins: dict | None = None) -> dict:
     findings: list[dict] = []
 
@@ -98,7 +110,7 @@ def scan_tool(tool: dict, all_names: list[str] | None = None, pins: dict | None 
 
     for where, text in texts:
         for rule, sev, pat, flags, msg in PATTERNS["scan_text"]:
-            if rx(pat, flags).search(text):
+            if _affirmed(rx(pat, flags), text):
                 add(rule, sev, msg, where)
         bad = sorted({f"U+{ord(ch):04X}" for ch in text if is_invisible(ord(ch))})
         if bad:
@@ -112,11 +124,6 @@ def scan_tool(tool: dict, all_names: list[str] | None = None, pins: dict | None 
 
     desc = tool.get("description") or ""
     if isinstance(desc, str):
-        for other in all_names or []:
-            if other == name or len(other) < 4:
-                continue
-            if rx(r"(?<![A-Za-z0-9_])" + re.escape(other) + r"(?![A-Za-z0-9_])").search(desc):
-                add("VFY-SCAN-004", "high", f"Its description talks about another tool, `{other}` (tool shadowing).", "description")
         if len(desc) > 1500:
             add("VFY-SCAN-010", "low", f"Description is {len(desc)} characters long, a common place to hide instructions.", "description")
         if not desc.strip():

@@ -254,6 +254,18 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     return out;
   }
 
+  // "Do not include API keys" is the opposite of asking for them: a match right after a negation is skipped
+  var NEGATION = /\b(?:do\s+not|don'?t|never|must\s+not|should\s+not|shouldn'?t|avoid|no)\s+(?:[A-Za-z']+\s+){0,2}$/i;
+  function affirmed(pattern, flags, text) {
+    var re = rx(pattern, flags, true), m;
+    while ((m = re.exec(text)) !== null) {
+      if (m[0] === "") { re.lastIndex++; continue; }
+      var before = text.slice(Math.max(0, m.index - 40), m.index).split(/[.!?\n]/).pop();
+      if (!NEGATION.test(before)) return true;
+    }
+    return false;
+  }
+
   async function scanTool(tool, allNames, pins) {
     var findings = [];
     function add(rule, severity, message, where) {
@@ -267,7 +279,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     var name = tool.name !== undefined ? tool.name : "";
     texts(tool).forEach(function (wt) {
       var where = wt[0], text = wt[1];
-      PATTERNS.scan_text.forEach(function (r) { if (rx(r[2], r[3]).test(text)) add(r[0], r[1], r[4], where); });
+      PATTERNS.scan_text.forEach(function (r) { if (affirmed(r[2], r[3], text)) add(r[0], r[1], r[4], where); });
       var bad = {};
       for (var ch of text) { var cp = ch.codePointAt(0); if (isInvisible(cp)) bad["U+" + cp.toString(16).toUpperCase().padStart(4, "0")] = 1; }
       var badList = Object.keys(bad).sort();
@@ -278,10 +290,6 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     });
     var desc = tool.description || "";
     if (typeof desc === "string") {
-      (allNames || []).forEach(function (other) {
-        if (other === name || other.length < 4) return;
-        if (new RegExp("(?<![A-Za-z0-9_])" + reEscape(other) + "(?![A-Za-z0-9_])").test(desc)) add("VFY-SCAN-004", "high", "Its description talks about another tool, `" + other + "` (tool shadowing).", "description");
-      });
       var dlen = Array.from(desc).length;
       if (dlen > 1500) add("VFY-SCAN-010", "low", "Description is " + dlen + " characters long, a common place to hide instructions.", "description");
       if (!desc.trim()) add("VFY-SCAN-009", "low", "Has no description, so people cannot tell what it does.", "description");

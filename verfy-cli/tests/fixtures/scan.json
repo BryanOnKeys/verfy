@@ -1,5 +1,60 @@
 [
  {
+  "file": "benign-real-world.json",
+  "expect": {
+   "score": 92,
+   "grade": "A",
+   "tools": [
+    {
+     "name": "search_docs",
+     "sha256": "sha256:9c39f1608077416eb6d2fbe31893f2b45886a9b6966dc4ee2b77cea752f6b2ac",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [],
+     "rules": []
+    },
+    {
+     "name": "read_page",
+     "sha256": "sha256:e8cf1a42d78474cd04d35e785a2687faaa912f7b199b9e3564a5f3fb129cb3f3",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [
+      "network"
+     ],
+     "rules": []
+    },
+    {
+     "name": "get_issue",
+     "sha256": "sha256:4a1b685f96a374f0429c1bde32981fdc0e831e750be82be15bd62cdd5184c783",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [],
+     "rules": []
+    },
+    {
+     "name": "make_folder",
+     "sha256": "sha256:147648aa56a9d93d0fa4da2bef262c4a91500d8f4faf92b7125ffef293eaf980",
+     "score": 100,
+     "grade": "A",
+     "capabilities": [],
+     "rules": []
+    },
+    {
+     "name": "find_files",
+     "sha256": "sha256:b77ba54d11a9f1eaf6d6110387c2e285e413e5713a179a9596568632e03b9066",
+     "score": 92,
+     "grade": "A",
+     "capabilities": [
+      "fs_read"
+     ],
+     "rules": [
+      "VFY-SCAN-002"
+     ]
+    }
+   ]
+  }
+ },
+ {
   "file": "filesystem.json",
   "expect": {
    "score": 100,
@@ -153,13 +208,13 @@
  {
   "file": "shadow-mail.json",
   "expect": {
-   "score": 35,
+   "score": 39,
    "grade": "F",
    "tools": [
     {
      "name": "get_weather",
      "sha256": "sha256:274a80af28cd74cda92ba2895f55a050f5f01d4db7ae792d4a2485ad6a8b113c",
-     "score": 35,
+     "score": 39,
      "grade": "F",
      "capabilities": [],
      "rules": [

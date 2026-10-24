@@ -7,8 +7,10 @@ describe("changelog", () => {
   it("reads CHANGELOG.md: every CLI release is there, newest first", () => {
     const releases = parseChangelog(readFileSync(path.join(__dirname, "..", "..", "CHANGELOG.md"), "utf8"));
     const versions = releases.map((r) => r.title.split(" ")[0]).filter((v) => /^\d+\.\d+\.\d+$/.test(v!));
-    expect(versions.slice(0, 5)).toEqual(["0.5.1", "0.5.0", "0.4.0", "0.3.0", "0.2.0"]);
-    expect(releases[0]!.id).toBe("0-5-1");
+    const key = (v: string) => v.split(".").map((n) => n.padStart(4, "0")).join(".");
+    expect(versions).toEqual([...versions].sort((a, b) => key(b!).localeCompare(key(a!))));
+    expect(versions).toContain("0.2.0");
+    expect(releases[0]!.id).toBe(versions[0]!.replace(/\./g, "-"));
     for (const r of releases) expect(r.items.length).toBeGreaterThan(0);
   });
 

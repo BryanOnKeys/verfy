@@ -1,0 +1,3 @@
+# uv (uvx starts the PyPI servers) for research.yml. Compile with:
+#   uv pip compile --universal --python-version 3.13 --generate-hashes research.in -o research.txt
+uv

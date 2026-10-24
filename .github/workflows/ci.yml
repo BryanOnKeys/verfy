@@ -71,8 +71,12 @@ jobs:
           VERFY_PURE_PYTHON: "1"
         run: python -m unittest discover -s tests -v
       - name: Install and smoke test
+        shell: bash
         run: |
-          python -m pip install ./verfy-cli
+          # build tools come from a hash-pinned list; the package is built here and installed from the wheel
+          python -m pip install --disable-pip-version-check --require-hashes -r .github/requirements/build.txt
+          python -m build --no-isolation --wheel verfy-cli --outdir dist
+          python -m pip install --disable-pip-version-check --no-deps dist/verfy-*.whl
           verfy --version
           verfy check "ls -la"
           verfy demo

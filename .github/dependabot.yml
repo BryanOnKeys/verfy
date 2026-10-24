@@ -14,6 +14,10 @@ updates:
     directory: /verfy-cli
     schedule:
       interval: weekly
+  - package-ecosystem: pip
+    directory: /.github/requirements
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:

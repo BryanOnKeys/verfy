@@ -1,0 +1,5 @@
+# Tools CI uses to build and check the CLI package. Compile with:
+#   uv pip compile --universal --python-version 3.10 --generate-hashes build.in -o build.txt
+build
+twine
+setuptools>=77

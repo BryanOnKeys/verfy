@@ -1,0 +1,4 @@
+# pip-audit and the CLI optional extra it audits. Compile with:
+#   uv pip compile --universal --python-version 3.10 --generate-hashes audit.in -o audit.txt
+pip-audit
+cryptography>=43

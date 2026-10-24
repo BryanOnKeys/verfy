@@ -28,8 +28,8 @@ jobs:
           python-version: "3.13"
       - name: pip-audit (CLI and its optional extra)
         run: |
-          python -m pip install pip-audit
-          python -m pip install "./verfy-cli[fast]"
+          # pip-audit and the CLI's optional extra (cryptography), hash-pinned; the CLI itself has no dependencies
+          python -m pip install --disable-pip-version-check --require-hashes -r .github/requirements/audit.txt
           pip-audit --progress-spinner off
 
   secrets:

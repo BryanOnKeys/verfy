@@ -5,7 +5,7 @@ import { WaitlistForm } from "@/components/waitlist-form";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "The Verfy CLI, the GitHub Action and a self-hosted Verfy Team are free. Verfy Cloud, a hosted Team plan planned at $19 per seat per month, is not on sale yet; join the waitlist.",
+  description: "The Verfy CLI, the GitHub Action and a self-hosted Verfy Team are free. Verfy Cloud, a hosted Team plan planned at $19 per seat per month, is not on sale yet; beta teams on the waitlist get their first 3 months free.",
 };
 
 const FREE = [
@@ -80,6 +80,13 @@ export default function PricingPage() {
           </div>
           <p className="text-2">Verfy Team, hosted by Verfy, for teams that need one policy and evidence an auditor can use.</p>
           <Items items={CLOUD} />
+          <div className="alert alert-info">
+            <Icon name="info" size={16} />
+            <span>
+              <strong>Beta teams get 3 months of Verfy Cloud free.</strong> Join the waitlist before Verfy Cloud launches and your team&apos;s first three
+              months are free. <Link href="/terms#beta">Terms</Link>
+            </span>
+          </div>
           <WaitlistForm />
         </article>
       </div>

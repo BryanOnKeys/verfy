@@ -38,7 +38,7 @@ export function WaitlistForm() {
     return (
       <p className="alert alert-success" role="status">
         <Icon name="check" size={16} />
-        <span>You are on the list. We will write once, when Verfy Cloud opens, and you can ask us to remove your address at any time.</span>
+        <span>You are on the list, so your team&apos;s first three months of Verfy Cloud will be free. We will write once, when it opens, and you can ask us to remove your address at any time.</span>
       </p>
     );
   }

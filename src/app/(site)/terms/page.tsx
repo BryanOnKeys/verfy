@@ -14,7 +14,7 @@ export default function TermsPage() {
       <header className="section-head">
         <span className="eyebrow">Terms</span>
         <h1>Terms of service</h1>
-        <p className="lead">The terms for using the Verfy web app while it is in early access. Last updated 15 October 2026.</p>
+        <p className="lead">The terms for using the Verfy web app while it is in early access. Last updated 24 October 2026.</p>
       </header>
 
       <section className="stack text-2">
@@ -38,6 +38,10 @@ export default function TermsPage() {
         <p>
           <strong>Your data.</strong> Your organization&apos;s data stays yours. How it is stored and deleted is described in the{" "}
           <Link href="/privacy">privacy policy</Link>.
+        </p>
+        <p id="beta">
+          <strong>Beta offer.</strong> Teams that join the Verfy Cloud waitlist before Verfy Cloud launches get their first three months of Verfy Cloud
+          free. Verfy Cloud is not on sale yet; before anyone is charged we will email the price and terms, and you can decide not to continue.
         </p>
         <p>
           <strong>Changes and contact.</strong> We will update this page when the terms change. Questions: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.

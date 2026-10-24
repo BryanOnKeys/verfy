@@ -30,7 +30,7 @@ Test locations: `CLI` = `verfy-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `s
 | --- | --- | --- | --- |
 | Discover Claude Code / Cursor / Claude Desktop configs | `discover.py` | `test_discover_reads_project_servers` | Done |
 | Tool poisoning, hidden instructions, secret reads, shadowing, invisible Unicode, drift | `scanner.py` | scan fixtures, gateway tests | Done |
-| Config checks: unpinned packages, curl\|sh, plain http, missing auth, secrets, privileged containers | `discover.py` (`VFY-CFG-001..007`) | `ConfigScanTests` | Done |
+| Config checks: unpinned packages (also behind `cmd /c` and `sh -c`; npx of a declared dependency is not reported), curl|sh, plain http, remote servers without credentials (info), secrets, privileged containers |\|sh, plain http, missing auth, secrets, privileged containers | `discover.py` (`VFY-CFG-001..007`) | `ConfigScanTests` | Done |
 | Finding = rule ID, severity, evidence location, remediation | `scanner.py`, `discover.py` | tests | Done |
 | Static by default; servers started only with explicit `--live` | `cli.cmd_scan` | `test_cli_static_scan_exit_code` | Done |
 | Unknown ≠ safe; no claim of runtime audit | UI copy, `SECURITY_LIMITATIONS.md` | — | Done |

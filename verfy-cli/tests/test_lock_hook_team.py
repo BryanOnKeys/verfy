@@ -394,6 +394,22 @@ class ConfigScanTests(unittest.TestCase):
         self.assertIn("VFY-CFG-005", self.rules({"command": "docker", "args": ["run", "-v", "/:/host", "img"]}))
         self.assertEqual(self.rules({"command": "verfy", "args": ["proxy", "--name", "fs", "--", "npx", "-y", "pkg@1.2.3"]}), [])
 
+    def test_rules_seen_in_public_configs(self):
+        # Windows and shell wrappers launch the inner command
+        self.assertIn("VFY-CFG-001", self.rules({"command": "cmd", "args": ["/c", "npx", "-y", "@acme/winforms-mcp"]}))
+        self.assertIn("VFY-CFG-001", self.rules({"command": "bash", "args": ["-c", "npx -y some-mcp"]}))
+        self.assertNotIn("VFY-CFG-001", self.rules({"command": "cmd", "args": ["/c", "npx", "-y", "@acme/winforms-mcp@1.0.0"]}))
+        # a remote server without a header is not a weakness: the client does OAuth, or the server is public
+        f = discover.check_server("s", {"url": "https://mcp.example.com/mcp"})
+        self.assertEqual([x["severity"] for x in f if x["rule"] == "VFY-CFG-007"], ["info"])
+        # npx of a package the project declares runs the locked local copy
+        proj = tmpdir(self)
+        (proj / "package.json").write_text(json.dumps({"devDependencies": {"chrome-devtools-mcp": "1.2.3"}}))
+        (proj / ".mcp.json").write_text(json.dumps({"mcpServers": {"d": {"command": "npx", "args": ["chrome-devtools-mcp"]}, "e": {"command": "npx", "args": ["other-mcp"]}}}))
+        rep = discover.scan_configs(discover.read_configs([("given", proj / ".mcp.json")]))
+        by = {s["server"]: sorted({x["rule"] for x in s["findings"]}) for s in rep["servers"]}
+        self.assertEqual(by, {"d": ["VFY-CFG-006"], "e": ["VFY-CFG-001", "VFY-CFG-006"]})
+
     def test_discover_reads_project_servers(self):
         home, cwd = tmpdir(self), tmpdir(self)
         (home / ".claude.json").write_text(json.dumps({"mcpServers": {"g": {"command": "npx", "args": ["g@1.0.0"]}},

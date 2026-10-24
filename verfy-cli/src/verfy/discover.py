@@ -8,12 +8,15 @@ which starts each stdio server after you asked for it explicitly.
 Rules (all deterministic):
 
 VFY-CFG-001  medium  package runner (npx/uvx/bunx/pipx/pnpm dlx) without a pinned version
+                     (not reported for npx when the package.json next to the config lists the package:
+                     the lockfile pins it then)
 VFY-CFG-002  high    remote server over plain http:// (not localhost)
 VFY-CFG-003  high    a secret written literally into args, env, headers or the URL
 VFY-CFG-004  critical  launch command pipes a download into a shell (curl | sh)
 VFY-CFG-005  high    container started with --privileged, host network or the home/root folder mounted
 VFY-CFG-006  low     server is not behind the Verfy gateway, so its calls are not pre-checked or receipted
-VFY-CFG-007  medium  remote server with no Authorization header or OAuth configured
+VFY-CFG-007  info    remote server with no credentials in the config (the client signs in with OAuth
+                     when the server asks; otherwise the server is open to anyone)
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import urlparse
@@ -115,10 +119,43 @@ def _package_arg(args: list[str]) -> str | None:
     return None
 
 
-def check_server(name: str, spec: dict) -> list[dict]:
+def _unwrap_shell(command: str, args: list[str]) -> tuple[str, list[str]]:
+    """`cmd /c npx pkg` and `sh -c "npx pkg"` launch the inner command; check that one."""
+    base = Path(command).name.lower().removesuffix(".exe")
+    if base == "cmd" and args[:1] and args[0].lower() in ("/c", "/k", "/s/c") and len(args) > 1:
+        return args[1], args[2:]
+    if base in ("sh", "bash", "zsh", "dash") and args[:1] == ["-c"] and len(args) > 1:
+        try:
+            inner = shlex.split(args[1])
+        except ValueError:
+            return command, args
+        if inner and not any(tok in ("|", "&&", "||", ";") for tok in inner):
+            return inner[0], inner[1:]
+    return command, args
+
+
+def local_packages(config_path: str | Path | None) -> set[str]:
+    """npm packages declared in the package.json next to a config (their versions come from the lockfile)."""
+    if not config_path:
+        return set()
+    pj = Path(config_path).parent / "package.json"
+    try:
+        data = json.loads(pj.read_text("utf-8"))
+    except (OSError, ValueError):
+        return set()
+    out: set[str] = set()
+    for key in ("dependencies", "devDependencies", "optionalDependencies"):
+        if isinstance(data.get(key), dict):
+            out.update(data[key])
+    return out
+
+
+def check_server(name: str, spec: dict, local: set[str] | None = None) -> list[dict]:
     out: list[dict] = []
     command = str(spec.get("command") or "")
     args = [str(a) for a in spec.get("args") or [] if isinstance(a, (str, int, float))]
+    launch_command, launch_args = command, args
+    command, args = _unwrap_shell(command, args)
     base = Path(command).name.lower().removesuffix(".exe").removesuffix(".cmd")
     gated = base == "verfy" or (len(args) > 1 and args[0] == "-m" and args[1] == "verfy")
     if gated and "--" in args:
@@ -132,9 +169,15 @@ def check_server(name: str, spec: dict) -> list[dict]:
         base, runner_args = "uvx", args[2:]
     if base in RUNNERS:
         pkg = _package_arg(runner_args)
-        if pkg and not pkg.startswith((".", "/", "~")) and not _pinned(pkg, RUNNERS[base]):
-            out.append(_f("VFY-CFG-001", "medium", f"`{base} {pkg}` downloads whatever version is newest at launch; pin a version.", "args"))
-    joined = " ".join([command, *args])
+        if pkg and not pkg.startswith((".", "/", "~")) and not _pinned(pkg, RUNNERS[base]) and not (RUNNERS[base] == "npm" and pkg in (local or set())):
+            if pkg.endswith("@latest"):
+                msg = f"`{base} {pkg}` downloads the newest version every time it starts; pin a version."
+            elif RUNNERS[base] == "npm":
+                msg = f"`{base} {pkg}` uses a copy the project installed if there is one, otherwise it downloads whatever version is newest at launch; pin a version."
+            else:
+                msg = f"`{base} {pkg}` downloads whatever version is newest at launch; pin a version."
+            out.append(_f("VFY-CFG-001", "medium", msg, "args"))
+    joined = " ".join([launch_command, *launch_args])
     if re.search(r"\b(?:curl|wget|iwr|Invoke-WebRequest)\b[^|]*\|\s*(?:sudo\s+)?(?:ba|z|da)?sh\b", joined) or re.search(r"\b(?:iex|Invoke-Expression)\b", joined, re.I):
         out.append(_f("VFY-CFG-004", "critical", "Launch command downloads a script and runs it in a shell.", "command"))
     if base in ("docker", "podman"):
@@ -152,8 +195,8 @@ def check_server(name: str, spec: dict) -> list[dict]:
             out.append(_f("VFY-CFG-002", "high", f"Talks to {u.hostname} over plain http, so anyone on the network can read or change tool calls.", "url"))
         headers = spec.get("headers") if isinstance(spec.get("headers"), dict) else {}
         if (u.hostname or "") not in LOCAL_HOSTS and not any(k.lower() == "authorization" for k in headers) and not spec.get("oauth") and not spec.get("auth"):
-            out.append(_f("VFY-CFG-007", "medium", "Remote server has no Authorization header or OAuth configured.", "headers"))
-    texts: list[tuple[str, str]] = [("args", a) for a in args]
+            out.append(_f("VFY-CFG-007", "info", "No credentials in the config: your client signs in with OAuth if the server asks; otherwise the server is open to anyone.", "headers"))
+    texts: list[tuple[str, str]] = [("args", a) for a in launch_args]
     for key in ("env", "headers"):
         if isinstance(spec.get(key), dict):
             texts += [(f"{key}.{k}", str(v)) for k, v in spec[key].items() if not (isinstance(v, str) and v.startswith("${") and v.endswith("}"))]
@@ -180,8 +223,9 @@ def scan_configs(found: list[dict]) -> dict:
     servers = []
     summary = {s: 0 for s in ("critical", "high", "medium", "low")}
     for cfg in found:
+        local = local_packages(cfg.get("path"))
         for name, spec in sorted(cfg["servers"].items()):
-            findings = check_server(name, spec)
+            findings = check_server(name, spec, local)
             for f in findings:
                 summary[f["severity"]] = summary.get(f["severity"], 0) + 1
             servers.append({

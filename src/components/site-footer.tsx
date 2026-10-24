@@ -4,7 +4,7 @@ import { Logo } from "./logo";
 const COLS: [string, [string, string][]][] = [
   ["Product", [["/features", "Features"], ["/how-it-works", "How it works"], ["/pricing", "Pricing"]]],
   ["Security", [["/security", "Security model"], ["/advisories", "Verfy Advisories"], ["/security#disclosure", "Report a vulnerability"]]],
-  ["Developers", [["/docs", "Quickstart"], ["/docs#cli", "CLI reference"], ["/docs#api", "API"], ["https://github.com/anvarbekovjavohir277-dot/verfy", "Source on GitHub"], ["https://pypi.org/project/verfy/", "PyPI"]]],
+  ["Developers", [["/docs", "Quickstart"], ["/docs#cli", "CLI reference"], ["/docs#api", "API"], ["/changelog", "Changelog"], ["https://github.com/anvarbekovjavohir277-dot/verfy", "Source on GitHub"], ["https://pypi.org/project/verfy/", "PyPI"]]],
 ];
 
 export function SiteFooter() {

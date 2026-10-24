@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
+  // the /changelog page reads CHANGELOG.md when it renders
+  outputFileTracingIncludes: { "/changelog": ["./CHANGELOG.md"] },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

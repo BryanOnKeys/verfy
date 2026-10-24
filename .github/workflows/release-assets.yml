@@ -1,0 +1,71 @@
+name: Sign the release files
+
+# After a version reaches PyPI, attach the exact files PyPI serves to the GitHub release, with
+# SHA256SUMS and a Sigstore signature for each file (verify with `python -m sigstore verify github`).
+# The files come from PyPI, not from a new build, so their hashes match what `pip` downloads.
+on:
+  workflow_run:
+    workflows: ["Publish CLI to PyPI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. cli-v0.5.1"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  sign:
+    name: Sign and attach
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'cli-v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # create the release and upload files
+      id-token: write # Sigstore signing
+    env:
+      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download the files PyPI serves for this version
+        run: |
+          echo "$TAG" | grep -Eqx 'cli-v[0-9]+\.[0-9]+\.[0-9]+' || { echo "::error::bad tag $TAG"; exit 1; }
+          v="${TAG#cli-v}"
+          mkdir dist
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            curl -fsS "https://pypi.org/pypi/verfy/$v/json" -o meta.json && break
+            [ "$i" = 10 ] && exit 1
+            sleep 30
+          done
+          python3 - "$v" <<'PY'
+          import hashlib, json, sys, urllib.request
+          meta = json.load(open("meta.json"))
+          for f in meta["urls"]:
+              data = urllib.request.urlopen(f["url"]).read()
+              if hashlib.sha256(data).hexdigest() != f["digests"]["sha256"]:
+                  sys.exit(f"::error::{f['filename']} does not match the hash PyPI lists")
+              open("dist/" + f["filename"], "wb").write(data)
+              print(f["filename"], f["digests"]["sha256"])
+          PY
+          (cd dist && sha256sum verfy-* > SHA256SUMS && cat SHA256SUMS)
+      - uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: ./dist/verfy-* ./dist/SHA256SUMS
+          upload-signing-artifacts: false
+          release-signing-artifacts: false
+      - name: Attach to the GitHub release
+        run: |
+          v="${TAG#cli-v}"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            # the notes are this version's section of CHANGELOG.md
+            awk -v v="$v" '$0 ~ "^## "v" " {on=1; next} /^## / {on=0} on' CHANGELOG.md > notes.md
+            printf '\n`pip install -U verfy` or `verfy update`\n' >> notes.md
+            gh release create "$TAG" --title "Verfy CLI $v" --notes-file notes.md --verify-tag
+          fi
+          ls -l dist
+          gh release upload "$TAG" dist/* --clobber

@@ -32,6 +32,55 @@ const CLI: [string, string, string][] = [
   ["verfy team propose SERVER TOOL", "Ask admins to approve a changed tool definition", "0"],
 ];
 
+// what people actually run into, with the message they see
+const TROUBLE: [string, string, string][] = [
+  [
+    "verfy: command not found / 'verfy' is not recognized",
+    "pip put the verfy command in a folder that is not on your PATH (pip prints a warning naming the folder).",
+    "Run it as python -m verfy … , add that folder to PATH, or install with pipx install verfy or the one-line installer.",
+  ],
+  [
+    "error: externally-managed-environment",
+    "Homebrew Python on macOS and recent Debian and Ubuntu do not let pip install into the system Python.",
+    "Use pipx install verfy, a virtual environment, or the one-line installer.",
+  ],
+  [
+    "No matching distribution found for verfy",
+    "Your Python is older than 3.10 (the python3 that ships with macOS is 3.9).",
+    "Install a newer Python, or use the one-line installer: it carries its own.",
+  ],
+  [
+    "verfy --version shows an old version",
+    "pip kept the version you installed before.",
+    "verfy update, or pip install -U verfy.",
+  ],
+  [
+    "'irm' is not recognized",
+    "irm is PowerShell; Command Prompt (cmd) does not have it.",
+    "Use the cmd line above (powershell -c \"irm … | iex\"), or open PowerShell.",
+  ],
+  [
+    "Claude Code runs commands without Verfy",
+    "The hook is not in the settings Claude Code reads, or Claude Code was already running when you added it.",
+    "verfy hook install shows the change and --write saves it; restart Claude Code and check /hooks. Test the hook by itself: echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm -rf ~\"}}' | verfy hook pre-tool-use prints a deny.",
+  ],
+  [
+    "verfy: no signing key at …",
+    "verfy init has not been run on this machine (or VERFY_HOME points somewhere else).",
+    "verfy init.",
+  ],
+  [
+    "A harmless command is blocked or asked about",
+    "A rule matched more than it should. The message names the rule, for example VFY-SH-004.",
+    "Add the rule to \"disabled_rules\" or the tool to \"tools\": {\"trust\": […]} in your policy, and please report it as a false positive on GitHub.",
+  ],
+  [
+    "verfy lock check exits 3",
+    "A server in the config did not start or did not answer.",
+    "Run its command by hand to see the error. In CI, pin the package version and pass the keys it needs as secrets.",
+  ],
+];
+
 const API: [string, string, string, string][] = [
   ["POST", "/api/v1/devices/enroll", "enrollment code", "Register a device public key; returns a device token once"],
   ["POST", "/api/v1/receipts/batch", "device token", "Upload up to 500 signed receipts (idempotent)"],
@@ -68,6 +117,7 @@ export default function DocsPage() {
             ["#scitt", "SCITT export"],
             ["#team", "Verfy Team"],
             ["#policy", "Policy"],
+            ["#troubleshooting", "Troubleshooting"],
             ["#cli", "CLI reference"],
             ["#api", "API"],
           ].map(([h, l]) => (
@@ -94,7 +144,13 @@ export default function DocsPage() {
             verfy-releases
           </a>{" "}
           repository, checks it against that release&apos;s SHA-256 list and puts <code className="inline-code">verfy</code> on your PATH. The builds are
-          not code-signed. The source is on{" "}
+          not code-signed, but each one carries a build attestation:{" "}
+          <code className="inline-code">gh attestation verify verfy-linux-x64.tar.gz -R anvarbekovjavohir277-dot/verfy-releases</code> shows that
+          workflow built it. The PyPI package has PyPI attestations, and the files on each{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/releases" target="_blank" rel="noopener noreferrer">
+            GitHub release
+          </a>{" "}
+          come with SHA256SUMS and Sigstore signatures. The source is on{" "}
           <a href="https://github.com/anvarbekovjavohir277-dot/verfy" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
@@ -253,6 +309,42 @@ export default function DocsPage() {
             2,
           )}
         />
+      </section>
+
+      <section id="troubleshooting" className="stack" aria-labelledby="troubleshooting-h">
+        <h2 id="troubleshooting-h">Troubleshooting</h2>
+        <p className="text-2">
+          The quickstart above runs on clean Linux, macOS and Windows machines with Python 3.10 and 3.13{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy-releases/actions/workflows/install-test.yml" target="_blank" rel="noopener noreferrer">
+            every week
+          </a>
+          . If it does not work for you, it is probably one of these. Anything else:{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/issues" target="_blank" rel="noopener noreferrer">
+            open an issue
+          </a>
+          .
+        </p>
+        <div className="glass table-wrap">
+          <table className="table">
+            <caption className="visually-hidden">Common problems</caption>
+            <thead>
+              <tr>
+                <th scope="col">You see</th>
+                <th scope="col">Why</th>
+                <th scope="col">Fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TROUBLE.map(([see, why, fix]) => (
+                <tr key={see}>
+                  <td><code className="mono small">{see}</code></td>
+                  <td className="small text-2">{why}</td>
+                  <td className="small text-2">{fix}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section id="cli" className="stack" aria-labelledby="cli-h">

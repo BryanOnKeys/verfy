@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { engine } from "@/core/engine";
 import { authenticateDevice } from "@/server/device-auth";
 import { ApiError, fromDbError, readJson, route } from "@/server/http";
+import { deviceName, notify, texts } from "@/server/notify";
 import { rateLimit } from "@/server/ratelimit";
 
 export const runtime = "nodejs";
@@ -37,5 +38,8 @@ export const POST = route("locks.propose", async (request) => {
     p_definition: input.definition,
   });
   if (error) throw fromDbError(error);
+  if ((data as { status?: string } | null)?.status === "pending") {
+    after(async () => notify(device.orgId, "lock.propose", texts().lock(await deviceName(device.deviceId), input.server_id, input.tool_name)));
+  }
   return NextResponse.json(data, { status: 201 });
 });

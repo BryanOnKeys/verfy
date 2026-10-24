@@ -232,6 +232,52 @@ describe("approval queue", () => {
   });
 });
 
+describe("notification channels", () => {
+  const slack = "https://hooks.slack.com/services/T000/B000/" + "x".repeat(24);
+  const add = (who: Actor, org: string, target = slack, events = "{approval.request,device.silent}") =>
+    as(db, who, (q) => q<{ id: string }>("select public.add_notification_channel($1, 'slack', $2, 'ops', $3::text[]) as id", [org, target, events])).then((r) => r[0]!.id);
+
+  it("only owners and admins add them, nobody reads the secret back", async () => {
+    const id = await add(alice, orgA);
+    await expect(add(dave, orgA)).rejects.toThrow();
+    await expect(add(bob, orgA)).rejects.toThrow();
+    await expectDenied(as(db, alice, (q) => q("select target from public.notification_channels")));
+    await expectDenied(as(db, alice, (q) => q("insert into public.notification_channels (org_id, kind, target, label, events) values ($1, 'slack', $2, 'x', '{lock.propose}')", [orgA, slack])));
+    const listed = await as(db, alice, (q) => q<{ id: string; target_hint: string }>("select * from public.list_notification_channels($1)", [orgA]));
+    expect(listed.map((c) => c.id)).toContain(id);
+    expect(listed[0]!.target_hint).toBe("hooks.slack.com/…xxxx");
+    expect(JSON.stringify(listed)).not.toContain("T000");
+    await expect(as(db, dave, (q) => q("select * from public.list_notification_channels($1)", [orgA]))).rejects.toThrow();
+    await expect(as(db, bob, (q) => q("select public.remove_notification_channel($1)", [id]))).rejects.toThrow();
+    await as(db, alice, (q) => q("select public.remove_notification_channel($1)", [id]));
+  });
+
+  it("accepts only Slack webhooks and Telegram bots, and known events", async () => {
+    await expect(add(alice, orgA, "https://evil.example/hook")).rejects.toThrow(/check constraint/);
+    await expect(add(alice, orgA, "http://hooks.slack.com/services/T/B/x")).rejects.toThrow(/check constraint/);
+    await expect(add(alice, orgA, slack, "{everything}")).rejects.toThrow(/check constraint/);
+    const tg = await as(db, alice, (q) =>
+      q<{ id: string }>("select public.add_notification_channel($1, 'telegram', $2, 'ops', '{lock.propose}') as id", [orgA, "123456789:" + "A".repeat(35) + "|-1001234"]),
+    );
+    expect(tg[0]!.id).toBeTruthy();
+    const listed = await as(db, alice, (q) => q<{ target_hint: string }>("select target_hint from public.list_notification_channels($1) where kind = 'telegram'", [orgA]));
+    expect(listed[0]!.target_hint).toBe("chat -1001234");
+  });
+
+  it("reports a silent device once per silence, and only to the server", async () => {
+    await as(db, service, (q) => q("update public.devices set last_seen_at = now() - interval '2 days', silence_alerted_at = null where id = $1", [deviceA]));
+    await expectDenied(as(db, alice, (q) => q("select * from public.silent_devices(24)")));
+    const silent = await as(db, service, (q) => q<{ id: string }>("select id from public.silent_devices(24)"));
+    expect(silent.map((d) => d.id)).toContain(deviceA);
+    await as(db, service, (q) => q("select public.mark_silence_alerted($1::uuid[])", [[deviceA]]));
+    expect((await as(db, service, (q) => q<{ id: string }>("select id from public.silent_devices(24)"))).map((d) => d.id)).not.toContain(deviceA);
+    // it uploads again, then goes quiet again: a new alert
+    await as(db, service, (q) => q("update public.devices set last_seen_at = now() - interval '25 hours' where id = $1", [deviceA]));
+    await as(db, service, (q) => q("update public.devices set silence_alerted_at = now() - interval '26 hours' where id = $1", [deviceA]));
+    expect((await as(db, service, (q) => q<{ id: string }>("select id from public.silent_devices(24)"))).map((d) => d.id)).toContain(deviceA);
+  });
+});
+
 describe("audit log", () => {
   it("is a hash chain per organization", async () => {
     const log = await as(db, alice, (q) => q<{ prev_hash: string | null; hash: string; action: string }>("select prev_hash, hash, action from public.audit_log where org_id = $1 order by id", [orgA]));

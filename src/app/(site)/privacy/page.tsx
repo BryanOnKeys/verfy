@@ -14,6 +14,7 @@ const STORED: [string, string][] = [
   ["Receipts", "The receipts your devices upload: which tool was called, by which agent, when, the verdict and the rules that fired. Arguments and results are stored as hashes unless a device is configured to include redacted arguments."],
   ["Audit log", "Who changed what in an organization and when (policies, locks, members, devices, exports)."],
   ["Waitlist", "If you join the Verfy Cloud waitlist: your email address, and the company, team size and agents you chose to give. It is used only to tell you when Verfy Cloud opens, never sold or shared, and removed when you ask."],
+  ["Notifications", "If an owner or admin connects Slack or Telegram: the webhook URL or bot token, kept for the server only. Messages sent there name the device, server, tool and rules involved, never arguments, and go through Slack or Telegram under their own privacy terms."],
   ["Rate limiting", "A salted hash of your IP address, kept briefly in counters that slow down repeated sign-in attempts and abuse. The IP address itself is not stored."],
 ];
 

@@ -18,6 +18,7 @@ export const PERMISSIONS = {
   "locks.decide": ["owner", "admin"],
   "approvals.read": ["owner", "admin", "member", "auditor"],
   "approvals.decide": ["owner", "admin"],
+  "notifications.manage": ["owner", "admin"],
   "devices.read": ["owner", "admin", "member", "auditor"],
   "devices.enroll": ["owner", "admin"],
   "devices.revoke": ["owner", "admin"],

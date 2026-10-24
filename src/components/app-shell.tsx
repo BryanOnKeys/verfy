@@ -24,6 +24,7 @@ const NAV: { href: string; label: string; icon: IconName; perm?: Permission }[] 
   { href: "/dashboard/locks", label: "Locks", icon: "lock", perm: "locks.read" },
   { href: "/dashboard/devices", label: "Devices", icon: "device", perm: "devices.read" },
   { href: "/dashboard/team", label: "Team", icon: "users", perm: "members.read" },
+  { href: "/dashboard/notifications", label: "Notifications", icon: "bell", perm: "notifications.manage" },
   { href: "/dashboard/audit-log", label: "Audit log", icon: "history", perm: "audit.read" },
   { href: "/dashboard/exports", label: "Exports", icon: "download", perm: "exports.read" },
 ];

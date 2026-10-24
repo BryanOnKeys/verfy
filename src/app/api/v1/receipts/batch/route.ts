@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { batchSchema, BATCH_MAX, planIngest, RECEIPT_MAX_BYTES } from "@/core/ingest";
 import { publicKeyFromB64u } from "@/core/receipts";
 import { authenticateDevice } from "@/server/device-auth";
 import { ApiError, fromDbError, readJson, route } from "@/server/http";
 import { log } from "@/server/log";
+import { deviceName, notify, texts } from "@/server/notify";
 import { rateLimit } from "@/server/ratelimit";
 
 export const runtime = "nodejs";
@@ -71,5 +72,10 @@ export const POST = route("receipts.batch", async (request) => {
     throw fromDbError(error);
   }
   const res = data as { inserted: number; head_seq: number; head_hash: string };
+  const denied = plan.rows.filter((r) => r.verdict === "deny");
+  if (denied.length) {
+    const rules = [...new Set(denied.flatMap((r) => r.rules))];
+    after(async () => notify(device.orgId, "receipt.deny", texts().deny(await deviceName(device.deviceId), denied.length, rules)));
+  }
   return NextResponse.json({ accepted: res.inserted, duplicates: plan.duplicates, head_seq: res.head_seq, head_hash: res.head_hash });
 });

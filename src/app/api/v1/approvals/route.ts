@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { engine } from "@/core/engine";
 import { authenticateDevice } from "@/server/device-auth";
 import { fromDbError, readJson, route } from "@/server/http";
+import { deviceName, notify, texts } from "@/server/notify";
 import { rateLimit } from "@/server/ratelimit";
 
 export const runtime = "nodejs";
@@ -36,5 +37,8 @@ export const POST = route("approvals.request", async (request) => {
     p_ttl_seconds: input.ttl_seconds,
   });
   if (error) throw fromDbError(error);
+  after(async () =>
+    notify(device.orgId, "approval.request", texts().approval(await deviceName(device.deviceId), input.server_id, input.tool_name, input.findings.map((f) => f.rule))),
+  );
   return NextResponse.json(data, { status: 201 });
 });

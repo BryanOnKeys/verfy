@@ -12,6 +12,23 @@ Include the affected component (CLI, web app, database migration), the version o
 
 We aim to acknowledge reports within 2 business days and to keep you informed until a fix is released. We will credit you in the release notes unless you prefer otherwise.
 
+## Find a bypass
+
+Verfy has not had a professional penetration test yet, so we ask everyone to try to break it. Good places to start:
+
+- a shell command, file path, URL or tool call that should be denied or asked about, but `verfy check "..."` (or `verfy check --tool NAME --args JSON`) allows;
+- a way for an agent to switch Verfy off, change `verfy.lock` or the policy, or get a changed MCP tool past the gateway;
+- a receipt chain that `verfy verify` accepts after it was edited;
+- a way to read or change another organization's data in Verfy Team.
+
+The limits in [`docs/SECURITY_LIMITATIONS.md`](docs/SECURITY_LIMITATIONS.md) are known and not bypasses (for example, a script the agent writes and then runs). Ideas for closing them are welcome as issues.
+
+## Hall of fame
+
+People who reported a valid bypass or vulnerability, with their permission:
+
+*No reports yet. The first one goes here.*
+
 ## Scope
 
 In scope: this repository's code — the `verfy` CLI, the Next.js app and API, the Supabase migrations and RLS policies, CI configuration.

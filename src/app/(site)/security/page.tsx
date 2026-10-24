@@ -124,6 +124,22 @@ export default function SecurityPage() {
         </ul>
       </section>
 
+      <section id="bypass" aria-labelledby="bypass-h" className="glass card-lg stack reveal" data-light>
+        <h2 id="bypass-h" style={{ fontSize: "1.35rem" }}>Find a bypass</h2>
+        <p className="text-2">
+          Verfy has not had a professional penetration test yet, so we ask everyone to try to break it: a command, path, URL or tool call that should be
+          denied or asked about but is allowed, a way for an agent to switch Verfy off, a changed MCP tool that gets past the gateway, or an edited
+          receipt chain that still verifies. <code className="inline-code">verfy check &quot;…&quot;</code> shows the verdict without running anything.
+        </p>
+        <p className="text-2">
+          Report it privately (below). With your permission, everyone who finds a valid bypass is listed in the{" "}
+          <a href="https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/SECURITY.md#hall-of-fame" target="_blank" rel="noopener noreferrer">
+            hall of fame
+          </a>{" "}
+          and credited in the release notes. Known limits, such as a script the agent writes and then runs, are listed above and are not bypasses.
+        </p>
+      </section>
+
       <section id="disclosure" aria-labelledby="disclosure-h" className="glass card-lg stack reveal" data-light>
         <h2 id="disclosure-h" style={{ fontSize: "1.35rem" }}>Report a vulnerability</h2>
         <p className="text-2">

@@ -203,6 +203,13 @@ function FlowDiagramTall() {
   );
 }
 
+// docs/research/2026-10-mcp-tool-changes.md
+const RESEARCH: [string, string][] = [
+  ["28 of 34", "servers that started changed a tool definition within their last few releases"],
+  ["26 of 73", "patch releases changed a tool definition, so ^1.2.3 does not freeze what your agent reads"],
+  ["15 of 34", "servers rewrote the description of an existing tool, the text the model follows"],
+];
+
 export default async function HomePage() {
   // both demos are computed here first, so the page is correct before (or without) JavaScript
   const chainRows = await buildChain();
@@ -251,6 +258,33 @@ export default async function HomePage() {
           <div {...enter(4)}>
             <LockDemo initial={rugState} />
           </div>
+        </div>
+      </section>
+
+      <section className="section section-rule" id="research" aria-labelledby="research-title">
+        <div className="shell stack-lg">
+          <div className="section-head split reveal">
+            <span className="eyebrow">Our research, October 2026</span>
+            <h2 id="research-title">Tool definitions change, often in patch releases</h2>
+            <p className="lead">
+              We installed the newest releases of 46 popular MCP servers on throwaway machines and compared the tools each release served. Nothing
+              malicious turned up, but none of these changes were reviewed by the people whose agents read them.
+            </p>
+          </div>
+          <div className="grid-3 reveal">
+            {RESEARCH.map(([value, label]) => (
+              <div key={label} className="glass card kpi" data-light>
+                <span className="value">{value}</span>
+                <span className="label">{label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="small muted reveal">
+            The same run found 163 false alarms in Verfy&apos;s own scanner, fixed in 0.5.2.{" "}
+            <a href="https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/docs/research/2026-10-mcp-tool-changes.md" target="_blank" rel="noopener noreferrer">
+              Method, numbers and limits
+            </a>
+          </p>
         </div>
       </section>
 

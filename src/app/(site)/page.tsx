@@ -206,7 +206,7 @@ function FlowDiagramTall() {
 // docs/research/2026-10-mcp-tool-changes.md
 const RESEARCH: [string, string][] = [
   ["28 of 34", "servers that started changed a tool definition within their last few releases"],
-  ["26 of 73", "patch releases changed a tool definition, so ^1.2.3 does not freeze what your agent reads"],
+  ["23 of 70", "patch releases changed a tool definition, so ^1.2.3 does not freeze what your agent reads"],
   ["15 of 34", "servers rewrote the description of an existing tool, the text the model follows"],
 ];
 

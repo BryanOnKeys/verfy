@@ -43,7 +43,7 @@ export default async function AdvisoriesPage({ searchParams }: { searchParams: P
         </h2>
         <p className="text-2">
           We installed the newest releases of 46 popular MCP servers on throwaway machines and compared the tools each release served. Of the 34 that
-          started, 28 added, removed or changed a tool definition, and 26 of 73 patch releases changed one: a version range like{" "}
+          started, 28 added, removed or changed a tool definition, and 23 of 70 patch releases changed one: a version range like{" "}
           <code className="inline-code">^1.2.3</code> does not freeze what your agent reads. We found no malicious change. The same run showed 163 false
           alarms in Verfy&apos;s own scanner, which 0.5.2 fixes.
         </p>

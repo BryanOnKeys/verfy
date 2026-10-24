@@ -17,6 +17,8 @@ from verfy.scanner import scan  # noqa: E402
 
 def bump(a: str, b: str) -> str:
     pa, pb = (a.split(".") + ["0", "0"])[:3], (b.split(".") + ["0", "0"])[:3]
+    if int(pa[0]) >= 2000 or int(pb[0]) >= 2000:  # date versions such as 2026.10.19
+        return "date"
     if pa[0] != pb[0]:
         return "major"
     if pa[1] != pb[1]:

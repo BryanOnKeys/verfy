@@ -19,12 +19,12 @@ Nothing was called: only `initialize` and `tools/list` were sent. Servers that w
 | Servers that started and listed their tools | **34** of 46 |
 | Servers where a tool was added, removed or changed within their last releases | **28 of 34** (82%) |
 | Release-to-release updates that changed at least one tool definition | **61 of 128** (48%) |
-| Patch releases (x.y.**z**) that changed at least one tool definition | **26 of 73** (36%) |
+| Patch releases (x.y.**z**) that changed at least one tool definition | **23 of 70** (33%) |
 | Servers that changed the description of an existing tool | **15 of 34** |
 | ... of which in a patch release | **7** |
 | Tool descriptions changed in total | **119** |
 
-- **A version range does not freeze what your agent reads.** `^1.2.3` and `~1.2.3` accept patch releases, and a third of patch releases changed a tool definition.
+- **A version range does not freeze what your agent reads.** `^1.2.3` and `~1.2.3` accept patch releases, and a third of patch releases changed a tool definition. (Three servers use date versions such as 2026.10.19; they are left out of the patch count.)
 - **Remote servers do not even have a version.** They were not part of this run, but they can change their tools on any deploy.
 - **We found no malicious change.** The changes we read were ordinary improvements and bug fixes. Many of them do add new instructions for the model. One server, for example, added a step where the user must agree to a cost before a project is created. These instructions are exactly what a rug pull would use, and today they reach agents without anyone reviewing them.
 

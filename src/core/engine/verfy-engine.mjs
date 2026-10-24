@@ -200,7 +200,9 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     var pol = merge(DEFAULT_POLICY, user);
     if (!pol.home) pol.home = opts.home || "/home/you";
     if (!pol.workspace) pol.workspace = opts.workspace || pol.home + "/project";
-    if (["deny", "allow", "elicit"].indexOf(pol.on_ask) < 0) throw new Error("on_ask must be deny, allow or elicit");
+    if (["deny", "allow", "elicit", "team"].indexOf(pol.on_ask) < 0) throw new Error("on_ask must be deny, allow, elicit or team");
+    var wait = pol.approval_timeout === undefined ? 120 : pol.approval_timeout;
+    if (typeof wait !== "number" || !Number.isInteger(wait) || wait < 10 || wait > 900) throw new Error("approval_timeout must be a whole number of seconds from 10 to 900");
     if (["ask", "deny"].indexOf(pol.fail_mode) < 0) throw new Error("fail_mode must be ask or deny (Verfy never fails open)");
     if (["ask", "deny", "allow"].indexOf((pol.lock || {}).on_new) < 0) throw new Error("lock.on_new must be ask, deny or allow");
     return pol;

@@ -190,6 +190,48 @@ describe("device ingest and chain integrity in the database", () => {
   });
 });
 
+describe("approval queue", () => {
+  const findings = JSON.stringify([{ rule: "VFY-SH-010", verdict: "ask", message: "Force-pushes." }]);
+  const request = (device: string, ttl = 120) =>
+    as(db, service, (q) =>
+      q<{ r: { id: string; status: string } }>("select public.request_approval($1, 'shell', 'run_command', 'shell', $2, $3::jsonb, $4) as r", [device, "sha256:" + "b".repeat(64), findings, ttl]),
+    ).then((r) => r[0]!.r);
+
+  it("a device asks, members of that organization see it, and only owners and admins decide", async () => {
+    const req = await request(deviceA);
+    expect(req.status).toBe("pending");
+    expect(await as(db, dave, (q) => q("select id from public.approvals where id = $1", [req.id]))).toHaveLength(1);
+    expect(await as(db, bob, (q) => q("select id from public.approvals where id = $1", [req.id]))).toHaveLength(0);
+    await expectDenied(as(db, alice, (q) => q("update public.approvals set status = 'approved' where id = $1", [req.id])));
+    await expectDenied(as(db, alice, (q) => q("insert into public.approvals (org_id, server_id, tool_name, kind, args_sha256, findings, expires_at) values ($1, 's', 't', 'k', $2, '[{}]', now() + interval '1 minute')", [orgA, "sha256:" + "c".repeat(64)])));
+    await expect(as(db, dave, (q) => q("select public.decide_approval($1, true, null)", [req.id]))).rejects.toThrow();
+    await expect(as(db, bob, (q) => q("select public.decide_approval($1, true, null)", [req.id]))).rejects.toThrow();
+    await as(db, alice, (q) => q("select public.decide_approval($1, true, 'ok, one time')", [req.id]));
+    await expect(as(db, alice, (q) => q("select public.decide_approval($1, false, null)", [req.id]))).rejects.toThrow(/already decided/);
+    const seen = await as(db, service, (q) => q<{ r: { status: string; note: string } }>("select public.approval_for_device($1, $2) as r", [deviceA, req.id]));
+    expect(seen[0]!.r).toMatchObject({ status: "approved", note: "ok, one time" });
+    const audit = await as(db, alice, (q) => q<{ action: string }>("select action from public.audit_log where org_id = $1 and action like 'approval.%' order by id", [orgA]));
+    expect(audit.map((a) => a.action)).toEqual(["approval.request", "approval.approve"]);
+  });
+
+  it("an undecided request expires and can no longer be approved", async () => {
+    const req = await request(deviceA, 10);
+    await as(db, service, (q) => q("update public.approvals set created_at = now() - interval '1 minute', expires_at = now() - interval '1 second' where id = $1", [req.id]));
+    await expect(as(db, alice, (q) => q("select public.decide_approval($1, true, null)", [req.id]))).rejects.toThrow(/expired/);
+    const seen = await as(db, service, (q) => q<{ r: { status: string } }>("select public.approval_for_device($1, $2) as r", [deviceA, req.id]));
+    expect(seen[0]!.r.status).toBe("expired");
+  });
+
+  it("clients cannot create requests, and a device sees only its own", async () => {
+    await expectDenied(as(db, alice, (q) => q("select public.request_approval($1, 's', 't', 'k', $2, '[{}]'::jsonb, 60)", [deviceA, "sha256:" + "d".repeat(64)])));
+    await expectDenied(as(db, alice, (q) => q("select public.approval_for_device($1, gen_random_uuid())", [deviceA])));
+    const req = await request(deviceA);
+    await expect(as(db, service, (q) => q("select public.approval_for_device(gen_random_uuid(), $1)", [req.id]))).rejects.toThrow(/not found/);
+    await expect(request(deviceA, 5)).rejects.toThrow(/ttl/);
+    await expect(request(deviceA, 3600)).rejects.toThrow(/ttl/);
+  });
+});
+
 describe("audit log", () => {
   it("is a hash chain per organization", async () => {
     const log = await as(db, alice, (q) => q<{ prev_hash: string | null; hash: string; action: string }>("select prev_hash, hash, action from public.audit_log where org_id = $1 order by id", [orgA]));

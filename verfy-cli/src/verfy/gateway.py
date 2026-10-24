@@ -7,8 +7,10 @@
   are hidden from the agent. The first time a server is seen its tools are
   locked (trust on first use); a tool added later needs approval.
 * ``tools/call`` requests are pre-checked. Denied calls never reach the server;
-  ``ask`` calls are blocked, allowed or sent to the user for approval
-  (MCP elicitation) depending on ``on_ask`` in the policy.
+  ``ask`` calls are blocked, allowed, sent to the user for approval (MCP
+  elicitation) or put in the team's approval queue (``"team"``: the call waits
+  up to ``approval_timeout`` seconds for an owner or admin), depending on
+  ``on_ask`` in the policy.
 * Every call, allowed or blocked, gets a signed receipt in the ledger.
 * Secrets in tool results and resources (API keys, tokens, private keys) are
   replaced with ``[REDACTED:<rule>]`` before the agent sees them, unless the
@@ -22,11 +24,13 @@ import os
 import subprocess
 import sys
 import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, IO
 
+from . import team as teamlib
 from ._util import redact_output
 from .canonical import digest
 from .lock import LockError, load_lock, pin, safe_name, save_seen, server_pins, update
@@ -58,7 +62,7 @@ class Gateway:
     def __init__(self, command: list[str], *, server: str, policy: dict, key: Key, ledger_path: Path,
                  lock_path: Path, home: Path | None = None, scans_dir: Path | None = None, session: str | None = None,
                  stdin: IO[bytes] | None = None, stdout: IO[bytes] | None = None,
-                 log: Callable[[str], None] | None = None):
+                 log: Callable[[str], None] | None = None, team_transport: Callable | None = None, poll_seconds: float = 2.0):
         self.command = command
         self.server = server
         self.policy = policy
@@ -79,6 +83,9 @@ class Gateway:
         self.client_caps: dict = {}
         self.spent = spent_today(read_ledger(ledger_path))
         self.child: subprocess.Popen | None = None
+        self.server_lock = threading.Lock()
+        self.team_transport = team_transport
+        self.poll_seconds = poll_seconds
         self._n = 0
 
     # ------------------------------------------------------------ plumbing
@@ -95,8 +102,9 @@ class Gateway:
         data = msg if isinstance(msg, bytes) else (json.dumps(msg, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
         assert self.child and self.child.stdin
         try:
-            self.child.stdin.write(data)
-            self.child.stdin.flush()
+            with self.server_lock:  # team approvals forward from their own threads
+                self.child.stdin.write(data)
+                self.child.stdin.flush()
         except (BrokenPipeError, OSError):
             self.log("server stdin closed")
 
@@ -208,8 +216,35 @@ class Gateway:
                         },
                     },
                 })
+            elif mode == "team":
+                threading.Thread(target=self._ask_team, args=(msg, action, decision), daemon=True).start()
             else:
                 self._block(msg, action, decision, "Verfy needs a person to approve this call, so it was not run.")
+
+    def _ask_team(self, msg: dict, action: dict, decision: dict) -> None:
+        """Wait for an owner or admin to decide in the dashboard. Anything but an approval refuses the call."""
+        wait = int(self.policy.get("approval_timeout", 120))
+        name = f"{self.server}/{action['tool']}"
+        try:
+            req = teamlib.request_approval(self.home, self.server, action["tool"], decision["kind"], digest(action["arguments"]),
+                                           decision["findings"], wait, transport=self.team_transport)
+            self.log(f"ASK {name} -> waiting up to {wait}s for your team to approve it in the dashboard")
+            deadline = time.monotonic() + wait + 5
+            state = req
+            while state.get("status") == "pending" and time.monotonic() < deadline:
+                time.sleep(self.poll_seconds)
+                state = teamlib.approval_status(self.home, req["id"], transport=self.team_transport)
+        except (teamlib.TeamError, OSError, ValueError, KeyError) as e:
+            self._block(msg, action, decision, f"Verfy could not reach your team to approve this call ({e}), so it was not run.")
+            return
+        if state.get("status") == "approved":
+            decision["approved_by"] = "team:" + str(state.get("decided_by") or "admin")[:90]
+            self._forward(msg, action, decision)
+            return
+        decision["approved_by"] = None
+        why = {"rejected": "Your team rejected this call.", "expired": "Nobody on your team approved this call in time."}
+        note = f" Note: {state['note']}" if state.get("note") else ""
+        self._block(msg, action, decision, why.get(str(state.get("status")), "Your team did not approve this call.") + note, status="declined")
 
     def _elicit_answer(self, msg: dict) -> None:
         msg0, action, decision = self.elicits.pop(self._key(msg["id"]))

@@ -7,6 +7,14 @@ import { Icon } from "./icons";
 import { ErrorNote } from "./states";
 
 export function LockDecision({ orgId, lockId, label }: { orgId: string; lockId: string; label: string }) {
+  return <Decision orgId={orgId} path={`/api/v1/locks/${lockId}`} id={lockId} label={label} approveText="Approve for the team" />;
+}
+
+export function ApprovalDecision({ orgId, approvalId, label }: { orgId: string; approvalId: string; label: string }) {
+  return <Decision orgId={orgId} path={`/api/v1/approvals/${approvalId}`} id={approvalId} label={label} approveText="Allow this call" />;
+}
+
+function Decision({ orgId, path, id, label, approveText }: { orgId: string; path: string; id: string; label: string; approveText: string }) {
   const router = useRouter();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
@@ -14,7 +22,7 @@ export function LockDecision({ orgId, lockId, label }: { orgId: string; lockId: 
   async function decide(kind: "approve" | "reject") {
     setBusy(kind);
     setError(null);
-    const res = await api("POST", `/api/v1/locks/${lockId}/${kind}`, { org_id: orgId, note: note.trim() || undefined });
+    const res = await api("POST", `${path}/${kind}`, { org_id: orgId, note: note.trim() || undefined });
     setBusy(null);
     if (!res.ok) return setError(res.error ?? "The decision could not be saved.");
     router.refresh();
@@ -23,13 +31,13 @@ export function LockDecision({ orgId, lockId, label }: { orgId: string; lockId: 
     <div className="stack" style={{ gap: 10 }}>
       {error && <ErrorNote message={error} />}
       <div className="field">
-        <label htmlFor={`note-${lockId}`}>Decision note (optional)</label>
-        <input id={`note-${lockId}`} className="input" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />
+        <label htmlFor={`note-${id}`}>Decision note (optional)</label>
+        <input id={`note-${id}`} className="input" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
       <div className="row">
         <button type="button" className="btn btn-primary btn-sm" onClick={() => decide("approve")} disabled={busy !== null} aria-label={`Approve ${label}`}>
           <Icon name="check" size={14} />
-          <span>{busy === "approve" ? "Approving…" : "Approve for the team"}</span>
+          <span>{busy === "approve" ? "Approving…" : approveText}</span>
         </button>
         <button type="button" className="btn btn-danger btn-sm" onClick={() => decide("reject")} disabled={busy !== null} aria-label={`Reject ${label}`}>
           <Icon name="x" size={14} />

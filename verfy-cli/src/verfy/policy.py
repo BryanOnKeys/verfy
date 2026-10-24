@@ -41,8 +41,11 @@ def load_policy(source: str | os.PathLike | dict | None = None, *, workspace: st
         pol["home"] = home or os.path.expanduser("~")
     if not pol.get("workspace"):
         pol["workspace"] = workspace or os.getcwd()
-    if pol["on_ask"] not in ("deny", "allow", "elicit"):
-        raise ValueError("on_ask must be deny, allow or elicit")
+    if pol["on_ask"] not in ("deny", "allow", "elicit", "team"):
+        raise ValueError("on_ask must be deny, allow, elicit or team")
+    wait = pol.get("approval_timeout", 120)
+    if not isinstance(wait, int) or isinstance(wait, bool) or not 10 <= wait <= 900:
+        raise ValueError("approval_timeout must be a whole number of seconds from 10 to 900")
     if pol.get("fail_mode") not in ("ask", "deny"):
         raise ValueError("fail_mode must be ask or deny (Verfy never fails open)")
     if (pol.get("lock") or {}).get("on_new") not in ("ask", "deny", "allow"):

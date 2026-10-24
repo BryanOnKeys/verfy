@@ -16,6 +16,8 @@ export const PERMISSIONS = {
   "policies.simulate": ["owner", "admin", "member", "auditor"],
   "locks.read": ["owner", "admin", "member", "auditor"],
   "locks.decide": ["owner", "admin"],
+  "approvals.read": ["owner", "admin", "member", "auditor"],
+  "approvals.decide": ["owner", "admin"],
   "devices.read": ["owner", "admin", "member", "auditor"],
   "devices.enroll": ["owner", "admin"],
   "devices.revoke": ["owner", "admin"],

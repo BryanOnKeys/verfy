@@ -14,6 +14,7 @@ export const LIMITS = {
   enroll: { windowSeconds: 3600, max: 20 },
   ingest: { windowSeconds: 60, max: 120 },
   proposeLock: { windowSeconds: 3600, max: 200 },
+  requestApproval: { windowSeconds: 3600, max: 300 },
   deviceRead: { windowSeconds: 60, max: 120 },
   publicRead: { windowSeconds: 60, max: 60 },
   auth: { windowSeconds: 900, max: 10 },

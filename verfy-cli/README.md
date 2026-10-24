@@ -38,6 +38,8 @@ verfy wrap ~/.cursor/mcp.json --write      # wrap every server in a config (back
 
 The gateway scans each `tools/list` answer, hides poisoned or drifted tools, checks every `tools/call`, can ask the user through MCP elicitation (`"on_ask": "elicit"`), and writes a receipt for every call. Secrets in tool results and resources (API keys, tokens, private keys in the formats the scanner knows) are replaced with `[REDACTED:<rule>]` before the agent reads them; the receipt keeps the hash of the original result. Set `"redact_output": false` to turn this off.
 
+With `"on_ask": "team"` (device enrolled in Verfy Team), a call that needs approval waits in Dashboard → Approvals until an owner or admin decides, for at most `"approval_timeout"` seconds (default 120, 10 to 900). The request carries the tool, the rules that asked and the SHA-256 of the arguments, never the arguments. A rejection, no answer in time or an unreachable server refuses the call; the receipt records `approved_by: "team:<name>"` when it runs. The Claude Code hook never waits on the network, so this works through the gateway only.
+
 ## Scan
 
 ```bash
@@ -72,7 +74,7 @@ Commit `verfy.lock`; a pull request that changes a tool then fails until someone
 ```yaml
 - uses: actions/setup-python@v7
   with: { python-version: "3.13" }
-- uses: anvarbekovjavohir277-dot/verfy@cli-v0.4.0
+- uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.0
   with: { config: .mcp.json, lock: verfy.lock }
 ```
 

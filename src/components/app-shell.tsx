@@ -20,6 +20,7 @@ const NAV: { href: string; label: string; icon: IconName; perm?: Permission }[] 
   { href: "/dashboard", label: "Overview", icon: "gauge" },
   { href: "/dashboard/receipts", label: "Receipts", icon: "receipt", perm: "receipts.read" },
   { href: "/dashboard/policies", label: "Policies", icon: "policy", perm: "policies.read" },
+  { href: "/dashboard/approvals", label: "Approvals", icon: "shieldCheck", perm: "approvals.read" },
   { href: "/dashboard/locks", label: "Locks", icon: "lock", perm: "locks.read" },
   { href: "/dashboard/devices", label: "Devices", icon: "device", perm: "devices.read" },
   { href: "/dashboard/team", label: "Team", icon: "users", perm: "members.read" },

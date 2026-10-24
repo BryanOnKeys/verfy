@@ -176,7 +176,7 @@ class CrossEngine(unittest.TestCase):
 class GatewayTests(unittest.TestCase):
     """Drive the real gateway over pipes with the demo MCP server behind it."""
 
-    def run_gateway(self, messages, server_args=(), policy=None, home=None, client_answer=None):
+    def run_gateway(self, messages, server_args=(), policy=None, home=None, client_answer=None, **gw_options):
         home = Path(home or tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, home, True)
         pol = load_policy({"workspace": str(home / "project"), **(policy or {})})
@@ -185,7 +185,7 @@ class GatewayTests(unittest.TestCase):
         cin, cout = os.fdopen(r_in, "rb"), os.fdopen(w_out, "wb")
         gw = Gateway([PY, "-m", "verfy.demo_server", *server_args], server="demo", policy=pol, key=Key.generate(),
                      ledger_path=home / "ledger.jsonl", lock_path=home / "verfy.lock", home=home, scans_dir=home / "scans",
-                     stdin=cin, stdout=cout, log=lambda m: None)
+                     stdin=cin, stdout=cout, log=lambda m: None, **gw_options)
         env_pp = os.environ.get("PYTHONPATH", "")
         os.environ["PYTHONPATH"] = str(ROOT / "src") + (os.pathsep + env_pp if env_pp else "")
         t = threading.Thread(target=lambda: (gw.run(), cout.close()))
@@ -272,6 +272,48 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(n, 1)
         self.assertEqual(out["content"][0]["text"], "[REDACTED:github-token]")
         self.assertEqual(out["content"][1]["data"], "AKIA" + "B" * 16)
+
+    def team_home(self):
+        from verfy.team import save_team
+        home = Path(tempfile.mkdtemp())
+        save_team(home, {"url": "https://verfy.example.test", "token": "atd_" + "x" * 43, "kid": "atl_" + "0" * 16, "device_id": "d1"})
+        return home
+
+    def fake_team(self, answers):
+        sent = []
+
+        def transport(method, url, body, headers):
+            sent.append((method, url, body))
+            if method == "POST":
+                return 201, {"id": "a1", "status": "pending", "expires_at": "2026-10-24T12:00:00Z"}
+            return 200, answers.pop(0) if len(answers) > 1 else answers[0]
+        return transport, sent
+
+    def test_team_approval_queue(self):
+        ask = self.call(2, "run_command", {"command": "git push --force"})
+        transport, sent = self.fake_team([{"status": "pending"}, {"status": "approved", "decided_by": "Alice"}])
+        rep, _, home = self.run_gateway(self.INIT + [ask], policy={"on_ask": "team"}, home=self.team_home(), team_transport=transport, poll_seconds=0.01)
+        self.assertFalse(rep[2]["result"]["isError"])
+        method, url, body = sent[0]
+        self.assertEqual((method, url), ("POST", "https://verfy.example.test/api/v1/approvals"))
+        self.assertTrue(body["args_sha256"].startswith("sha256:"))
+        self.assertNotIn("git push", json.dumps(body))  # only the hash of the arguments leaves the machine
+        self.assertEqual(sent[-1][1], "https://verfy.example.test/api/v1/approvals/a1")
+        r = read_ledger(home / "ledger.jsonl")[0]
+        self.assertEqual((r["decision"]["approved_by"], r["outcome"]["status"]), ("team:Alice", "ok"))
+
+        transport, _ = self.fake_team([{"status": "rejected", "note": "not on Friday"}])
+        rep, _, home = self.run_gateway(self.INIT + [ask], policy={"on_ask": "team"}, home=self.team_home(), team_transport=transport, poll_seconds=0.01)
+        self.assertTrue(rep[2]["result"]["isError"])
+        self.assertIn("rejected", rep[2]["result"]["content"][0]["text"])
+        self.assertIn("not on Friday", rep[2]["result"]["content"][0]["text"])
+        self.assertEqual(read_ledger(home / "ledger.jsonl")[0]["outcome"]["status"], "declined")
+
+        rep, _, _ = self.run_gateway(self.INIT + [ask], policy={"on_ask": "team"})  # not enrolled: refused, never run
+        self.assertTrue(rep[2]["result"]["isError"])
+        self.assertIn("could not reach your team", rep[2]["result"]["content"][0]["text"])
+        with self.assertRaises(ValueError):
+            load_policy({"on_ask": "team", "approval_timeout": 5})
 
     def test_on_ask_modes(self):
         ask = self.call(2, "run_command", {"command": "git push --force"})

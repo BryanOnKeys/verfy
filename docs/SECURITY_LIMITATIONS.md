@@ -46,6 +46,7 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - The CAPTCHA is optional and only effective when both the Turnstile site key (Vercel) and secret key (Supabase) are configured.
 - `TRACE` requests are refused by Next.js itself with a generic error page before any Verfy code runs; deny them at the edge (rule 1 in `deploy/vercel/README.md`).
 - Exports are limited to 20,000 receipts per request; there is no background job queue yet.
+- The approval queue (`"on_ask": "team"`) works through the MCP gateway only; the Claude Code hook does not wait on the network. The person approving sees the tool, the rules and their messages and a hash of the arguments, not the arguments, so they approve the kind of call rather than its exact content. There are no notifications yet: someone has to have Dashboard → Approvals open. A device can ask for at most 300 approvals an hour, and an organization can have 200 waiting at once.
 - Invitations are links you share yourself; Verfy sends no email of its own (Supabase Auth sends sign-up and reset emails).
 - Policy regexes are checked for nested quantifiers, but regular expressions can still be slow on adversarial input on developer machines.
 

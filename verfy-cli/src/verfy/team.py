@@ -1,9 +1,11 @@
 """Verfy Team client: enroll this device, upload receipts, propose lock updates
 and pull the team policy and approved locks.
 
-Nothing here runs inside a hook or the gateway. The guard and the local
-ledger keep working when the team service is down; ``verfy sync`` uploads
-whatever is waiting the next time it runs.
+Nothing here runs inside the hook. The gateway calls the team service only
+for the approval queue, when the policy says ``"on_ask": "team"``; if the
+service cannot be reached the call is refused. The guard and the local ledger
+keep working when the team service is down; ``verfy sync`` uploads whatever
+is waiting the next time it runs.
 
 * Only HTTPS endpoints are accepted (plain http only for localhost, for
   development).
@@ -30,6 +32,7 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlparse
 
+from ._util import redact
 from .fileio import atomic_write
 from .receipts import Key, b64u, read_ledger, receipt_hash
 
@@ -190,6 +193,26 @@ def propose_lock(home: Path, server: str, definition: dict, digest_: str, transp
         raise TeamError("this device is not enrolled; run `verfy team enroll`")
     client = TeamClient(team["url"], team["token"], transport=transport)
     return client.call("POST", "/api/v1/locks/propose", {"server_id": server, "tool_name": definition["name"], "digest": digest_, "definition": definition})
+
+
+def request_approval(home: Path, server: str, tool: str, kind: str, args_sha256: str, findings: list[dict], ttl: int,
+                     transport: Transport | None = None) -> dict:
+    """Put one call in the team's approval queue. Only the hash of the arguments is sent."""
+    team = load_team(home)
+    if team is None:
+        raise TeamError("this device is not enrolled; run `verfy team enroll`")
+    client = TeamClient(team["url"], team["token"], transport=transport, retries=2)
+    sent = [{"rule": f["rule"], "verdict": f["verdict"], "message": redact(str(f.get("message", "")))[:500]}
+            for f in findings if f.get("verdict") in ("ask", "deny")][:20]
+    return client.call("POST", "/api/v1/approvals", {"server_id": server[:200], "tool_name": tool[:200], "kind": kind[:40],
+                                                     "args_sha256": args_sha256, "findings": sent, "ttl_seconds": ttl})
+
+
+def approval_status(home: Path, approval_id: str, transport: Transport | None = None) -> dict:
+    team = load_team(home)
+    if team is None:
+        raise TeamError("this device is not enrolled; run `verfy team enroll`")
+    return TeamClient(team["url"], team["token"], transport=transport, retries=2).call("GET", f"/api/v1/approvals/{approval_id}")
 
 
 def pull(home: Path, transport: Transport | None = None) -> dict:

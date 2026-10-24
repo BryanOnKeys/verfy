@@ -41,6 +41,9 @@ const API: [string, string, string, string][] = [
   ["GET", "/api/v1/locks", "device or member", "Team locks (?status=approved)"],
   ["POST", "/api/v1/locks/propose", "device token", "Propose a tool definition"],
   ["POST", "/api/v1/locks/{id}/approve · /reject", "owner, admin", "Decide a pending lock"],
+  ["POST", "/api/v1/approvals", "device token", "Put one call in the approval queue (tool, rules and a hash of the arguments)"],
+  ["GET", "/api/v1/approvals/{id}", "device token", "The decision, for the device that asked"],
+  ["POST", "/api/v1/approvals/{id}/approve · /reject", "owner, admin", "Decide a waiting call before it expires"],
   ["GET", "/api/v1/receipts", "member", "Search receipts"],
   ["GET", "/api/v1/chains/{chain}/verify", "member", "Re-verify a device chain on the server"],
   ["POST", "/api/v1/exports", "owner, admin, auditor", "Build an evidence export"],
@@ -175,7 +178,7 @@ export default function DocsPage() {
             "      - uses: actions/setup-python@v7",
             "        with:",
             "          python-version: \"3.13\"",
-            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.4.0",
+            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.0",
             "        with:",
             "          config: .mcp.json",
             "          lock: verfy.lock",
@@ -207,6 +210,17 @@ export default function DocsPage() {
         </p>
         <CodeBlock
           code={["$ verfy team enroll --url https://verfy.example.com --code atle_…", "$ verfy sync            # run it from cron or CI; never inside the hook", "$ verfy team pull       # team policy and approved locks"].join("\n")}
+        />
+        <p className="text-2">
+          <strong>Approval queue.</strong> With <code className="inline-code">&quot;on_ask&quot;: &quot;team&quot;</code> in the policy, a call through the
+          MCP gateway that needs approval waits in Dashboard → Approvals until an owner or admin allows or rejects it (up to{" "}
+          <code className="inline-code">approval_timeout</code> seconds, default 120, at most 900). Only the tool, the rules that asked and a hash of
+          the arguments are sent. No answer, a rejection or an unreachable server all refuse the call. The Claude Code hook cannot wait for the
+          network, so there it stays a local ask.
+        </p>
+        <CodeBlock
+          copy={false}
+          code={JSON.stringify({ on_ask: "team", approval_timeout: 120 }, null, 2)}
         />
       </section>
 

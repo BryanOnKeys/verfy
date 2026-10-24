@@ -19,6 +19,7 @@ const SECTIONS: { id: string; icon: IconName; title: string; intro: string; item
       ["Review", "verfy lock diff shows a readable diff with invisible characters spelled out; verfy lock approve records who accepted it."],
       ["CI", "verfy lock check starts the servers in .mcp.json and compares them with the committed verfy.lock. The GitHub Action runs it on every pull request and fails the check when a tool changed."],
       ["Team", "Devices propose changes; an admin approves once in the dashboard and every device picks it up with verfy team pull."],
+      ["Approval queue", "With \"on_ask\": \"team\", a gateway call that needs approval waits in the dashboard for an owner or admin, then runs or is refused. Only a hash of the arguments is sent."],
     ],
     limits: "A lock proves a definition did not change since it was approved. It says nothing about whether the approved definition was safe.",
   },

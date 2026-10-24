@@ -141,6 +141,19 @@ export async function listPolicyVersions(db: Db, orgId: string) {
 
 export const lockStatus = z.enum(["pending", "approved", "rejected"]);
 
+export async function listApprovals(db: Db, orgId: string) {
+  const { data, error } = await db
+    .from("approvals")
+    .select("id, server_id, tool_name, kind, args_sha256, findings, status, created_at, expires_at, decided_at, decision_note, devices:device_id(name)")
+    .eq("org_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw fromDbError(error);
+  const now = Date.now();
+  // a request past its deadline is expired even before the database marks it
+  return (data ?? []).map((r) => (r.status === "pending" && Date.parse(r.expires_at) <= now ? { ...r, status: "expired" as const } : r));
+}
+
 export async function listLocks(db: Db, orgId: string, status?: z.infer<typeof lockStatus>) {
   let q = db
     .from("locks")

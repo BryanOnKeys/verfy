@@ -114,6 +114,9 @@ class Gateway:
         except FileNotFoundError:
             self.log(f"cannot start `{self.command[0]}`: command not found")
             return 127
+        except OSError as e:
+            self.log(f"cannot start `{self.command[0]}`: {e.strerror or e}")
+            return 126
         self.log(f"gateway up for `{self.server}` (session {self.session}, key {self.ledger.key.kid})")
         t = threading.Thread(target=self._pump_server, daemon=True)
         t.start()

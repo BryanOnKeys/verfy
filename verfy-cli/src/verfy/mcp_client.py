@@ -17,10 +17,14 @@ class MCPError(RuntimeError):
 
 def list_tools(command: list[str], timeout: float = 30.0, env: dict | None = None) -> dict:
     """Start ``command``, run the MCP handshake and return ``{"server": info, "tools": [...]}``."""
+    if not command or not command[0]:
+        raise MCPError("the server has no command to start")
     try:
         proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env, bufsize=0)
     except FileNotFoundError:
         raise MCPError(f"cannot start `{command[0]}`: command not found") from None
+    except OSError as e:
+        raise MCPError(f"cannot start `{command[0]}`: {e.strerror or e}") from None
     q: "queue.Queue[Any]" = queue.Queue()
 
     def reader():

@@ -162,6 +162,10 @@ class LockCheckTests(unittest.TestCase):
         code, _, err = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(home / "verfy.lock"), "--update", "--yes")
         self.assertEqual(code, 3)
         self.assertFalse((home / "verfy.lock").exists())
+        cfg.write_text(json.dumps({"mcpServers": {"blank": {"command": ""}}}))  # used to crash with a traceback
+        code, out, _ = run_cli(home, "lock", "check", "--config", str(cfg), "--lock", str(home / "verfy.lock"))
+        self.assertEqual(code, 3)
+        self.assertIn("no command", out)
 
 
 class GatewayLockTests(unittest.TestCase):

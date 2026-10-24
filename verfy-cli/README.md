@@ -36,7 +36,7 @@ claude mcp add filesystem -- verfy proxy --name filesystem -- npx -y @modelconte
 verfy wrap ~/.cursor/mcp.json --write      # wrap every server in a config (backup kept)
 ```
 
-The gateway scans each `tools/list` answer, hides poisoned or drifted tools, checks every `tools/call`, can ask the user through MCP elicitation (`"on_ask": "elicit"`), and writes a receipt for every call.
+The gateway scans each `tools/list` answer, hides poisoned or drifted tools, checks every `tools/call`, can ask the user through MCP elicitation (`"on_ask": "elicit"`), and writes a receipt for every call. Secrets in tool results and resources (API keys, tokens, private keys in the formats the scanner knows) are replaced with `[REDACTED:<rule>]` before the agent reads them; the receipt keeps the hash of the original result. Set `"redact_output": false` to turn this off.
 
 ## Scan
 
@@ -72,7 +72,7 @@ Commit `verfy.lock`; a pull request that changes a tool then fails until someone
 ```yaml
 - uses: actions/setup-python@v7
   with: { python-version: "3.13" }
-- uses: anvarbekovjavohir277-dot/verfy@cli-v0.3.0
+- uses: anvarbekovjavohir277-dot/verfy@cli-v0.4.0
   with: { config: .mcp.json, lock: verfy.lock }
 ```
 
@@ -101,6 +101,21 @@ verfy team status
 Only the public key is sent at enrollment. The device token is stored in `~/.verfy/team.json` (0600). Receipts are uploaded exactly as signed; they contain only hashes of arguments unless you enabled `receipts.include_args`, in which case `sync` needs `--allow-args`.
 
 ## Policy
+
+Start from a template, or write your own:
+
+```bash
+verfy policy templates            # strict, read-only, ci
+verfy policy show read-only       # print it
+verfy policy use read-only        # ~/.verfy/policy.json (--project: ./verfy.policy.json, --force replaces, a backup is kept)
+verfy init --template ci          # same, while setting up
+```
+
+- **strict**: anything risky is denied instead of asked, unknown hosts are blocked (package registries and GitHub are allowed), errors deny, new MCP tools are denied until approved.
+- **read-only**: file edits (`Write`, `Edit`, ...) and write-style MCP tools (`*create*`, `*delete*`, `*push*`, ...) are denied; every shell command needs approval. Tool names are matched by pattern, so check `verfy policy show read-only` against your servers.
+- **ci**: nobody is watching, so anything that would ask is denied; same network limits as strict.
+
+The agent cannot change the policy itself: editing it is denied, and so is `verfy policy use` when the agent runs it.
 
 JSON merged over `src/verfy/data/default_policy.json`. Precedence: `--policy FILE`, `./verfy.policy.json`, `~/.verfy/team/policy.json`, `~/.verfy/policy.json`.
 

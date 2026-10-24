@@ -55,6 +55,8 @@ Test locations: `CLI` = `verfy-cli/tests/`, `TS` = `src/**/*.test.ts`, `DB` = `s
 | Concurrent sessions never fork the chain | `Ledger.append` under OS file lock | `test_parallel_writers_keep_one_chain` (3 processes × 40) | Done |
 | Private key stays on device | `team.enroll` sends public key only | `test_enroll_and_sync` | Done |
 | Arguments hashed by default; redaction when stored | `build_receipt(include_args=False)`, `redact_value` | `test_hash_only_by_default`, redaction tests | Done |
+| Secrets in MCP tool results and resources redacted before the agent reads them (every match, overlaps merged) | `Gateway._redact`, `redact_output`, `secret_spans` | `test_secrets_in_output_are_redacted`, `test_redaction_covers_every_secret` | Done (gateway only; Claude Code built-in tool output cannot be rewritten by a hook) |
+| Ready-made policies: strict, read-only, ci; the agent cannot switch policy | `data/templates.json`, `verfy policy`, `verfy init --template`, VFY-SELF-003 | `test_policy_templates`, fixtures | Done |
 | Honest statement of what receipts prove | `/security`, receipt page, export manifest, README | — | Done |
 | External timestamping / Merkle anchoring (Rekor) | — | — | Phase 2 |
 

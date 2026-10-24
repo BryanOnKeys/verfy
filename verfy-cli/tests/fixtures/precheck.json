@@ -1007,6 +1007,24 @@
    }
   },
   {
+   "name": "agent swaps policy",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy policy use read-only --force"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
    "name": "agent uninstalls verfy",
    "action": {
     "tool": "Bash",

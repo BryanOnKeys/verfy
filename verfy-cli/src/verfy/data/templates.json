@@ -1,0 +1,127 @@
+{
+ "strict": {
+  "description": "Everything risky is denied instead of asked; unknown hosts are blocked; errors deny. For sensitive repositories.",
+  "policy": {
+   "on_ask": "deny",
+   "fail_mode": "deny",
+   "files": {
+    "outside_workspace": "deny"
+   },
+   "network": {
+    "allow": [
+     "github.com",
+     "*.github.com",
+     "*.githubusercontent.com",
+     "pypi.org",
+     "files.pythonhosted.org",
+     "registry.npmjs.org",
+     "*.npmjs.org",
+     "*.npmjs.com",
+     "crates.io",
+     "*.crates.io",
+     "proxy.golang.org",
+     "sum.golang.org"
+    ],
+    "unknown": "deny"
+   },
+   "payments": {
+    "max_per_call": 0,
+    "ask_above": 0,
+    "daily_budget": 0
+   },
+   "lock": {
+    "on_new": "deny"
+   },
+   "receipts": {
+    "include_args": false
+   }
+  }
+ },
+ "read-only": {
+  "description": "The agent may read and search. File edits and write-style MCP tools are denied; every shell command needs approval.",
+  "policy": {
+   "on_ask": "deny",
+   "tools": {
+    "deny": [
+     "Write",
+     "Edit",
+     "MultiEdit",
+     "NotebookEdit",
+     "*write*",
+     "*create*",
+     "*update*",
+     "*delete*",
+     "*remove*",
+     "*edit*",
+     "*move*",
+     "*rename*",
+     "*push*",
+     "*merge*",
+     "*upload*",
+     "*send*",
+     "*post*",
+     "*publish*",
+     "*deploy*"
+    ],
+    "ask": [
+     "Bash",
+     "*run*",
+     "*exec*",
+     "*command*",
+     "*shell*",
+     "*terminal*"
+    ]
+   },
+   "files": {
+    "outside_workspace": "deny"
+   },
+   "payments": {
+    "max_per_call": 0,
+    "ask_above": 0,
+    "daily_budget": 0
+   },
+   "lock": {
+    "on_new": "deny"
+   }
+  }
+ },
+ "ci": {
+  "description": "No person is watching: anything that would ask is denied, new or changed tools are denied, the network is limited to package registries.",
+  "policy": {
+   "agent": "ci",
+   "on_ask": "deny",
+   "fail_mode": "deny",
+   "files": {
+    "outside_workspace": "deny"
+   },
+   "network": {
+    "allow": [
+     "github.com",
+     "*.github.com",
+     "*.githubusercontent.com",
+     "pypi.org",
+     "files.pythonhosted.org",
+     "registry.npmjs.org",
+     "*.npmjs.org",
+     "*.npmjs.com",
+     "crates.io",
+     "*.crates.io",
+     "proxy.golang.org",
+     "sum.golang.org"
+    ],
+    "unknown": "deny"
+   },
+   "payments": {
+    "max_per_call": 0,
+    "ask_above": 0,
+    "daily_budget": 0
+   },
+   "lock": {
+    "on_new": "deny"
+   },
+   "receipts": {
+    "include_args": false
+   }
+  }
+ }
+}

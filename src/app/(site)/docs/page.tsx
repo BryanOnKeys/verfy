@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 
 const CLI: [string, string, string][] = [
   ["verfy init", "Create a signing key and a starter policy in ~/.verfy, and choose manual or automatic updates", "0"],
+  ["verfy policy templates | show | use NAME", "Ready-made policies (strict, read-only, ci); use writes ~/.verfy/policy.json, or ./verfy.policy.json with --project", "0 · 1 policy exists (add --force)"],
   ["verfy update", "Install the newest version; --check only reports; --auto on|off turns automatic updates on or off", "0 · 1 newer version (with --check) · 3 failed"],
   ["verfy scan --discover", "Static check of the MCP servers in your Claude Code, Cursor and Claude Desktop configs", "0 ok · 1 medium · 2 high or worse"],
   ["verfy scan --discover --live", "Also start each stdio server and scan its tool definitions", "0 · 1 with --fail-under"],
@@ -138,6 +139,12 @@ export default function DocsPage() {
             "$ verfy lock approve filesystem               # review, then accept",
           ].join("\n")}
         />
+        <p className="text-2">
+          The gateway also hides secrets in what servers send back: API keys, tokens and private keys in a tool result or a resource are replaced with{" "}
+          <code className="inline-code">[REDACTED:rule]</code> before the agent reads them (turn it off with{" "}
+          <code className="inline-code">&quot;redact_output&quot;: false</code>). It recognises the key formats listed in the scanner; an unusual
+          secret can still get through. In Claude Code the output of built-in tools such as Bash and Read is not changed: a hook cannot rewrite it.
+        </p>
       </section>
 
       <section id="ci" className="stack" aria-labelledby="ci-h">
@@ -168,7 +175,7 @@ export default function DocsPage() {
             "      - uses: actions/setup-python@v7",
             "        with:",
             "          python-version: \"3.13\"",
-            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.3.0",
+            "      - uses: anvarbekovjavohir277-dot/verfy@cli-v0.4.0",
             "        with:",
             "          config: .mcp.json",
             "          lock: verfy.lock",
@@ -209,6 +216,13 @@ export default function DocsPage() {
           JSON merged over the defaults. Order of precedence: <code className="inline-code">./verfy.policy.json</code>, then the team policy from{" "}
           <code className="inline-code">verfy team pull</code>, then <code className="inline-code">~/.verfy/policy.json</code>.
         </p>
+        <p className="text-2">
+          Three ready-made policies are built in: <strong>strict</strong> (anything risky is denied instead of asked, unknown hosts are blocked),{" "}
+          <strong>read-only</strong> (file edits and write-style MCP tools are denied, every shell command needs approval) and <strong>ci</strong> (no
+          person is watching, so anything that would ask is denied and the network is limited to package registries). The agent cannot switch
+          policy for itself: <code className="inline-code">verfy policy use</code> run by the agent is denied.
+        </p>
+        <CodeBlock code={["$ verfy policy templates", "$ verfy policy show read-only", "$ verfy policy use read-only --project   # writes ./verfy.policy.json"].join("\n")} />
         <CodeBlock
           copy={false}
           code={JSON.stringify(

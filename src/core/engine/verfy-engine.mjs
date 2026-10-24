@@ -45,7 +45,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     for (k in c) { var p = c[k] / n; e -= p * Math.log2(p); }
     return e;
   }
-  function scanSecrets(text) {
+  function scanSecrets(text, every) {
     var out = [];
     if (!text || typeof text !== "string") return out;
     var seen = {};
@@ -57,16 +57,24 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
         var low = value.toLowerCase();
         if (PATTERNS.placeholders.some(function (h) { return low.indexOf(h) >= 0; })) continue;
         if (p[4] === "medium" && entropy(value) < 3.0) continue;
-        if (seen[p[0]]) continue;
+        if (seen[p[0]] && !every) continue;
         seen[p[0]] = true;
         out.push({ id: p[0], label: p[1], severity: p[4], start: m.index, end: m.index + m[0].length });
       }
     });
     return out;
   }
+  function secretSpans(text) {
+    var out = [];
+    scanSecrets(text, true).sort(function (a, b) { return a.start - b.start || b.end - a.end; }).forEach(function (h) {
+      var last = out[out.length - 1];
+      if (last && h.start < last.end) last.end = Math.max(last.end, h.end);
+      else out.push({ id: h.id, start: h.start, end: h.end });
+    });
+    return out;
+  }
   function redact(text) {
-    var hits = scanSecrets(text).sort(function (a, b) { return b.start - a.start; });
-    hits.forEach(function (h) { text = text.slice(0, h.start) + "[REDACTED:" + h.id + "]" + text.slice(h.end); });
+    secretSpans(text).reverse().forEach(function (h) { text = text.slice(0, h.start) + "[REDACTED:" + h.id + "]" + text.slice(h.end); });
     return text;
   }
   function redactValue(v) {
@@ -629,6 +637,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
       var w = a.filter(function (x) { return x.charAt(0) !== "-"; });
       if (w[0] === "lock" && (w[1] === "approve" || w[1] === "add")) return F("VFY-SELF-003", "deny", "`verfy " + w.slice(0, 2).join(" ") + "` approves a tool change for the agent. A person has to review and run it.");
       if (w[0] === "lock" && w[1] === "check" && has(a, "--update")) return F("VFY-SELF-003", "deny", "`verfy lock check --update` writes verfy.lock for the agent. A person has to review and run it.");
+      if (w[0] === "policy" && w[1] === "use") return F("VFY-SELF-003", "deny", "`verfy policy use` replaces the policy Verfy enforces. A person has to choose and run it.");
       if (w[0] === "init" && has(a, "--force")) return F("VFY-SELF-003", "deny", "`verfy init --force` replaces the signing key, which starts a new receipt chain.");
       return null;
     }

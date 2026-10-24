@@ -47,7 +47,8 @@ def entropy(v: str) -> float:
     return -sum(c / n * math.log2(c / n) for c in counts.values())
 
 
-def scan_secrets(text: str) -> list[dict]:
+def scan_secrets(text: str, every: bool = False) -> list[dict]:
+    """Secrets in ``text``: the first hit per rule, or every hit with ``every=True``."""
     out: list[dict] = []
     if not text or not isinstance(text, str):
         return out
@@ -60,16 +61,26 @@ def scan_secrets(text: str) -> list[dict]:
                 continue
             if sev == "medium" and entropy(value) < 3.0:
                 continue
-            if rid in seen:
+            if rid in seen and not every:
                 continue
             seen.add(rid)
             out.append({"id": rid, "label": label, "severity": sev, "start": m.start(), "end": m.end()})
     return out
 
 
+def secret_spans(text: str) -> list[dict]:
+    """Every secret in ``text``, in order, with overlapping hits merged into the first."""
+    out: list[dict] = []
+    for h in sorted(scan_secrets(text, every=True), key=lambda h: (h["start"], -h["end"])):
+        if out and h["start"] < out[-1]["end"]:
+            out[-1]["end"] = max(out[-1]["end"], h["end"])
+        else:
+            out.append(h)
+    return out
+
+
 def redact(text: str) -> str:
-    hits = scan_secrets(text)
-    for h in sorted(hits, key=lambda h: -h["start"]):
+    for h in reversed(secret_spans(text)):
         text = text[: h["start"]] + "[REDACTED:" + h["id"] + "]" + text[h["end"]:]
     return text
 
@@ -82,6 +93,36 @@ def redact_value(v: Any) -> Any:
     if isinstance(v, dict):
         return {k: redact_value(x) for k, x in v.items()}
     return v
+
+
+BINARY_KEYS = ("data", "blob")
+
+
+def redact_output(v: Any, key: str = "") -> tuple[Any, int]:
+    """Redact secrets in an MCP result. Returns the copy and how many secrets were hidden.
+
+    Base64 payloads (``data`` of images and audio, ``blob`` of resources) are left alone.
+    """
+    if isinstance(v, str):
+        if key in BINARY_KEYS:
+            return v, 0
+        n = len(secret_spans(v))
+        return (redact(v), n) if n else (v, 0)
+    if isinstance(v, list):
+        out, total = [], 0
+        for x in v:
+            y, n = redact_output(x, key)
+            out.append(y)
+            total += n
+        return out, total
+    if isinstance(v, dict):
+        out_d, total = {}, 0
+        for k, x in v.items():
+            y, n = redact_output(x, k)
+            out_d[k] = y
+            total += n
+        return out_d, total
+    return v, 0
 
 
 def flatten_strings(v: Any, path: str = "") -> list[tuple[str, str]]:

@@ -6,6 +6,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -272,6 +273,7 @@ class HookTests(unittest.TestCase):
             ({"tool_name": "Write", "tool_input": {"file_path": "/home/you/.verfy/policy.json", "content": "{}"}}, "deny", "VFY-FS-001"),
             ({"tool_name": "Bash", "tool_input": {"command": "verfy lock approve filesystem --yes"}}, "deny", "VFY-SELF-003"),
             ({"tool_name": "Bash", "tool_input": {"command": "pip uninstall -y verfy"}}, "deny", "VFY-SELF-004"),
+            ({"tool_name": "Bash", "tool_input": {"command": "verfy policy use read-only --force"}}, "deny", "VFY-SELF-003"),
             ({"tool_name": "Edit", "tool_input": {"file_path": "/home/you/project/.mcp.json", "old_string": '"command": "verfy"', "new_string": '"command": "npx"'}}, "ask", "VFY-SELF-002"),
         ]
         for payload, verdict, rule in attempts:
@@ -281,6 +283,46 @@ class HookTests(unittest.TestCase):
             self.assertEqual(recs[0]["decision"]["verdict"], verdict)
         _, out, _ = self.run_hook({"tool_name": "Read", "tool_input": {"file_path": "/home/you/.claude/settings.json"}})
         self.assertIsNone(out)  # reading the settings is fine
+
+    def test_policy_templates(self):
+        from verfy.policy import TEMPLATES, load_policy
+        from verfy.precheck import check
+        self.assertEqual(set(TEMPLATES), {"strict", "read-only", "ci"})
+        for name, t in TEMPLATES.items():
+            self.assertTrue(t["description"])
+            load_policy(t["policy"])  # every template is a valid policy
+        ws = {"workspace": "/home/you/project", "home": "/home/you"}
+
+        def verdict(name, tool, args, server="claude-code"):
+            return check({"server": server, "tool": tool, "arguments": args}, load_policy({**TEMPLATES[name]["policy"], **ws}))["verdict"]
+
+        edit = {"file_path": "/home/you/project/a.py", "old_string": "a", "new_string": "b"}
+        self.assertEqual(verdict("read-only", "Edit", edit), "deny")
+        self.assertEqual(verdict("read-only", "create_issue", {"title": "x"}, server="github"), "deny")
+        self.assertEqual(verdict("read-only", "Read", {"file_path": "/home/you/project/a.py"}), "allow")
+        self.assertEqual(verdict("read-only", "Bash", {"command": "ls"}), "ask")
+        fetch = {"url": "https://example.org/x"}
+        self.assertEqual(verdict("strict", "WebFetch", fetch), "deny")
+        self.assertEqual(verdict("ci", "WebFetch", {"url": "https://pypi.org/simple/verfy/"}), "allow")
+        outside = {"file_path": "/home/you/other/a.py", "content": "x"}
+        self.assertEqual(verdict("strict", "Write", outside), "deny")
+        self.assertEqual(verdict("ci", "send_payment", {"amount": 5, "to": "acme"}, server="pay"), "deny")
+
+        home = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, home, True)
+        code, out, _ = run_cli(home, "policy", "templates")
+        self.assertEqual(code, 0)
+        self.assertIn("read-only", out)
+        code, _, _ = run_cli(home, "policy", "use", "ci")
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads((home / "policy.json").read_text("utf-8")), TEMPLATES["ci"]["policy"])
+        code, _, err = run_cli(home, "policy", "use", "strict")
+        self.assertEqual(code, 1)
+        self.assertIn("--force", err)
+        code, _, _ = run_cli(home, "policy", "use", "strict", "--force")
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads((home / "policy.json").read_text("utf-8")), TEMPLATES["strict"]["policy"])
+        self.assertTrue(list(home.glob("policy.json.bak-*")))
 
     def test_errors_never_allow(self):
         for raw in ("not json", "[]", "null"):

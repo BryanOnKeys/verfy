@@ -10,6 +10,9 @@
   ``ask`` calls are blocked, allowed or sent to the user for approval
   (MCP elicitation) depending on ``on_ask`` in the policy.
 * Every call, allowed or blocked, gets a signed receipt in the ledger.
+* Secrets in tool results and resources (API keys, tokens, private keys) are
+  replaced with ``[REDACTED:<rule>]`` before the agent sees them, unless the
+  policy sets ``"redact_output": false``. The receipt hashes the original result.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, IO
 
+from ._util import redact_output
 from .canonical import digest
 from .lock import LockError, load_lock, pin, safe_name, save_seen, server_pins, update
 from .policy import policy_digest
@@ -164,6 +168,8 @@ class Gateway:
             self.client_caps = (msg.get("params") or {}).get("capabilities") or {}
         if method == "tools/list" and "id" in msg:
             self.pending[self._key(msg["id"])] = ("list",)
+        if method == "resources/read" and "id" in msg:
+            self.pending[self._key(msg["id"])] = ("read", str((msg.get("params") or {}).get("uri", "")))
         if method == "tools/call" and "id" in msg:
             self._call(msg)
             return
@@ -256,7 +262,21 @@ class Gateway:
                 if decision["kind"] == "payment" and not failed:
                     self.spent += payment_amount(action["arguments"]) or 0
                 self.log(f"{decision['verdict'].upper()} {self.server}/{action['tool']} -> {r['outcome']['status']} (receipt #{r['seq']})")
+                self._redact(msg, f"{self.server}/{action['tool']}")
+            elif p and p[0] == "read":
+                self._redact(msg, f"{self.server} resource {p[1]}")
         self.to_client(msg)
+
+    def _redact(self, msg: dict, what: str) -> None:
+        if self.policy.get("redact_output", True) is False:
+            return
+        n = 0
+        for k in ("result", "error"):
+            if k in msg:
+                msg[k], hidden = redact_output(msg[k])
+                n += hidden
+        if n:
+            self.log(f"redacted {n} secret{'s' if n != 1 else ''} in the output of {what}")
 
     def _filter_tools(self, result: dict) -> dict:
         tools = result.get("tools")

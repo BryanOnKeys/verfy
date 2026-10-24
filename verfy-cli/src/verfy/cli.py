@@ -20,7 +20,7 @@ from . import team as teamlib
 from . import update as updates
 from .gateway import Gateway, verfy_home
 from .mcp_client import MCPError, list_tools
-from .policy import DEFAULT_POLICY, load_policy, policy_digest
+from .policy import DEFAULT_POLICY, TEMPLATES, load_policy, policy_digest
 from .precheck import check
 from .receipts import Key, Ledger, key_id, public_from, read_ledger, receipt_hash, verify_ledger
 from .scanner import scan, tool_pin
@@ -94,6 +94,9 @@ def cmd_init(args) -> int:
     pp = Path("verfy.policy.json") if args.project else home / "policy.json"
     if pp.exists() and not args.force:
         print(f"Policy        {pp}  (kept)")
+    elif args.template:
+        pp.write_text(json.dumps(TEMPLATES[args.template]["policy"], indent=2) + "\n", "utf-8")
+        print(f"Policy        {pp}  (new, template `{args.template}`; everything not listed uses the defaults)")
     else:
         starter = {
             "agent": "my-agent",
@@ -135,6 +138,38 @@ def _ask_update_mode() -> str:
         answer = ""
     print()
     return "auto" if answer in ("2", "a", "auto", "automatic") else "manual"
+
+
+def cmd_policy_templates(args) -> int:
+    width = max(len(n) for n in TEMPLATES)
+    for name, t in TEMPLATES.items():
+        print(f"{c(name.ljust(width), '1')}  {t['description']}")
+    print("\nPreview one with `verfy policy show NAME`, use it with `verfy policy use NAME [--project]`.")
+    return 0
+
+
+def cmd_policy_show(args) -> int:
+    print(json.dumps(TEMPLATES[args.name]["policy"], indent=2))
+    return 0
+
+
+def cmd_policy_use(args) -> int:
+    pp = Path("verfy.policy.json") if args.project else home_file("policy.json")
+    new = json.dumps(TEMPLATES[args.name]["policy"], indent=2) + "\n"
+    if pp.exists():
+        if pp.read_text("utf-8") == new:
+            print(f"{pp} already uses the `{args.name}` template.")
+            return 0
+        if not args.force:
+            print(f"verfy: {pp} exists. Add --force to replace it (a backup is kept).", file=sys.stderr)
+            return 1
+        backup = pp.with_name(pp.name + f".bak-{int(time.time())}")
+        shutil.copy2(pp, backup)
+        print(f"Backup        {backup}")
+    pp.parent.mkdir(parents=True, exist_ok=True)
+    pp.write_text(new, "utf-8")
+    print(f"Policy        {pp}  (template `{args.name}`; everything not listed uses the defaults)")
+    return 0
 
 
 def cmd_update(args) -> int:
@@ -895,8 +930,22 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("init", help="create a signing key and a starter policy")
     p.add_argument("--project", action="store_true", help="write verfy.policy.json in this folder instead of ~/.verfy")
     p.add_argument("--force", action="store_true")
+    p.add_argument("--template", choices=list(TEMPLATES), help="start from a ready-made policy (see `verfy policy templates`)")
     p.add_argument("--updates", choices=updates.MODES, help="update automatically, or only when you run `verfy update` (asked the first time)")
     p.set_defaults(fn=cmd_init)
+
+    p = sub.add_parser("policy", help="ready-made policies: strict, read-only, ci")
+    pol = p.add_subparsers(dest="policy_cmd", metavar="subcommand", required=True)
+    x = pol.add_parser("templates", help="list the templates")
+    x.set_defaults(fn=cmd_policy_templates)
+    x = pol.add_parser("show", help="print a template")
+    x.add_argument("name", choices=list(TEMPLATES))
+    x.set_defaults(fn=cmd_policy_show)
+    x = pol.add_parser("use", help="write a template as your policy (~/.verfy/policy.json, or ./verfy.policy.json with --project)")
+    x.add_argument("name", choices=list(TEMPLATES))
+    x.add_argument("--project", action="store_true", help="write ./verfy.policy.json instead")
+    x.add_argument("--force", action="store_true", help="replace an existing policy (a backup is kept)")
+    x.set_defaults(fn=cmd_policy_use)
 
     p = sub.add_parser("update", help="install the newest version, or choose automatic updates")
     p.add_argument("--check", action="store_true", help="only report whether a newer version exists (exit 1 if it does)")

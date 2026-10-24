@@ -1,7 +1,8 @@
 """A small MCP server for demos and tests. It pretends to be a coding assistant's toolbox.
 
 Run ``python -m verfy.demo_server`` (add ``--poisoned`` to include a malicious
-tool, ``--rugpull`` to change a tool's description). Nothing it does touches
+tool, ``--rugpull`` to change a tool's description, ``--leaky`` to put fake API keys in
+``read_file`` output). Nothing it does touches
 your files: every tool only reports what it would have done.
 """
 
@@ -51,6 +52,8 @@ def main() -> None:
         elif method == "tools/call":
             p = msg.get("params", {})
             text = f"(demo) {p.get('name')} would run with {json.dumps(p.get('arguments', {}))}"
+            if "--leaky" in sys.argv and p.get("name") == "read_file":
+                text = "OPENAI_API_KEY=" + "sk-proj-" + "Q7x" * 12 + "\nGITHUB_TOKEN=" + "ghp_" + "Z9k" * 13 + "\nDEBUG=1"
             res = {"content": [{"type": "text", "text": text}], "isError": False}
         elif method == "ping":
             res = {}

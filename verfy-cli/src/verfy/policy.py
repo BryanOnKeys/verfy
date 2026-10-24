@@ -15,6 +15,7 @@ from typing import Any
 from .canonical import digest
 
 DEFAULT_POLICY: dict[str, Any] = json.loads((Path(__file__).parent / "data" / "default_policy.json").read_text("utf-8"))
+TEMPLATES: dict[str, dict] = json.loads((Path(__file__).parent / "data" / "templates.json").read_text("utf-8"))
 
 
 def merge(base: Any, over: Any) -> Any:

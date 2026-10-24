@@ -250,6 +250,29 @@ class GatewayTests(unittest.TestCase):
         self.assertNotIn("read_file", [t["name"] for t in rep[1]["result"]["tools"]])
         self.assertIn("VFY-TOOL-004", rep[2]["result"]["content"][0]["text"])
 
+    def test_secrets_in_output_are_redacted(self):
+        msgs = self.INIT + [self.call(2, "read_file", {"path": ".env"})]
+        rep, _, home = self.run_gateway(msgs, ["--leaky"], policy={"files": {"sensitive": []}, "on_ask": "allow"})
+        text = rep[2]["result"]["content"][0]["text"]
+        self.assertIn("[REDACTED:openai-key]", text)
+        self.assertIn("[REDACTED:github-token]", text)
+        self.assertIn("DEBUG=1", text)
+        self.assertNotIn("sk-proj-", text)
+        self.assertNotIn("ghp_", text)
+        receipt = read_ledger(home / "ledger.jsonl")[0]
+        self.assertEqual(receipt["outcome"]["status"], "ok")
+        rep, _, _ = self.run_gateway(msgs, ["--leaky"], policy={"files": {"sensitive": []}, "on_ask": "allow", "redact_output": False})
+        self.assertIn("ghp_", rep[2]["result"]["content"][0]["text"])
+
+    def test_redaction_covers_every_secret(self):
+        from verfy._util import redact, redact_output
+        a, b = "ghp_" + "a1B2" * 9, "ghp_" + "c3D4" * 9
+        self.assertEqual(redact(f"{a} and {b}"), "[REDACTED:github-token] and [REDACTED:github-token]")
+        out, n = redact_output({"content": [{"type": "text", "text": a}, {"type": "image", "data": "AKIA" + "B" * 16, "mimeType": "image/png"}]})
+        self.assertEqual(n, 1)
+        self.assertEqual(out["content"][0]["text"], "[REDACTED:github-token]")
+        self.assertEqual(out["content"][1]["data"], "AKIA" + "B" * 16)
+
     def test_on_ask_modes(self):
         ask = self.call(2, "run_command", {"command": "git push --force"})
         rep, _, _ = self.run_gateway(self.INIT + [ask])

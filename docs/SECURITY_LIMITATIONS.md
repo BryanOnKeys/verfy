@@ -11,6 +11,9 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 - The guard stops the agent from switching Verfy off through the paths it understands: editing Claude Code's hook settings, `verfy.lock`, `verfy.policy.json`, `~/.verfy` or the Verfy install (deny), editing MCP configs (ask), and running `verfy lock approve`, `verfy lock check --update`, `verfy init --force` or `pip uninstall verfy` (deny). A script the agent writes and then runs, or an interpreter one-liner, can still do these things; Verfy asks for the obvious one-liners but cannot follow every program.
 - On Windows, paths are compared without regard to case and in the `/c/...` form Git Bash uses. Rules written for Unix system folders do not apply there.
 
+- The gateway replaces secrets in tool results and resources with `[REDACTED:<rule>]`. It recognises the formats in `patterns.json` (private key blocks, AWS, GitHub, Anthropic, OpenAI, Stripe, Slack, Google and Telegram keys, and `password = "..."`-style assignments); a secret in another format, split across lines or encoded, gets through. In Claude Code the output of built-in tools (Bash, Read, ...) is not redacted, because a PreToolUse hook cannot rewrite it; reading `.env` and similar files needs approval instead.
+- Policy templates (`strict`, `read-only`, `ci`) match tool names by pattern. A write tool with an unusual name (not `*write*`, `*create*`, `*delete*` and so on) is not caught by `read-only`.
+
 ## The scanner and locks
 
 - A clean scan is not a security certification. The scanner finds known warning signs in tool definitions and configs.

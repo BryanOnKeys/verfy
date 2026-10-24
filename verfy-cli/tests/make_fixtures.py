@@ -75,6 +75,7 @@ CASES = [
     ("agent approves lock", S("verfy lock approve filesystem --yes")),
     ("agent updates lock in ci mode", S("python -m verfy lock check --update --yes")),
     ("agent resets key", S("verfy init --force")),
+    ("agent swaps policy", S("verfy policy use read-only --force")),
     ("agent uninstalls verfy", S("pip uninstall -y verfy")),
     ("lock status is fine", S("verfy lock status && verfy lock diff filesystem")),
     ("mentioning lock approve is fine", S("git commit -m 'docs: explain verfy lock approve'")),

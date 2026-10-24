@@ -1,12 +1,9 @@
-name: Sign the release files
+name: Sign the release files of an older version
 
-# After a version reaches PyPI, attach the exact files PyPI serves to the GitHub release, with
-# SHA256SUMS and a Sigstore signature for each file (verify with `python -m sigstore verify github`).
-# The files come from PyPI, not from a new build, so their hashes match what `pip` downloads.
+# New versions get their GitHub release from publish.yml. This one is for versions published before
+# that: it attaches the exact files PyPI serves to the GitHub release, with SHA256SUMS and a Sigstore
+# signature for each file. The files come from PyPI, so their hashes match what `pip` downloads.
 on:
-  workflow_run:
-    workflows: ["Publish CLI to PyPI"]
-    types: [completed]
   workflow_dispatch:
     inputs:
       tag:
@@ -19,19 +16,19 @@ permissions:
 jobs:
   sign:
     name: Sign and attach
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'cli-v'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write # create the release and upload files
       id-token: write # Sigstore signing
     env:
-      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      TAG: ${{ inputs.tag }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Download the files PyPI serves for this version
         run: |
           echo "$TAG" | grep -Eqx 'cli-v[0-9]+\.[0-9]+\.[0-9]+' || { echo "::error::bad tag $TAG"; exit 1; }
@@ -59,13 +56,4 @@ jobs:
           upload-signing-artifacts: false
           release-signing-artifacts: false
       - name: Attach to the GitHub release
-        run: |
-          v="${TAG#cli-v}"
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            # the notes are this version's section of CHANGELOG.md
-            awk -v v="$v" '$0 ~ "^## "v" " {on=1; next} /^## / {on=0} on' CHANGELOG.md > notes.md
-            printf '\n`pip install -U verfy` or `verfy update`\n' >> notes.md
-            gh release create "$TAG" --title "Verfy CLI $v" --notes-file notes.md --verify-tag
-          fi
-          ls -l dist
-          gh release upload "$TAG" dist/* --clobber
+        run: bash .github/scripts/github-release.sh "$TAG" dist

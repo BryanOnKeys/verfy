@@ -91,7 +91,8 @@ class Statements(unittest.TestCase):
         code, text, _ = run_cli(self.home, "scitt", "verify", *files, "--pub", key)
         self.assertEqual(code, 0, text)
         self.assertEqual(text.count("VERIFIED"), 2)
-        Path(files[0]).write_bytes(Path(files[0]).read_bytes()[:-1] + b"\x00")
+        data = Path(files[0]).read_bytes()
+        Path(files[0]).write_bytes(data[:-1] + bytes([data[-1] ^ 1]))  # always a different byte
         self.assertEqual(run_cli(self.home, "scitt", "verify", *files, "--pub", key)[0], 1)
 
 

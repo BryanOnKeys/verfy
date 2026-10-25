@@ -23,6 +23,21 @@ Verfy checks every tool call a coding agent makes against your policy before it 
 | **Verfy Scan** | Finds MCP servers in Claude Code, Cursor and Claude Desktop configs; flags tool poisoning, hidden instructions, shadowing, invisible Unicode, unpinned packages, plain-http servers and secrets in configs. |
 | **Verfy Team** | Next.js + Supabase web platform: orgs and roles, devices, server-verified receipts, policy simulator and versions, lock approvals, audit log, exports, public Verfy Advisories. |
 
+## Verfy and scanners
+
+Scanners judge a tool when you scan it. Verfy is built for what happens after: the tool changes, the agent calls it, and someone later asks what ran. Use both. From each project's own documentation, checked 2026-10-24 ([full table and sources](https://verfy-tech.vercel.app/compare)):
+
+| | [Snyk Agent Scan](https://github.com/snyk/agent-scan) (formerly Invariant mcp-scan) | [Cisco MCP Scanner](https://github.com/cisco-ai-defense/mcp-scanner) | [mcp-context-protector](https://github.com/trailofbits/mcp-context-protector) (Trail of Bits) | Verfy |
+| --- | --- | --- | --- | --- |
+| How tools are judged | Local checks + Snyk API | YARA locally; optional LLM / AI Defense API | Pinning; optional guardrail model | Deterministic local rules |
+| Account needed | Snyk account | No (YARA) | No | No |
+| Notices a tool changed after approval | Not described | Not described | Yes (trust-on-first-use pinning) | Yes (`verfy.lock`) |
+| Fails the pull request when a tool changed | Not described | Not described | Not described | Yes (GitHub Action) |
+| Checks calls as they happen | Agent Guard hooks, answers from the Snyk API | No | Blocks unapproved servers; response guardrails | Claude Code hook (all tools) + MCP gateway |
+| Signed record of each call | Not described | No | Not described | Ed25519, hash-chained, SCITT export |
+
+They also do things Verfy does not: Snyk scans agent skills, Cisco reads server source code and scans packages and binaries, and context-protector can run a guardrail model over tool responses.
+
 ## Quick start: the CLI
 
 ```bash

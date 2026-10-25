@@ -6,6 +6,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -38,6 +39,11 @@ def offline(*_a, **_k):
 
 
 class VersionTests(unittest.TestCase):
+    def test_package_version_matches_module(self):
+        # pyproject.toml decides what PyPI gets; __version__ is what `verfy --version` prints
+        text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        self.assertRegex(text, rf'(?m)^version = "{re.escape(__version__)}"$')
+
     def test_newer(self):
         self.assertTrue(update.newer("0.3.0", "0.2.0"))
         self.assertTrue(update.newer("0.10.0", "0.9.9"))

@@ -1,6 +1,6 @@
 name: Publish CLI to PyPI
 
-# Push a tag cli-vX.Y.Z (matching verfy-cli/src/verfy/__init__.py and the top of CHANGELOG.md) to release.
+# Push a tag cli-vX.Y.Z (matching verfy-cli/pyproject.toml, verfy-cli/src/verfy/__init__.py and the top of CHANGELOG.md) to release.
 # One run does all of it: tests, build, PyPI (Trusted Publishing with attestations, no API token stored
 # anywhere), then the GitHub release with the same files, SHA256SUMS and a Sigstore signature for each.
 # The standalone builds in verfy-releases follow within six hours (that repository polls PyPI).
@@ -30,6 +30,7 @@ jobs:
         run: |
           v=$(python -c "import re,pathlib; print(re.search(r'__version__ = \"(.+?)\"', pathlib.Path('verfy-cli/src/verfy/__init__.py').read_text()).group(1))")
           test "cli-v$v" = "$GITHUB_REF_NAME" || { echo "::error::tag $GITHUB_REF_NAME does not match version $v"; exit 1; }
+          grep -q "^version = \"$v\"$" verfy-cli/pyproject.toml || { echo "::error::verfy-cli/pyproject.toml is not at version $v"; exit 1; }
           grep -q "^## $v " CHANGELOG.md || { echo "::error::CHANGELOG.md has no section for $v"; exit 1; }
       - name: Tests
         working-directory: verfy-cli

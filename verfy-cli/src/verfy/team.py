@@ -1,4 +1,4 @@
-"""Verfy Team client: enroll this device, upload receipts, propose lock updates
+"""Verfy Cloud client: enroll this device, upload receipts, propose lock updates
 and pull the team policy and approved locks.
 
 Nothing here runs inside the hook. The gateway calls the team service only

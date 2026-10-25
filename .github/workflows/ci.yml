@@ -24,6 +24,8 @@ jobs:
           node-version: 24
       - name: JavaScript engine passes the shared fixtures
         run: node verfy-cli/tests/test_engine.mjs
+      - name: Advisories are valid OSV with a public source
+        run: node advisories/validate.mjs
       - name: No old product names
         run: node scripts/check-brand.mjs
       - name: No secrets in the repository

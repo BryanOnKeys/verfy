@@ -32,11 +32,11 @@ Verfy reduces risk; it does not remove it. These are the limits we know about. N
 
 - A receipt proves the decision Verfy made, the hashes of arguments and results, and that the record was not changed afterwards. It does not prove what a tool did internally.
 - A device key proves which device signed, not that the device was uncompromised.
-- Whoever holds a device's private key can build a new chain from scratch and sign it, and `verfy verify` will accept that chain on its own: the check catches edits, deletions and reordering inside a chain, not a complete replacement. Receipts already synced to Verfy Team cannot be replaced this way, because the server keeps the hash of every stored receipt and refuses different content for the same position (`chain_conflict`). A ledger that was never synced has no outside copy to compare with.
-- Deleting an entire local ledger together with its key is not detectable locally; it is detectable when the device had already synced to Verfy Team.
+- Whoever holds a device's private key can build a new chain from scratch and sign it, and `verfy verify` will accept that chain on its own: the check catches edits, deletions and reordering inside a chain, not a complete replacement. Receipts already synced to Verfy Cloud cannot be replaced this way, because the server keeps the hash of every stored receipt and refuses different content for the same position (`chain_conflict`). A ledger that was never synced has no outside copy to compare with.
+- Deleting an entire local ledger together with its key is not detectable locally; it is detectable when the device had already synced to Verfy Cloud.
 - There is no external timestamping or transparency-log anchoring yet, so receipts show order, not trusted wall-clock time. `verfy scitt export` produces SCITT signed statements that a transparency service could register, but Verfy does not register them anywhere.
 
-## Verfy Team (the hosted service)
+## Verfy Cloud (the hosted service)
 
 - Row-level security and server checks are tested on every build against the real migrations, but not yet reviewed by an independent penetration test.
 - A database superuser (Supabase project owner) can technically alter data by disabling triggers. The audit log is hash-chained so silent edits are detectable when compared with an earlier copy or export, but it is not externally anchored.

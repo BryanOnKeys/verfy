@@ -15,7 +15,7 @@
 
 **The Verfy CLI is MIT and always will be. Verfy Cloud is a paid hosted service** (in beta, not on sale yet). This repository is the CLI; the hosted service is developed separately.
 
-Verfy checks every tool call a coding agent makes against your policy before it runs, locks the MCP tool definitions the agent may use, and writes an Ed25519-signed, hash-chained receipt for every call it checks. Verfy Team gives an organization one policy, tool-change approvals, device management, an audit log and evidence exports that anyone can verify offline.
+Verfy checks every tool call a coding agent makes against your policy before it runs, locks the MCP tool definitions the agent may use, and writes an Ed25519-signed, hash-chained receipt for every call it checks. Verfy Cloud, the hosted service, gives an organization one policy, tool-change approvals, device management, an audit log and evidence exports that anyone can verify offline.
 
 | Part | What it does |
 | --- | --- |
@@ -23,7 +23,7 @@ Verfy checks every tool call a coding agent makes against your policy before it 
 | **Verfy Receipts** | `verfy.receipt/1`: signed, chained, hash-only by default; `verfy verify` detects edits, deletions and reordering; `verfy scitt export` writes SCITT signed statements (COSE_Sign1). |
 | **Verfy Guard** | Deterministic `allow` / `ask` / `deny` for shell commands, file paths, URLs, SQL, payments and leaked secrets, through a Claude Code `PreToolUse` hook or an MCP gateway. Errors never become allow. |
 | **Verfy Scan** | Finds MCP servers in Claude Code, Cursor and Claude Desktop configs; flags tool poisoning, hidden instructions, shadowing, invisible Unicode, unpinned packages, plain-http servers and secrets in configs. |
-| **Verfy Team** | Hosted by Verfy (Verfy Cloud): one team policy, device enrollment, server-verified receipts, lock and call approvals, Slack and Telegram alerts, audit log, evidence exports. Devices connect with `verfy team enroll`. |
+| **Verfy Cloud** | Hosted by Verfy: one team policy, device enrollment, server-verified receipts, lock and call approvals, Slack and Telegram alerts, audit log, evidence exports. Devices connect with `verfy team enroll`. |
 
 ## Verfy and scanners
 
@@ -63,6 +63,7 @@ More: [`verfy-cli/README.md`](verfy-cli/README.md) and the docs at https://verfy
 verfy-cli/           the Python CLI (guard, scan, lock, receipts, hook, gateway, team client) and its tests
 verfy-cli/js/        the JavaScript twin of the rule engine, checked against the same fixtures
 action.yml           the GitHub Action that runs `verfy lock check` in CI
+advisories/          Verfy Advisories: public, sourced vulnerabilities in MCP servers and agent tools (OSV), added by pull request
 install/             the one-line installers served at verfy-tech.vercel.app/install.sh and /install.ps1
 research/            how often MCP tool definitions change between releases (method, code, workflow)
 docs/                limitations, research write-ups, assets
@@ -87,4 +88,4 @@ Verfy is not a sandbox: its rules are deterministic pattern matching, and it onl
 
 ## License
 
-The code in this repository is MIT licensed (see [`LICENSE`](LICENSE)), and the CLI will stay MIT. Earlier versions of this repository also contained the Verfy Team web platform; those versions remain available under MIT in the history. New work on the hosted service is not open source.
+The code in this repository is MIT licensed (see [`LICENSE`](LICENSE)), and the CLI will stay MIT. Earlier versions of this repository also contained the web platform that is now Verfy Cloud; those versions remain available under MIT in the history. New work on the hosted service is not open source.

@@ -16,6 +16,10 @@ Known limits that are not bypasses are listed in [`docs/SECURITY_LIMITATIONS.md`
 
 Open an issue. For a false positive (Verfy blocks something harmless), include the command and the rule ID it printed.
 
+## Adding an advisory
+
+A public vulnerability in an MCP server or agent tool goes into [`advisories/`](advisories/) as one OSV file, by pull request. [`advisories/README.md`](advisories/README.md) lists the fields; `node advisories/validate.mjs` checks them.
+
 ## Before your first pull request
 
 Read the [Contributor License Agreement](CLA.md). When you open a pull request, the CLA bot asks you to sign it by commenting once: **I have read the CLA Document and I hereby sign the CLA**. You keep the copyright in your work; the CLA gives the project the license it needs to ship it, in the MIT CLI and in the hosted service.

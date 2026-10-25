@@ -38,7 +38,7 @@ verfy wrap ~/.cursor/mcp.json --write      # wrap every server in a config (back
 
 The gateway scans each `tools/list` answer, hides poisoned or drifted tools, checks every `tools/call`, can ask the user through MCP elicitation (`"on_ask": "elicit"`), and writes a receipt for every call. Secrets in tool results and resources (API keys, tokens, private keys in the formats the scanner knows) are replaced with `[REDACTED:<rule>]` before the agent reads them; the receipt keeps the hash of the original result. Set `"redact_output": false` to turn this off.
 
-With `"on_ask": "team"` (device enrolled in Verfy Team), a call that needs approval waits in Dashboard → Approvals until an owner or admin decides, for at most `"approval_timeout"` seconds (default 120, 10 to 900). The request carries the tool, the rules that asked and the SHA-256 of the arguments, never the arguments. A rejection, no answer in time or an unreachable server refuses the call; the receipt records `approved_by: "team:<name>"` when it runs. The Claude Code hook never waits on the network, so this works through the gateway only.
+With `"on_ask": "team"` (device enrolled in Verfy Cloud), a call that needs approval waits in Dashboard → Approvals until an owner or admin decides, for at most `"approval_timeout"` seconds (default 120, 10 to 900). The request carries the tool, the rules that asked and the SHA-256 of the arguments, never the arguments. A rejection, no answer in time or an unreachable server refuses the call; the receipt records `approved_by: "team:<name>"` when it runs. The Claude Code hook never waits on the network, so this works through the gateway only.
 
 ## Scan
 
@@ -90,10 +90,10 @@ verfy verify                                         # your own ledger
 verfy verify --ledger receipts.jsonl --pub <key> --kid <chain> [--start-after <hash>]   # an evidence export
 ```
 
-## Verfy Team
+## Verfy Cloud
 
 ```bash
-verfy team enroll --url https://verfy.example.com --code atle_…   # code from Dashboard → Devices
+verfy team enroll --url https://verfy-tech.vercel.app --code atle_…   # code from Dashboard → Devices
 verfy sync                     # upload new receipts (run from cron/CI, never in the hook)
 verfy team pull                # team policy + team-approved locks
 verfy team propose SERVER TOOL # ask admins to approve a changed tool

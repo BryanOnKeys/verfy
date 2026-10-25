@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.6.0",
+  "id": "ATLS-2025-0002",
+  "aliases": ["CVE-2025-49596"],
+  "summary": "MCP Inspector: unauthenticated proxy endpoints allow remote code execution",
+  "details": "The proxy server of @modelcontextprotocol/inspector before 0.14.1 exposed endpoints without authentication or origin checks. A web page visited by the developer could reach the local proxy (for example through DNS rebinding) and make it launch commands over stdio. Version 0.14.1 added session-token authentication and origin validation. Upgrade to 0.14.1 or later and do not expose the inspector proxy to untrusted networks.",
+  "severity_label": "critical",
+  "affected": [
+    {
+      "package": { "ecosystem": "npm", "name": "@modelcontextprotocol/inspector" },
+      "ranges": [{ "type": "SEMVER", "events": [{ "introduced": "0" }, { "fixed": "0.14.1" }] }]
+    }
+  ],
+  "references": [
+    { "type": "ADVISORY", "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-49596" },
+    { "type": "ADVISORY", "url": "https://advisories.gitlab.com/pkg/npm/@modelcontextprotocol/inspector/CVE-2025-49596/" }
+  ],
+  "published": "2026-10-11T00:00:00Z",
+  "modified": "2026-10-11T00:00:00Z",
+  "database_specific": { "atls_review": "unreviewed", "source": "Public CVE record; not independently reproduced by Atls." }
+}

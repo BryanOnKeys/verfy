@@ -6,7 +6,7 @@ What changed in the Verfy CLI (`pip install verfy`) and the website. Newest firs
 
 - One tag now does the whole release in one workflow: tests, PyPI with attestations, then the GitHub release from this changelog with the same files, SHA256SUMS and Sigstore signatures. Only the newest version is marked "Latest".
 - PyPI page links: Repository, Changelog and Releases.
-- Verfy Team (website): Slack and Telegram notifications for calls that wait for approval, changed tool definitions, denied calls and devices that stop uploading receipts for a day (Dashboard → Notifications).
+- Verfy Cloud (website): Slack and Telegram notifications for calls that wait for approval, changed tool definitions, denied calls and devices that stop uploading receipts for a day (Dashboard → Notifications).
 
 ## 0.5.2 (2026-10-24)
 

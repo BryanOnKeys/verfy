@@ -8,6 +8,7 @@ What changed in the Verfy CLI (`pip install verfy`) and the website. Newest firs
 - This repository is now the MIT CLI only; the website and the dashboard are developed separately as Verfy Cloud. The CLI is MIT and will stay MIT.
 - Verfy Advisories are open data in [`advisories/`](https://github.com/anvarbekovjavohir277-dot/verfy/tree/main/advisories): anyone can add a public, sourced advisory by pull request, checked by `node advisories/validate.mjs`.
 - Contributors sign the [CLA](https://github.com/anvarbekovjavohir277-dot/verfy/blob/main/CLA.md) once, by commenting on their first pull request.
+- There is no 0.5.4: that tag was never published, because the package metadata still said 0.5.3 and PyPI refused it. A test and the release workflow now check that both version numbers match.
 
 ## 0.5.3 (2026-10-24)
 

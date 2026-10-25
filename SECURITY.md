@@ -31,9 +31,11 @@ People who reported a valid bypass or vulnerability, with their permission:
 
 ## Scope
 
-In scope: this repository's code — the `verfy` CLI, the Next.js app and API, the Supabase migrations and RLS policies, CI configuration.
+In scope:
+- this repository: the `verfy` CLI, its JavaScript engine, the GitHub Action, the installers and CI configuration;
+- the hosted service at https://verfy-tech.vercel.app (Verfy Cloud: the website, the Team dashboard and the API devices use). Its code is not public; report issues the same way.
 
-Out of scope: vulnerabilities in Supabase, Vercel or GitHub themselves (report to them), social engineering, denial-of-service testing against deployments you do not own, findings that require a fully compromised developer machine.
+Out of scope: vulnerabilities in Supabase, Vercel or GitHub themselves (report to them), social engineering, denial-of-service testing, findings that require a fully compromised developer machine, and testing that touches other people's data or organizations.
 
 ## Safe harbor
 
@@ -43,4 +45,4 @@ We will not pursue legal action against good-faith research that stays within th
 
 Only the latest release on `main` receives security fixes during the MVP phase.
 
-See also: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) and [`docs/SECURITY_LIMITATIONS.md`](docs/SECURITY_LIMITATIONS.md).
+See also: [`docs/SECURITY_LIMITATIONS.md`](docs/SECURITY_LIMITATIONS.md).

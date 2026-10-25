@@ -28,8 +28,6 @@ const ALLOW = [
   /^verfy-cli[\\/]tests[\\/]/,
   /^verfy-cli[\\/]examples[\\/]/,
   /^verfy-cli[\\/]src[\\/]verfy[\\/]data[\\/]patterns\.json$/,
-  /^src[\\/].*\.test\.ts$/,
-  /^supabase[\\/]tests[\\/]/,
   /^scripts[\\/]check-secrets\.mjs$/,
 ];
 

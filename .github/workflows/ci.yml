@@ -13,35 +13,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  web:
-    name: Web app, database and shared engine
+  repo:
+    name: Repository checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Unit, API helper and database (RLS) tests
-        run: npm test
-      - name: Shared engine fixtures (JS)
-        run: npm run test:engine
-      - name: Advisories are valid and the migration is up to date
-        run: node scripts/advisories.mjs
+      - name: JavaScript engine passes the shared fixtures
+        run: node verfy-cli/tests/test_engine.mjs
       - name: No old product names
-        run: npm run check:brand
-      - name: Production build
-        run: npm run build
-        env:
-          NEXT_TELEMETRY_DISABLED: "1"
-      - name: No secrets in the repository or the browser bundle
-        run: npm run check:secrets
+        run: node scripts/check-brand.mjs
+      - name: No secrets in the repository
+        run: node scripts/check-secrets.mjs
 
   cli:
     name: Verfy CLI (Python ${{ matrix.python }})

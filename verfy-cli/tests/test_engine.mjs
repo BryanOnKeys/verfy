@@ -1,9 +1,9 @@
-// Runs the shared fixtures through the TypeScript/browser engine (src/core/engine/verfy-engine.mjs).
+// Runs the shared fixtures through the JavaScript twin of the engine (verfy-cli/js/verfy-engine.mjs).
 // Usage: node verfy-cli/tests/test_engine.mjs [--sign-out FILE] [--verify FILE PUBKEY]
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createEngine } from "../../src/core/engine/verfy-engine.mjs";
+import { createEngine } from "../js/verfy-engine.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(__dirname, "..", "src", "verfy", "data");

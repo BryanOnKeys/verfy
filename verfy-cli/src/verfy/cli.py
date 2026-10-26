@@ -1030,9 +1030,9 @@ def cmd_team_registry(args) -> int:
         print(f"No tools in {path} yet.")
         return 0
     if args.action == "report":
-        items = [{"server": r["server"][:200], "tool": r["tool"][:200], "pin": r["pin"]} for r in rows if r["which"] == "locked"]
-        stored = teamlib.registry_report(verfy_home(), items)
-        print(f"Reported {len(items)} pin(s) from {path} to Verfy Registry ({stored} new or refreshed). Only server names, tool names and SHA-256 pins were sent.")
+        pins = sorted({r["pin"] for r in rows if r["which"] == "locked"})
+        stored = teamlib.registry_report(verfy_home(), pins)
+        print(f"Reported {len(pins)} pin(s) from {path} to Verfy Registry ({stored} new or refreshed). Only SHA-256 pins were sent: no server names, tool names or definitions.")
         return 0
     found = teamlib.registry_lookup(verfy_home(), [r["pin"] for r in rows])
     for r in rows:
@@ -1324,7 +1324,7 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("tool")
     x.set_defaults(fn=cmd_team_propose)
     x = tm.add_parser("registry", help="Verfy Registry: has anyone else seen these tool definitions? (report | lookup)")
-    x.add_argument("action", choices=["report", "lookup"], help="report: send this team's pins (hashes only); lookup: how many teams saw each pin")
+    x.add_argument("action", choices=["report", "lookup"], help="report: send this team's pins (SHA-256 only, no names); lookup: how many teams saw each pin")
     x.add_argument("--lock", help="verfy.lock to read (default ./verfy.lock, else ~/.verfy/verfy.lock)")
     x.add_argument("--json", action="store_true")
     x.set_defaults(fn=cmd_team_registry)

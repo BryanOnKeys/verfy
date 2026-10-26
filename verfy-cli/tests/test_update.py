@@ -44,6 +44,18 @@ class VersionTests(unittest.TestCase):
         text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         self.assertRegex(text, rf'(?m)^version = "{re.escape(__version__)}"$')
 
+    def test_plugin_and_docs_carry_this_version(self):
+        # scripts/bump.py X.Y.Z sets all of them; the README pins of the GitHub Action follow every release
+        repo = ROOT.parent
+        plugin = repo / "plugins" / "verfy" / ".claude-plugin" / "plugin.json"
+        if not plugin.exists():
+            self.skipTest("not a checkout of the verfy repository")
+        self.assertEqual(json.loads(plugin.read_text(encoding="utf-8"))["version"], __version__)
+        pins = [v for doc in (ROOT / "README.md", repo / "README.md")
+                for v in re.findall(r"verfy@cli-v(\d+\.\d+\.\d+)", doc.read_text(encoding="utf-8"))]
+        self.assertTrue(pins)
+        self.assertEqual(set(pins), {__version__}, "run python scripts/bump.py " + __version__)
+
     def test_newer(self):
         self.assertTrue(update.newer("0.3.0", "0.2.0"))
         self.assertTrue(update.newer("0.10.0", "0.9.9"))

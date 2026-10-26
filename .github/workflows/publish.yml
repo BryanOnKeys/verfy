@@ -1,8 +1,10 @@
 name: Publish CLI to PyPI
 
 # Push a tag cli-vX.Y.Z (matching verfy-cli/pyproject.toml, verfy-cli/src/verfy/__init__.py and the top of CHANGELOG.md) to release.
-# One run does all of it: tests, build, PyPI (Trusted Publishing with attestations, no API token stored
-# anywhere), then the GitHub release with the same files, SHA256SUMS and a Sigstore signature for each.
+# One run does all of it: tests, build, the end-to-end test of the built wheel on Linux, macOS and Windows
+# (e2e.yml), PyPI (Trusted Publishing with attestations, no API token stored anywhere), then the GitHub
+# release with the same files, SHA256SUMS and a Sigstore signature for each.
+# `python scripts/bump.py X.Y.Z` sets the version in every file that carries it.
 # The standalone builds in verfy-releases follow within six hours (that repository polls PyPI).
 on:
   push:
@@ -52,9 +54,16 @@ jobs:
           name: dist
           path: dist/
 
+  e2e:
+    name: End-to-end on Linux, macOS and Windows
+    needs: build
+    uses: ./.github/workflows/e2e.yml
+    with:
+      dist: dist
+
   publish:
     name: Upload to PyPI
-    needs: build
+    needs: [build, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:

@@ -102,7 +102,7 @@ Commit `verfy.lock`; a pull request that changes a tool then fails until someone
 ```yaml
 - uses: actions/setup-python@v7
   with: { python-version: "3.13" }
-- uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.5
+- uses: anvarbekovjavohir277-dot/verfy@cli-v0.6.2
   with: { config: .mcp.json, lock: verfy.lock }
 ```
 
@@ -125,7 +125,7 @@ verfy team enroll --url https://verfy-tech.vercel.app --code atle_…   # code f
 verfy sync                     # upload new receipts (run from cron/CI, never in the hook)
 verfy team pull                # team policy + team-approved locks
 verfy team propose SERVER TOOL # ask admins to approve a changed tool
-verfy team registry report     # share this team's tool pins with Verfy Registry (server, tool, SHA-256 only)
+verfy team registry report     # share this team's tool pins with Verfy Registry (SHA-256 only, no names)
 verfy team registry lookup     # how many teams saw each pin in verfy.lock (and each changed one)
 verfy team status
 ```

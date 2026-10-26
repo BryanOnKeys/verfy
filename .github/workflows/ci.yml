@@ -69,6 +69,10 @@ jobs:
           verfy check "ls -la"
           verfy demo
 
+  e2e:
+    name: End-to-end
+    uses: ./.github/workflows/e2e.yml
+
   action:
     name: Verfy Lock GitHub Action
     runs-on: ubuntu-latest

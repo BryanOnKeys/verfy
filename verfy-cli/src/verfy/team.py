@@ -233,12 +233,13 @@ def _client(home: Path, transport: Transport | None = None) -> TeamClient:
     return TeamClient(team["url"], team["token"], transport=transport, retries=2)
 
 
-def registry_report(home: Path, items: list[dict], transport: Transport | None = None) -> int:
-    """Tell Verfy Registry which tool pins this team has (server name, tool name, SHA-256 pin; never definitions)."""
+def registry_report(home: Path, pins: list[str], transport: Transport | None = None) -> int:
+    """Tell Verfy Registry which tool pins this team has: SHA-256 pins only, never names or definitions."""
     client = _client(home, transport)
     stored = 0
-    for i in range(0, len(items), 500):
-        res = client.call("POST", "/api/v1/registry/report", {"items": items[i:i + 500]})
+    uniq = sorted(set(pins))
+    for i in range(0, len(uniq), 500):
+        res = client.call("POST", "/api/v1/registry/report", {"pins": uniq[i:i + 500]})
         stored += int((res or {}).get("stored", 0))
     return stored
 

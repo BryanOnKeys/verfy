@@ -1,0 +1,70 @@
+name: End-to-end
+
+# A user's first hour on clean Linux, macOS and Windows runners: the wheel goes into a new virtual environment,
+# then scripts/e2e.py runs verfy init, lock files, lock check (and a changed CLAUDE.md and a rug pull failing it),
+# Snyk and Cisco imports, the Claude Code hook, and the Claude Code plugin installed from this checkout.
+# CI runs it on every push and pull request; publish.yml runs it on the exact files before they go to PyPI.
+on:
+  workflow_call:
+    inputs:
+      dist:
+        description: Name of an artifact with the built wheel; empty builds it here
+        type: string
+        default: ""
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: End-to-end (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.13"]
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+    env:
+      DISABLE_AUTOUPDATER: "1"
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Claude Code, for the plugin step (no account needed to install plugins)
+        run: npm install --global @anthropic-ai/claude-code@2.1.310
+      - name: The wheel that is about to be published
+        if: inputs.dist != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ inputs.dist }}
+          path: dist/
+      - name: Build the wheel
+        if: inputs.dist == ''
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check --require-hashes -r .github/requirements/build.txt
+          python -m build --no-isolation --wheel verfy-cli --outdir dist
+      - name: Install it into a new virtual environment
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          bin="$RUNNER_TEMP/venv/bin"; [ -d "$bin" ] || bin="$RUNNER_TEMP/venv/Scripts"
+          "$bin/python" -m pip install --disable-pip-version-check --no-deps dist/verfy-*.whl
+          echo "$bin" >> "$GITHUB_PATH"
+      - name: End-to-end
+        shell: bash
+        run: |
+          command -v python verfy claude
+          python scripts/e2e.py --plugin

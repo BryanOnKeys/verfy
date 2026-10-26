@@ -102,7 +102,7 @@ Commit `verfy.lock`; a pull request that changes a tool then fails until someone
 ```yaml
 - uses: actions/setup-python@v7
   with: { python-version: "3.13" }
-- uses: anvarbekovjavohir277-dot/verfy@cli-v0.6.2
+- uses: anvarbekovjavohir277-dot/verfy@cli-v0.6.3
   with: { config: .mcp.json, lock: verfy.lock }
 ```
 

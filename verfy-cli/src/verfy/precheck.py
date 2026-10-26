@@ -394,6 +394,7 @@ class _Ctx:
         if self.win:
             self.home = self.home.lower()
         self.ws = self.path(policy["workspace"], "/")
+        self.vdir = self.path("~/.verfy")
 
     def path(self, p: str, cwd: str | None = None) -> str:
         out = resolve(p, self.home, cwd or self.ws)
@@ -423,6 +424,14 @@ class _Ctx:
                 return verdict, hit
         return None
 
+    def verfy_secret(self, path: str) -> bool:
+        """``path`` is Verfy's folder in the home folder, or the signing key or device token in it."""
+        return path == self.vdir or any(path == self.vdir + "/" + f for f in SECRET["files"])
+
+    def holds_verfy(self, path: str) -> bool:
+        """``path`` is a folder Verfy's folder is inside (the home folder, ``/``, ...)."""
+        return path != self.vdir and is_within(self.vdir, path)
+
     def allowed_outside(self, path: str) -> bool:
         return self.match(self.p["files"]["allow_write"], path) is not None
 
@@ -430,6 +439,40 @@ class _Ctx:
         if self.win and (re.match(r"^/[a-z]$", path) or path in WINDOWS_DIRS):
             return True
         return path in ("/", self.home, self.ws) or path in SYSTEM_DIRS or is_within(self.ws, path)
+
+
+SECRET = PATTERNS["self_protect"]["secret"]
+SECRET_MSG = " With them an agent can sign its own receipts or upload as this device. Run it yourself if you meant it."
+
+
+def _home_vars(p: str) -> str:
+    """``$HOME/x``, ``%USERPROFILE%\\x`` and the like as ``~/x``, so they resolve like ``~``."""
+    return re.sub(r"^(?:\$HOME|\$\{HOME\}|%USERPROFILE%|\$env:USERPROFILE|\$env:HOME)(?=$|[\\/])", "~", p, flags=re.I)
+
+
+def _resolvable(p: str, here: str | None) -> bool:
+    return "$" not in p and "`" not in p and (here is not None or p.startswith(("/", "~")))
+
+
+def _verfy_secret(s: dict, ctx: "_Ctx", here: str | None) -> dict | None:
+    """A finding when one command reads, copies or looks for Verfy's signing key or device token."""
+    parts = [x for t in [s["name"], *s["args"], *s["inp"], *s["out"]] for x in (t, *t.split("=")[1:]) if x]
+    for p in parts:
+        h = _home_vars(p)
+        if rx(SECRET["token"], "i").search(p) or (_resolvable(h, here) and ctx.verfy_secret(ctx.path(h, here))):
+            return _f("VFY-SELF-006", "deny", f"Reads Verfy's signing key or device token ({p})." + SECRET_MSG)
+    n = s["name"].lower().removesuffix(".exe")
+    if n in SECRET["finders"] and any(rx(SECRET["name"], "i").search(p) for p in parts[1:]):
+        return _f("VFY-SELF-007", "ask", "Looks for a file named like Verfy's signing key or device token.")
+    if n in SECRET["readers"]:
+        ops = operands(s["args"])
+        if n in ("cp", "rsync", "scp", "robocopy", "xcopy", "copy-item", "cpi") and len(ops) >= 2:
+            ops = ops[:-1]  # the last one is where the copy goes
+        for p in ops:
+            h = _home_vars(p)
+            if _resolvable(h, here) and ctx.holds_verfy(ctx.path(h, here)):
+                return _f("VFY-SELF-007", "ask", f"Reads or copies {p}, which holds Verfy's signing key and device token.")
+    return None
 
 
 def _self_finding(hit: tuple[str, str], p: str) -> dict:
@@ -586,6 +629,9 @@ def check_shell(cmd: str, ctx: _Ctx) -> tuple[list[dict], bool]:
 
     for s in segs:
         n, a = s["name"], s["args"]
+        secret = _verfy_secret(s, ctx, cwd if s["depth"] == 0 else ctx.ws)
+        if secret:
+            out.append(secret)
         if s["depth"] == 0 and n == "cd":
             ops = operands(a)
             if not ops:
@@ -663,6 +709,11 @@ def check_shell(cmd: str, ctx: _Ctx) -> tuple[list[dict], bool]:
                 if re.search(SECRET_ENV, x):
                     out.append(_f("VFY-SH-008", "deny", "Sends a secret environment variable over the network."))
                     break
+
+    if not any(f["rule"] == "VFY-SELF-006" for f in out):
+        flat = " ".join(" ".join([s["name"], *s["args"], *s["inp"], *s["out"]]) for s in segs)
+        if rx(SECRET["text"], "i").search(cmd) or rx(SECRET["text"], "i").search(flat):
+            out.append(_f("VFY-SELF-006", "deny", "Names Verfy's folder and its signing key or device token in one command." + SECRET_MSG))
 
     for p in dict.fromkeys(sensitive_reads):
         if network:
@@ -802,6 +853,8 @@ def check(action: dict, policy: dict | None = None, context: dict | None = None)
     network = kind in ("network", "message")
 
     if not trusted:
+        if "glob" in words(tool) and isinstance(args.get("pattern"), str) and rx(SECRET["token"], "i").search(args["pattern"]):
+            out.append(_f("VFY-SELF-006", "deny", f"Lists Verfy's signing key or device token ({args['pattern']})." + SECRET_MSG))
         if kind == "shell":
             cmd = next(_command_string(args[k]) for k in args if str(k).lower() in PATTERNS["command_keys"] and _command_string(args[k]) is not None)
             fs, network = check_shell(cmd, ctx)
@@ -815,6 +868,11 @@ def check(action: dict, policy: dict | None = None, context: dict | None = None)
             for key, p in _paths(args):
                 abs_ = ctx.path(p)
                 reading = kind == "file_read" or (kind == "file_write" and key in ("source", "src", "source_path", "from") and "move" not in words(tool))
+                if rx(SECRET["token"], "i").search(p) or ctx.verfy_secret(ctx.path(_home_vars(p))):
+                    out.append(_f("VFY-SELF-006", "deny", f"Reads or changes Verfy's signing key or device token ({p})." + SECRET_MSG))
+                    continue
+                if reading and {"grep", "search"} & set(words(tool)) and ctx.holds_verfy(ctx.path(_home_vars(p))):
+                    out.append(_f("VFY-SELF-007", "ask", f"Searches {p}, which holds Verfy's signing key and device token."))
                 if reading:
                     hit = ctx.sensitive(abs_)
                     if hit:

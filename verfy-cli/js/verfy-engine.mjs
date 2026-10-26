@@ -604,6 +604,7 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     this.win = /^\/[a-z](?:\/|$)/.test(this.home);
     if (this.win) this.home = this.home.toLowerCase();
     this.ws = this.path(policy.workspace, "/");
+    this.vdir = this.path("~/.verfy");
   }
   Ctx.prototype.path = function (p, cwd) {
     var out = resolve(p, this.home, cwd || this.ws);
@@ -630,11 +631,49 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     }
     return null;
   };
+  // Verfy's folder in the home folder, or the signing key or device token in it
+  Ctx.prototype.verfySecret = function (path) {
+    var vdir = this.vdir;
+    return path === vdir || PATTERNS.self_protect.secret.files.some(function (f) { return path === vdir + "/" + f; });
+  };
+  // a folder Verfy's folder is inside (the home folder, "/", ...)
+  Ctx.prototype.holdsVerfy = function (path) { return path !== this.vdir && isWithin(this.vdir, path); };
   Ctx.prototype.allowedOutside = function (path) { return this.match(this.p.files.allow_write, path) !== null; };
   Ctx.prototype.catastrophic = function (path) {
     if (this.win && (/^\/[a-z]$/.test(path) || has(WINDOWS_DIRS, path))) return true;
     return path === "/" || path === this.home || path === this.ws || has(SYSTEM_DIRS, path) || isWithin(this.ws, path);
   };
+
+  var SECRET_MSG = " With them an agent can sign its own receipts or upload as this device. Run it yourself if you meant it.";
+  // $HOME/x, %USERPROFILE%\x and the like as ~/x, so they resolve like ~
+  function homeVars(p) { return p.replace(/^(?:\$HOME|\$\{HOME\}|%USERPROFILE%|\$env:USERPROFILE|\$env:HOME)(?=$|[\\/])/i, "~"); }
+  function resolvable(p, here) { return p.indexOf("$") < 0 && p.indexOf("`") < 0 && (here !== null || p.charAt(0) === "/" || p.charAt(0) === "~"); }
+  // a finding when one command reads, copies or looks for Verfy's signing key or device token
+  function verfySecret(s, ctx, here) {
+    var sec = PATTERNS.self_protect.secret, parts = [], i, p, h;
+    [s.name].concat(s.args, s.inp, s.out).forEach(function (t) {
+      [t].concat(t.split("=").slice(1)).forEach(function (x) { if (x) parts.push(x); });
+    });
+    for (i = 0; i < parts.length; i++) {
+      p = parts[i]; h = homeVars(p);
+      if (rx(sec.token, "i").test(p) || (resolvable(h, here) && ctx.verfySecret(ctx.path(h, here)))) {
+        return F("VFY-SELF-006", "deny", "Reads Verfy's signing key or device token (" + p + ")." + SECRET_MSG);
+      }
+    }
+    var n = s.name.toLowerCase().replace(/\.exe$/, "");
+    if (has(sec.finders, n) && parts.slice(1).some(function (x) { return rx(sec.name, "i").test(x); })) {
+      return F("VFY-SELF-007", "ask", "Looks for a file named like Verfy's signing key or device token.");
+    }
+    if (has(sec.readers, n)) {
+      var ops = operands(s.args);
+      if (has(["cp", "rsync", "scp", "robocopy", "xcopy", "copy-item", "cpi"], n) && ops.length >= 2) ops = ops.slice(0, -1); // the last one is where the copy goes
+      for (i = 0; i < ops.length; i++) {
+        h = homeVars(ops[i]);
+        if (resolvable(h, here) && ctx.holdsVerfy(ctx.path(h, here))) return F("VFY-SELF-007", "ask", "Reads or copies " + ops[i] + ", which holds Verfy's signing key and device token.");
+      }
+    }
+    return null;
+  }
 
   function selfFinding(hit, p) {
     if (hit[0] === "deny") return F("VFY-SELF-001", "deny", "Changes " + p + ", which Verfy relies on to guard this agent (`" + hit[1] + "`). Make this change yourself if you meant it.");
@@ -745,6 +784,8 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     var sensitiveReads = [], envDumped = false;
     segs.forEach(function (s) {
       var n = s.name, a = s.args, ops, p, abs, hit;
+      var secret = verfySecret(s, ctx, s.depth === 0 ? cwd : ctx.ws);
+      if (secret) out.push(secret);
       if (s.depth === 0 && n === "cd") {
         ops = operands(a);
         if (!ops.length) cwd = ctx.home;
@@ -804,6 +845,12 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
         }
       }
     });
+    if (!out.some(function (f) { return f.rule === "VFY-SELF-006"; })) {
+      var flat = segs.map(function (s) { return [s.name].concat(s.args, s.inp, s.out).join(" "); }).join(" ");
+      if (rx(PATTERNS.self_protect.secret.text, "i").test(cmd) || rx(PATTERNS.self_protect.secret.text, "i").test(flat)) {
+        out.push(F("VFY-SELF-006", "deny", "Names Verfy's folder and its signing key or device token in one command." + SECRET_MSG));
+      }
+    }
     sensitiveReads.filter(function (x, i) { return sensitiveReads.indexOf(x) === i; }).forEach(function (p) {
       if (network) out.push(F("VFY-SH-008", "deny", "Reads the sensitive file " + p + " in a command that also uses the network."));
       else out.push(F("VFY-SH-007", "ask", "Reads the sensitive file " + p + "."));
@@ -943,6 +990,9 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
     var network = kind === "network" || kind === "message";
     if (!trusted) {
       var argKeys = Object.keys(args);
+      if (has(words(tool), "glob") && typeof args.pattern === "string" && rx(PATTERNS.self_protect.secret.token, "i").test(args.pattern)) {
+        out.push(F("VFY-SELF-006", "deny", "Lists Verfy's signing key or device token (" + args.pattern + ")." + SECRET_MSG));
+      }
       if (kind === "shell") {
         var ck = argKeys.filter(function (k) { return has(PATTERNS.command_keys, k.toLowerCase()) && commandString(args[k]) !== null; })[0];
         var res = checkShell(commandString(args[ck]), ctx);
@@ -954,6 +1004,13 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
         pathsOf(args).forEach(function (kp) {
           var key = kp[0], p = kp[1], abs = ctx.path(p), h;
           var reading = kind === "file_read" || (kind === "file_write" && has(["source", "src", "source_path", "from"], key) && !has(words(tool), "move"));
+          if (rx(PATTERNS.self_protect.secret.token, "i").test(p) || ctx.verfySecret(ctx.path(homeVars(p)))) {
+            out.push(F("VFY-SELF-006", "deny", "Reads or changes Verfy's signing key or device token (" + p + ")." + SECRET_MSG));
+            return;
+          }
+          if (reading && (has(words(tool), "grep") || has(words(tool), "search")) && ctx.holdsVerfy(ctx.path(homeVars(p)))) {
+            out.push(F("VFY-SELF-007", "ask", "Searches " + p + ", which holds Verfy's signing key and device token."));
+          }
           if (reading) {
             h = ctx.sensitive(abs);
             if (h) out.push(F("VFY-FS-003", "ask", "Reads the sensitive file " + p + " (`" + h + "`)."));

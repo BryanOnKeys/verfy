@@ -66,9 +66,9 @@ def check(cond: bool, msg: str, res: subprocess.CompletedProcess | None = None) 
     passed += 1
 
 
-def hook_payload(project: Path, command: str) -> str:
+def hook_payload(project: Path, command: str, tool: str = "Bash", tool_input: dict | None = None) -> str:
     return json.dumps({"session_id": "e2e", "transcript_path": str(project / "t.jsonl"), "cwd": str(project),
-                       "hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}})
+                       "hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": tool_input or {"command": command}})
 
 
 def decision(res: subprocess.CompletedProcess) -> str:
@@ -144,14 +144,19 @@ def main() -> int:
     saved = list((vhome / "imported").glob("*.json"))
     check(len(saved) == 1 and "read_file" in saved[0].read_text("utf-8"), "verfy import --save did not save the Cisco findings")
 
-    # 7. the Claude Code hook: risky calls are denied, an agent cannot unlock its own files, receipts verify
+    # 7. the Claude Code hook: risky calls are denied, an agent cannot unlock its own files or read the signing key,
+    #    receipts verify
     hook = ["verfy", "hook", "pre-tool-use"]
     check(decision(run(hook, 0, stdin=hook_payload(project, "rm -rf ~"), **kw)) == "deny", "the hook did not deny rm -rf ~")
     check(decision(run(hook, 0, stdin=hook_payload(project, "verfy lock files --update --yes"), **kw)) == "deny",
           "the hook let the agent update the files lock")
+    check(decision(run(hook, 0, stdin=hook_payload(project, "cat ~/.verfy/key.json"), **kw)) == "deny",
+          "the hook let the agent read the signing key with cat")
+    check(decision(run(hook, 0, stdin=hook_payload(project, "", "Read", {"file_path": str(vhome / "key.json")}), **kw)) == "deny",
+          "the hook let the agent read the signing key with the Read tool")
     check(decision(run(hook, 0, stdin=hook_payload(project, "npm test"), **kw)) != "deny", "the hook denied npm test")
     res = run(["verfy", "verify", "--json"], 0, **kw)
-    check(json.loads(res.stdout)["count"] == 3, "verfy verify did not find exactly the 3 hook receipts", res)
+    check(json.loads(res.stdout)["count"] == 5, "verfy verify did not find exactly the 5 hook receipts", res)
 
     # 8. the Claude Code plugin from this checkout, in a throwaway Claude config folder
     if args.plugin:

@@ -764,6 +764,51 @@
    "**/.vscode/mcp.json",
    "**/claude_desktop_config.json",
    "~/.codeium/windsurf/mcp_config.json"
-  ]
+  ],
+  "secret": {
+   "_comment": "Verfy's signing key and device token (in ~/.verfy). An agent that reads them can sign its own receipts or upload as this device.",
+   "files": [
+    "key.json",
+    "team.json"
+   ],
+   "token": "(?:^|[\\\\/])\\.verfy[\\\\/]*(?:(?:key|team)\\.json|[^\\\\/]*[*?\\[{][^\\\\/]*)?[\\\\/]*$",
+   "text": "\\.verfy\\b[\\s\\S]*\\b(?:key|team)\\.json\\b|\\b(?:key|team)\\.json\\b[\\s\\S]*\\.verfy\\b",
+   "name": "^(?:key|team)\\.json$",
+   "finders": [
+    "find",
+    "fd",
+    "fdfind",
+    "locate",
+    "plocate",
+    "mlocate",
+    "where",
+    "gci",
+    "get-childitem",
+    "dir",
+    "ls"
+   ],
+   "readers": [
+    "tar",
+    "zip",
+    "7z",
+    "7za",
+    "rsync",
+    "scp",
+    "cp",
+    "rg",
+    "ag",
+    "ack",
+    "grep",
+    "egrep",
+    "rgrep",
+    "robocopy",
+    "xcopy",
+    "copy-item",
+    "cpi",
+    "compress-archive",
+    "select-string",
+    "sls"
+   ]
+  }
  }
 }

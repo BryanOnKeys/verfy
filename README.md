@@ -19,10 +19,10 @@ Verfy checks every tool call a coding agent makes against your policy before it 
 
 | Part | What it does |
 | --- | --- |
-| **Verfy Lock** | `verfy.lock` pins the SHA-256 of every tool definition; a changed tool is hidden and denied until someone reviews the diff, and `verfy lock check` (or the GitHub Action in `action.yml`) fails CI. |
+| **Verfy Lock** | `verfy.lock` pins the SHA-256 of every tool definition, and of the files an agent loads (CLAUDE.md, AGENTS.md, rules, skills, hook settings); a changed tool is hidden and denied until someone reviews the diff, and `verfy lock check` (or the GitHub Action in `action.yml`) fails CI. Each change is explained in words with a risk level. |
 | **Verfy Receipts** | `verfy.receipt/1`: signed, chained, hash-only by default; `verfy verify` detects edits, deletions and reordering; `verfy scitt export` writes SCITT signed statements (COSE_Sign1). |
 | **Verfy Guard** | Deterministic `allow` / `ask` / `deny` for shell commands, file paths, URLs, SQL, payments and leaked secrets, through a Claude Code `PreToolUse` hook or an MCP gateway. Errors never become allow. |
-| **Verfy Scan** | Finds MCP servers in Claude Code, Cursor and Claude Desktop configs; flags tool poisoning, hidden instructions, shadowing, invisible Unicode, unpinned packages, plain-http servers and secrets in configs. |
+| **Verfy Scan** | Finds MCP servers in Claude Code, Cursor, Claude Desktop, Codex CLI, Gemini CLI, VS Code and Windsurf configs; flags tool poisoning, hidden instructions, shadowing, invisible Unicode, unpinned packages, plain-http servers and secrets in configs. `verfy import` reads Snyk Agent Scan and Cisco MCP Scanner findings so the gateway can enforce them. |
 | **Verfy Cloud** | Hosted by Verfy: one team policy, device enrollment, server-verified receipts, lock and call approvals, Slack and Telegram alerts, audit log, evidence exports. Devices connect with `verfy team enroll`. |
 
 ## Verfy and scanners
@@ -47,7 +47,8 @@ pip install verfy                # Python ≥ 3.10, no dependencies (no Python? 
 verfy init                       # signing key + starter policy in ~/.verfy
 verfy scan --discover            # check the MCP servers your agents can reach
 verfy lock check --update        # lock the tools in .mcp.json into ./verfy.lock (commit it)
-verfy hook install --write       # guard every Claude Code tool call
+verfy hook install --write       # guard every Claude Code tool call (or install the plugin, below)
+verfy lock files --update        # lock CLAUDE.md, AGENTS.md, rules, skills and hook settings too
 verfy check "rm -rf ~"           # exit 2: deny (VFY-SH-001)
 verfy demo                       # a poisoned MCP server behind the gateway
 verfy verify                     # every signature and link in your ledger
@@ -64,6 +65,15 @@ notepad install.ps1                                                             
 powershell -ExecutionPolicy Bypass -File install.ps1                                         # run
 ```
 
+### As a Claude Code plugin
+
+```bash
+claude plugin marketplace add anvarbekovjavohir277-dot/verfy
+claude plugin install verfy@verfy
+```
+
+The plugin installs the same hook for every session, plus a skill that lets Claude check your locks for you (approving changes stays with you). It calls the `verfy` command, so install the CLI first. Details: [`plugins/verfy/README.md`](plugins/verfy/README.md).
+
 More: [`verfy-cli/README.md`](verfy-cli/README.md) and the docs at https://verfy-tech.vercel.app/docs.
 
 ## Repository layout
@@ -72,6 +82,7 @@ More: [`verfy-cli/README.md`](verfy-cli/README.md) and the docs at https://verfy
 verfy-cli/           the Python CLI (guard, scan, lock, receipts, hook, gateway, team client) and its tests
 verfy-cli/js/        the JavaScript twin of the rule engine, checked against the same fixtures
 action.yml           the GitHub Action that runs `verfy lock check` in CI
+plugins/verfy/       the Claude Code plugin (hook + skill); .claude-plugin/marketplace.json lists it
 advisories/          Verfy Advisories: public, sourced vulnerabilities in MCP servers and agent tools (OSV), added by pull request
 install/             the one-line installers served at verfy-tech.vercel.app/install.sh and /install.ps1
 research/            how often MCP tool definitions change between releases (method, code, workflow)

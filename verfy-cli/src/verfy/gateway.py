@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, IO
 
+from .imports import blocked_tools
 from . import team as teamlib
 from ._util import redact_output
 from .canonical import digest
@@ -80,6 +81,7 @@ class Gateway:
         self.pending: dict[str, tuple] = {}
         self.elicits: dict[str, tuple] = {}
         self.tool_meta: dict[str, dict] = {}
+        self.imported: dict[str, dict] = {}  # tools another scanner rated high (verfy scan import --save)
         self.client_caps: dict = {}
         self.spent = spent_today(read_ledger(ledger_path))
         self.child: subprocess.Popen | None = None
@@ -193,6 +195,10 @@ class Gateway:
         action = {"server": self.server, "tool": name, "arguments": args}
         meta = self.tool_meta.get(name)
         decision = check(action, self.policy, {"spent_today": self.spent, "tool": meta, "known_tools": list(self.tool_meta)})
+        if name in self.imported:
+            f = self.imported[name]
+            decision["findings"] = [{"rule": "VFY-IMP-001", "verdict": "deny", "message": f"`{name}` is rated high by {f['source']} ({f['rule']}): {f['message'][:200]}"}, *decision.get("findings", [])]
+            decision["verdict"] = "deny"
         v = decision["verdict"]
         if v == "allow":
             self._forward(msg, action, decision)
@@ -347,6 +353,11 @@ class Gateway:
             self.scans_dir.mkdir(parents=True, exist_ok=True)
             (self.scans_dir / f"{safe_name(self.server)}.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", "utf-8")
         hidden = unsafe_tools(report) if self.policy.get("hide_unsafe_tools", True) else set()
+        if self.policy.get("hide_unsafe_tools", True):
+            self.imported = blocked_tools(self.home, self.server)
+            if self.imported:
+                self.log("hidden because another scanner rated them high: " + ", ".join(f"{t} ({f['source']})" for t, f in sorted(self.imported.items())))
+            hidden |= set(self.imported)
         self.log(f"scanned {report['tool_count']} tools from `{self.server}`: grade {report['grade']} ({report['score']}/100)" + (f", hidden: {', '.join(sorted(hidden))}" if hidden else ""))
         out = dict(result)
         out["tools"] = [t for t in tools if not (isinstance(t, dict) and t.get("name") in hidden)]

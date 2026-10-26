@@ -647,6 +647,8 @@ export function createEngine(PATTERNS, DEFAULT_POLICY) {
       var w = a.filter(function (x) { return x.charAt(0) !== "-"; });
       if (w[0] === "lock" && (w[1] === "approve" || w[1] === "add")) return F("VFY-SELF-003", "deny", "`verfy " + w.slice(0, 2).join(" ") + "` approves a tool change for the agent. A person has to review and run it.");
       if (w[0] === "lock" && w[1] === "check" && has(a, "--update")) return F("VFY-SELF-003", "deny", "`verfy lock check --update` writes verfy.lock for the agent. A person has to review and run it.");
+      if (w[0] === "lock" && w[1] === "files" && has(a, "--update")) return F("VFY-SELF-003", "deny", "`verfy lock files --update` approves changed instruction files for the agent. A person has to review and run it.");
+      if (w[0] === "import" && has(a, "--save")) return F("VFY-SELF-003", "deny", "`verfy import --save` changes which tools the Verfy gateway blocks. A person has to review and run it.");
       if (w[0] === "policy" && w[1] === "use") return F("VFY-SELF-003", "deny", "`verfy policy use` replaces the policy Verfy enforces. A person has to choose and run it.");
       if (w[0] === "init" && has(a, "--force")) return F("VFY-SELF-003", "deny", "`verfy init --force` replaces the signing key, which starts a new receipt chain.");
       return null;

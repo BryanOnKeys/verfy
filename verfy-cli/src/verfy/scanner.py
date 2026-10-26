@@ -96,6 +96,24 @@ def _affirmed(pattern: "re.Pattern[str]", text: str) -> bool:
     return False
 
 
+def text_findings(text: str, where: str = "") -> list[dict]:
+    """Findings for one piece of text a model reads: hidden instructions, invisible characters, blobs, secrets, links."""
+    out: list[dict] = []
+    for rule, sev, pat, flags, msg in PATTERNS["scan_text"]:
+        if _affirmed(rx(pat, flags), text):
+            out.append({"rule": rule, "severity": sev, "message": msg, "where": where})
+    bad = sorted({f"U+{ord(ch):04X}" for ch in text if is_invisible(ord(ch))})
+    if bad:
+        out.append({"rule": "VFY-SCAN-003", "severity": "high", "message": "Contains invisible characters (" + ", ".join(bad[:4]) + ") that can hide text from people.", "where": where})
+    if rx(r"[A-Za-z0-9+/]{60,}={0,2}").search(text) or rx(r"(?:[0-9a-fA-F]{2}){40,}").search(text):
+        out.append({"rule": "VFY-SCAN-005", "severity": "medium", "message": "Contains a long encoded blob that people cannot read.", "where": where})
+    for s in scan_secrets(text):
+        out.append({"rule": "VFY-SCAN-013", "severity": "high", "message": f"Contains a {s['label']}.", "where": where})
+    if rx(r"https?://", "i").search(text):
+        out.append({"rule": "VFY-SCAN-008", "severity": "low", "message": "Links to an outside URL, which can change after review.", "where": where})
+    return out
+
+
 def scan_tool(tool: dict, all_names: list[str] | None = None, pins: dict | None = None) -> dict:
     findings: list[dict] = []
 
@@ -109,18 +127,8 @@ def scan_tool(tool: dict, all_names: list[str] | None = None, pins: dict | None 
     texts = _texts(tool)
 
     for where, text in texts:
-        for rule, sev, pat, flags, msg in PATTERNS["scan_text"]:
-            if _affirmed(rx(pat, flags), text):
-                add(rule, sev, msg, where)
-        bad = sorted({f"U+{ord(ch):04X}" for ch in text if is_invisible(ord(ch))})
-        if bad:
-            add("VFY-SCAN-003", "high", "Contains invisible characters (" + ", ".join(bad[:4]) + ") that can hide text from people.", where)
-        if rx(r"[A-Za-z0-9+/]{60,}={0,2}").search(text) or rx(r"(?:[0-9a-fA-F]{2}){40,}").search(text):
-            add("VFY-SCAN-005", "medium", "Contains a long encoded blob that people cannot read.", where)
-        for s in scan_secrets(text):
-            add("VFY-SCAN-013", "high", f"Contains a {s['label']}.", where)
-        if rx(r"https?://", "i").search(text):
-            add("VFY-SCAN-008", "low", "Links to an outside URL, which can change after review.", where)
+        for f in text_findings(text, where):
+            add(f["rule"], f["severity"], f["message"], f["where"])
 
     desc = tool.get("description") or ""
     if isinstance(desc, str):

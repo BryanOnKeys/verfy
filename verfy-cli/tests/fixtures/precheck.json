@@ -989,6 +989,113 @@
    }
   },
   {
+   "name": "agent approves its own instruction files",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy lock files --update --yes"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
+   "name": "agent checks instruction files",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy lock files --json"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "allow",
+    "kind": "shell",
+    "rules": []
+   }
+  },
+  {
+   "name": "agent saves imported findings",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy import cisco.json --save"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "shell",
+    "rules": [
+     "VFY-SELF-003"
+    ]
+   }
+  },
+  {
+   "name": "agent reads imported findings",
+   "action": {
+    "tool": "Bash",
+    "arguments": {
+     "command": "verfy import cisco.json --json"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "allow",
+    "kind": "shell",
+    "rules": []
+   }
+  },
+  {
+   "name": "edit the verfy plugin hooks",
+   "action": {
+    "tool": "Write",
+    "arguments": {
+     "file_path": "/home/you/.claude/plugins/cache/verfy/verfy/0.6.0/hooks/hooks.json",
+     "content": "{}"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
+   "name": "edit the agent-files lock",
+   "action": {
+    "tool": "Edit",
+    "arguments": {
+     "file_path": "/home/you/.verfy/agent-files.lock",
+     "old_string": "a",
+     "new_string": "b"
+    }
+   },
+   "policy": {},
+   "context": {},
+   "expect": {
+    "verdict": "deny",
+    "kind": "file_write",
+    "rules": [
+     "VFY-SELF-001"
+    ]
+   }
+  },
+  {
    "name": "agent resets key",
    "action": {
     "tool": "Bash",

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "verfy hook pre-tool-use",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

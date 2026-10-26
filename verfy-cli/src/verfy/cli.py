@@ -13,6 +13,8 @@ import time
 from pathlib import Path
 
 from . import __version__
+from . import agentfiles
+from . import imports
 from . import discover as cfgscan
 from . import hook as hooks
 from . import lock as locks
@@ -488,7 +490,18 @@ def cmd_scitt_verify(args) -> int:
 
 # ---------------------------------------------------------------- lock
 
-LSTAT = {"ok": "32", "drift": "31;1", "new": "33", "removed": "36"}
+LSTAT = {"ok": "32", "drift": "31;1", "changed": "31;1", "new": "33", "removed": "36"}
+RCOL = {"high": "31;1", "medium": "33", "low": "36"}
+
+
+def print_explain(old: dict | None, new: dict | None) -> dict:
+    """Say in words what changed in a tool definition and how risky it looks, before the raw diff."""
+    e = locks.explain(old, new)
+    print(f"  {c(('risk ' + e['risk']).ljust(11), RCOL[e['risk']])} {e['summary']}")
+    for ch in e["changes"]:
+        if ch["what"] not in e["summary"]:
+            print(f"  {c('-'.ljust(11), '2')} {ch['what']}")
+    return e
 
 
 def _lock_rows(lock: dict, server_filter: str | None = None) -> list[dict]:
@@ -541,6 +554,8 @@ def cmd_lock_diff(args) -> int:
         new = seen.get(name)
         if old is not None and new is not None and tool_pin(old) == tool_pin(new):
             continue
+        print(c(f"{args.server}/{name}", "1"))
+        print_explain(old, new)
         print(locks.diff(old, new, f"{args.server}/{name}") or f"{args.server}/{name}: removed")
         shown += 1
     if not shown:
@@ -560,6 +575,8 @@ def cmd_lock_approve(args) -> int:
         print(f"verfy.lock already matches `{args.server}`.")
         return 0
     for d in todo:
+        print(c(f"{args.server}/{d['name']}", "1"))
+        print_explain(locked.get(d["name"], {}).get("definition"), d)
         print(locks.diff(locked.get(d["name"], {}).get("definition"), d, f"{args.server}/{d['name']}"))
         report = scan([d], args.server)
         for f in report["tools"][0]["findings"]:
@@ -605,11 +622,121 @@ def cmd_lock_verify(args) -> int:
     return 0
 
 
+def _file_rows(locked: dict, current: dict, root: Path, user: bool) -> list[dict]:
+    """Compare agent files and explain each new or changed one."""
+    rows = agentfiles.compare(locked, current)
+    for r in rows:
+        if r["status"] not in ("changed", "new"):
+            continue
+        old = (locked.get(r["path"]) or {}).get("text") if r["status"] == "changed" else None
+        new = current[r["path"]].get("text") if "text" in current[r["path"]] else agentfiles.text_of(root / r["path"][2:] if user else root / r["path"])
+        r["explain"] = agentfiles.explain_text(old, new, changed=r["status"] == "changed")
+    return rows
+
+
+def _print_file_rows(rows: list[dict], locked: dict, current: dict, show_ok: bool = True) -> None:
+    for r in rows:
+        if r["status"] == "ok" and not show_ok:
+            continue
+        e = r.get("explain")
+        tail = f"  {c(('risk ' + e['risk']).ljust(11), RCOL[e['risk']])} {e['summary']}" if e and (r["status"] == "changed" or e["risk"] != "low") else ""
+        print(f"  {c(r['status'].ljust(7), LSTAT[r['status']])} {r['path']}{tail}")
+        old, new = (locked.get(r["path"]) or {}).get("text"), (current.get(r["path"]) or {}).get("text")
+        if r["status"] == "changed" and old is not None and new is not None:
+            print(agentfiles.diff_text(old, new, r["path"]))
+
+
+def cmd_lock_files(args) -> int:
+    """Pin the instruction files, skills, commands, hook settings and plugins an agent loads."""
+    notes: list[str] = []
+    if args.user:
+        root = Path.home()
+        path = agentfiles.user_lock_path(verfy_home())
+        try:
+            locked = agentfiles.load_user_lock(path)
+        except ValueError as e:
+            print(f"{c('INVALID', '31;1')}  {e}")
+            return 2
+        current = agentfiles.snapshot(agentfiles.user_files(root, notes), root, user=True)
+    else:
+        root = Path(args.root).resolve() if args.root else Path.cwd()
+        path = Path(args.lock)
+        try:
+            locked = locks.load_lock(path).get("files") or {}
+        except locks.LockError as e:
+            print(f"{c('INVALID', '31;1')}  {path}: {e}")
+            return 2
+        current = agentfiles.snapshot(agentfiles.project_files(root, notes), root, user=False)
+    rows = _file_rows(locked, current, root, args.user)
+    todo = [r for r in rows if r["status"] != "ok"]
+
+    if args.update:
+        if not todo:
+            print(f"{path} already matches every agent file.")
+            return 0
+        _print_file_rows(todo, locked, current)
+        if not args.yes:
+            if not sys.stdin.isatty():
+                raise SystemExit("verfy lock files --update: review the changes above, then run again with --yes")
+            if input(f"Write {len(todo)} change(s) to {path}? [y/N] ").strip().lower() not in ("y", "yes"):
+                print("Nothing changed.")
+                return 1
+        if args.user:
+            agentfiles.save_user_lock(path, agentfiles.entries(current, "user", keep_text=True))
+        else:
+            locks.update(path, lambda lk: lk.__setitem__("files", agentfiles.entries(current, "user", keep_text=True)))
+        print(f"Wrote {len(todo)} change(s) to {path}." + ("" if args.user else " Commit it so the pull request shows what changed."))
+        return 0
+
+    if args.json:
+        print(json.dumps({"scope": "user" if args.user else "project", "lock": str(path), "files": rows, "notes": notes}, indent=2))
+    else:
+        print(f"{c('Verfy agent files', '1')}  {'~ (user)' if args.user else root} against {path}  ({len(current)} found, {len(locked)} locked)")
+        _print_file_rows(rows, locked, current, show_ok=args.all)
+        for n in notes:
+            print(f"  {c('note', '2')}    {n}")
+        if not todo:
+            print(f"{c('OK', '32;1')}  {len(rows)} agent files match.")
+        elif not locked:
+            print(f"Nothing locked yet. Review the files above, then run `verfy lock files{' --user' if args.user else ''} --update`.")
+    if any(r["status"] == "changed" for r in rows):
+        return 2
+    return 1 if todo else 0
+
+
+def cmd_import(args) -> int:
+    """Read another scanner's findings; with --save the gateway enforces the high ones."""
+    try:
+        rep = imports.report(args.file, args.format)
+    except (OSError, imports.ImportFormatError) as e:
+        print(f"verfy import: {e}", file=sys.stderr)
+        return 3
+    saved = imports.save(verfy_home(), rep) if args.save else None
+    if args.json:
+        print(json.dumps(rep, indent=2, ensure_ascii=False))
+    else:
+        print(f"{c('Imported', '1')} {len(rep['findings'])} finding(s) from {rep['source']}  ({args.file}, {rep['file_sha256'][:19]})")
+        for f in rep["findings"]:
+            where = f"{f['server'] or '?'}/{f['tool']}" if f["tool"] else (f["server"] or "?")
+            print(f"  {c(f['severity'].upper().ljust(8), SCOL[f['severity']])} {where}  {f['rule']}  {f['message'][:160]}")
+        high = rep["summary"]["high"]
+        if saved:
+            print(f"Saved to {saved}. The Verfy gateway hides the {high} tool finding(s) rated high and denies calls to those tools.")
+        elif high:
+            print("Run again with --save so the Verfy gateway hides the tools rated high and denies calls to them.")
+    return 2 if rep["summary"]["high"] else (1 if rep["summary"]["medium"] else 0)
+
+
 def _gh(kind: str, msg: str) -> None:
     """A GitHub Actions annotation, printed only when running inside GitHub Actions."""
     if os.environ.get("GITHUB_ACTIONS") == "true":
         msg = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
         print(f"::{kind} title=Verfy Lock::{msg}")
+
+
+def _md(text: str) -> str:
+    """Text that is safe inside a Markdown table cell."""
+    return text.replace("|", "\\|").replace("\n", " ")
 
 
 def _step_summary(rows: list[dict], errors: list[str], path: Path) -> None:
@@ -621,9 +748,9 @@ def _step_summary(rows: list[dict], errors: list[str], path: Path) -> None:
     if not bad and not errors:
         lines.append(f"All {len(rows)} tool definitions match `{path}`.")
     else:
-        lines += ["| Status | Server / tool | Locked | Now |", "| --- | --- | --- | --- |"]
-        lines += [f"| {r['status']} | `{r['server']}/{r['tool']}` | `{(r['locked'] or '-')[:19]}` | `{(r['current'] or '-')[:19]}` |" for r in bad]
-        lines += [f"| error | {e} | | |" for e in errors]
+        lines += ["| Status | Server / tool | Risk | What changed | Locked | Now |", "| --- | --- | --- | --- | --- | --- |"]
+        lines += [f"| {r['status']} | `{r['server']}/{r['tool']}` | {(r.get('explain') or {}).get('risk', '')} | {_md((r.get('explain') or {}).get('summary', ''))} | `{(r['locked'] or '-')[:19]}` | `{(r['current'] or '-')[:19]}` |" for r in bad]
+        lines += [f"| error | {_md(e)} | | | | |" for e in errors]
         lines += ["", "Review the change, then run `verfy lock check --update` locally and commit `verfy.lock`."]
     with open(out, "a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
@@ -662,16 +789,30 @@ def cmd_lock_check(args) -> int:
     gone = [s for s in lock["servers"] if s not in servers and (not wanted or s in wanted)]
     for name in gone:
         rows += [{"server": name, **r} for r in locks.compare(lock, name, [])]
+    file_rows: list[dict] = []
+    files_now: dict = {}
+    if "files" in lock and not wanted:
+        root = cfg.resolve().parent
+        files_now = agentfiles.snapshot(agentfiles.project_files(root), root, user=False)
+        file_rows = _file_rows(lock["files"], files_now, root, user=False)
 
     if args.update:
-        return _lock_check_update(args, path, lock, current, gone, rows, errors)
+        return _lock_check_update(args, path, lock, current, gone, rows, errors, files_now if "files" in lock and not wanted else None, file_rows)
 
+    for r in rows:
+        if r["status"] in ("drift", "new"):
+            old = ((lock["servers"].get(r["server"]) or {}).get("tools", {}).get(r["tool"]) or {}).get("definition")
+            new = next((locks.definition(t) for t in current.get(r["server"], []) if t.get("name") == r["tool"]), None)
+            r["explain"] = locks.explain(old, new)
     if args.json:
-        print(json.dumps({"lock": str(path), "config": str(cfg), "tools": rows, "errors": errors}, indent=2))
+        print(json.dumps({"lock": str(path), "config": str(cfg), "tools": rows, "files": file_rows, "errors": errors}, indent=2))
     else:
         print(f"{c('Verfy Lock check', '1')}  {cfg} against {path}")
         for r in rows:
             print(f"  {c(r['status'].ljust(7), LSTAT[r['status']])} {r['server']}/{r['tool']}  {(r['locked'] or '-')[:19]}  ->  {(r['current'] or '-')[:19]}")
+        if file_rows:
+            print(f"{c('Agent files', '1')}  ({len(files_now)} found, {len(lock['files'])} locked)")
+            _print_file_rows(file_rows, lock["files"], files_now, show_ok=False)
         for e in errors:
             print(f"  {c('error  ', '31;1')} {e}")
     for r in rows:
@@ -679,43 +820,58 @@ def cmd_lock_check(args) -> int:
             old = lock["servers"][r["server"]]["tools"][r["tool"]]["definition"]
             new = next(locks.definition(t) for t in current[r["server"]] if t.get("name") == r["tool"])
             if not args.json:
+                print(c(f"{r['server']}/{r['tool']}", "1"))
+                print_explain(old, new)
                 print(locks.diff(old, new, f"{r['server']}/{r['tool']}"))
-            _gh("error", f"{r['server']}/{r['tool']} changed since it was locked (possible rug pull). Locked {r['locked']}, now {r['current']}.")
+            _gh("error", f"{r['server']}/{r['tool']} changed since it was locked (possible rug pull), risk {r['explain']['risk']}: {r['explain']['summary']}. Locked {r['locked']}, now {r['current']}.")
         elif r["status"] == "new":
             _gh("error", f"{r['server']}/{r['tool']} is not in {path}. Review it, then run `verfy lock check --update` and commit the lock.")
         elif r["status"] == "removed":
             _gh("warning", f"{r['server']}/{r['tool']} is in {path} but the server no longer serves it.")
     for e in errors:
         _gh("error", f"could not read tools from {e}")
-    _step_summary(rows, errors, path)
-    if any(r["status"] == "drift" for r in rows):
+    for r in file_rows:
+        if r["status"] == "changed":
+            _gh("error", f"{r['path']} changed since it was locked, risk {r['explain']['risk']}: {r['explain']['summary']}. Review the diff, then run `verfy lock files --update` and commit the lock.")
+        elif r["status"] in ("new", "removed"):
+            _gh("warning", f"agent file {r['path']} is {r['status']} compared with {path}.")
+    _step_summary(rows + [{"server": "(file)", "tool": r["path"], "status": "drift" if r["status"] == "changed" else r["status"], "locked": r["locked"], "current": r["current"], "explain": r.get("explain")} for r in file_rows if r["status"] != "ok"], errors, path)
+    if any(r["status"] == "drift" for r in rows) or any(r["status"] == "changed" for r in file_rows):
         return 2
     if errors:
         return 3
-    if any(r["status"] in ("new", "removed") for r in rows):
+    if any(r["status"] in ("new", "removed") for r in rows + file_rows):
         return 1
     if not args.json:
-        print(f"{c('OK', '32;1')}  {len(rows)} tool definitions match {path}.")
+        print(f"{c('OK', '32;1')}  {len(rows)} tool definitions" + (f" and {len(file_rows)} agent files" if file_rows else "") + f" match {path}.")
     return 0
 
 
-def _lock_check_update(args, path: Path, lock: dict, current: dict, gone: list[str], rows: list[dict], errors: list[str]) -> int:
+def _lock_check_update(args, path: Path, lock: dict, current: dict, gone: list[str], rows: list[dict], errors: list[str],
+                       files_now: dict | None = None, file_rows: list[dict] | None = None) -> int:
     if errors:
         for e in errors:
             print(f"verfy lock check: could not read tools from {e}", file=sys.stderr)
         print("Nothing changed: every server must answer before the lock is rewritten.", file=sys.stderr)
         return 3
     todo = [r for r in rows if r["status"] != "ok"]
-    if not todo:
+    file_todo = [r for r in file_rows or [] if r["status"] != "ok"]
+    if not todo and not file_todo:
         print(f"{path} already matches every server.")
         return 0
     for r in todo:
         old = ((lock["servers"].get(r["server"]) or {}).get("tools", {}).get(r["tool"]) or {}).get("definition")
         new = next((locks.definition(t) for t in current.get(r["server"], []) if t.get("name") == r["tool"]), None)
+        print(c(f"{r['server']}/{r['tool']}", "1"))
+        print_explain(old, new)
         print(locks.diff(old, new, f"{r['server']}/{r['tool']}") or f"{r['server']}/{r['tool']}: removed")
         if new is not None:
             for f in scan([new], r["server"])["tools"][0]["findings"]:
                 print(f"  {c(f['severity'].upper().ljust(8), SCOL[f['severity']])} {f['rule']}  {f['message']}")
+    if file_todo:
+        print(c("Agent files", "1"))
+        _print_file_rows(file_todo, lock.get("files") or {}, files_now or {})
+    todo = todo + file_todo
     if not args.yes:
         if not sys.stdin.isatty():
             raise SystemExit("verfy lock check --update: review the changes above, then run again with --yes")
@@ -736,6 +892,8 @@ def _lock_check_update(args, path: Path, lock: dict, current: dict, gone: list[s
                 del entry["tools"][old]
         for name in gone:
             lk["servers"].pop(name, None)
+        if files_now is not None:
+            lk["files"] = agentfiles.entries(files_now, "user", keep_text=True)
     locks.update(path, apply)
     print(f"Wrote {len(todo)} change(s) to {path}. Commit it so the pull request shows what changed.")
     return 0
@@ -1066,9 +1224,26 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("--timeout", type=float, default=60.0)
     x.add_argument("--json", action="store_true")
     x.set_defaults(fn=cmd_lock_check)
+    x = lk.add_parser("files", help="pin the files an agent loads (CLAUDE.md, AGENTS.md, rules, skills, commands, hooks, plugins)")
+    x.add_argument("--user", action="store_true", help="files in your home folder (user instructions, skills, installed plugins), pinned in ~/.verfy/agent-files.lock")
+    x.add_argument("--update", action="store_true", help="review the changes and write them to the lock")
+    x.add_argument("--yes", action="store_true", help="with --update: write without asking (CI or scripts)")
+    x.add_argument("--lock", default="verfy.lock", help="project lock file (default ./verfy.lock)")
+    x.add_argument("--root", help="repository folder (default: the current folder)")
+    x.add_argument("--all", action="store_true", help="also list files that did not change")
+    x.add_argument("--json", action="store_true")
+    x.set_defaults(fn=cmd_lock_files)
+
     x = lk.add_parser("verify", help="check that verfy.lock is well formed and untampered")
     x.add_argument("--lock")
     x.set_defaults(fn=cmd_lock_verify)
+
+    p = sub.add_parser("import", help="read findings from Snyk Agent Scan (--json) or Cisco MCP Scanner (--format raw)")
+    p.add_argument("file", help="the other scanner's JSON output")
+    p.add_argument("--format", choices=["auto", "snyk", "cisco"], default="auto")
+    p.add_argument("--save", action="store_true", help="keep the findings so the Verfy gateway hides tools rated high")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_import)
 
     p = sub.add_parser("hook", help="Claude Code hook (pre-tool-use) or `hook install`")
     p.add_argument("event", choices=["pre-tool-use", "install"])

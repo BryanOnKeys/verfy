@@ -1,0 +1,14 @@
+{
+  "name": "verfy",
+  "description": "Verfy for Claude Code: deterministic checks on every tool call, signed receipts, locked MCP tools and instruction files.",
+  "owner": {
+    "name": "Javohir"
+  },
+  "plugins": [
+    {
+      "name": "verfy",
+      "source": "./plugins/verfy",
+      "description": "Checks every Claude Code tool call against deterministic allow/ask/deny rules and writes a signed receipt. Needs the verfy CLI: pip install verfy."
+    }
+  ]
+}

@@ -751,7 +751,11 @@
    "**/verfy.policy.json",
    "~/.local/share/verfy/**",
    "~/.local/bin/verfy",
-   "~/AppData/Local/Programs/verfy/**"
+   "~/AppData/Local/Programs/verfy/**",
+   "~/.verfy/agent-files.lock",
+   "~/.verfy/imported/**",
+   "~/.claude/plugins/cache/verfy/**",
+   "~/.claude/plugins/marketplaces/verfy/**"
   ],
   "ask": [
    "**/.mcp.json",

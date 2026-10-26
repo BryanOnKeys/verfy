@@ -1,5 +1,5 @@
-"""Verfy Scan, config side: find MCP servers in Claude Code / Cursor / Claude
-Desktop configs and check how each server is launched.
+"""Verfy Scan, config side: find MCP servers in the configs of Claude Code, Cursor, Claude Desktop,
+Codex CLI, Gemini CLI, VS Code and Windsurf, and check how each server is launched.
 
 This is a *static* check of the configuration only. It never starts a
 server. Looking at the tools a server serves needs ``verfy scan --live``,
@@ -39,15 +39,42 @@ LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", "[::1]"}
 def candidate_paths(home: Path, cwd: Path) -> list[tuple[str, Path]]:
     """Known MCP config locations, most specific first."""
     appdata = Path(os.environ.get("APPDATA") or home / "AppData" / "Roaming")
+    vscode_user = [appdata / "Code" / "User", home / "Library" / "Application Support" / "Code" / "User", home / ".config" / "Code" / "User"]
     return [
         ("claude-code project", cwd / ".mcp.json"),
         ("cursor project", cwd / ".cursor" / "mcp.json"),
+        ("vscode project", cwd / ".vscode" / "mcp.json"),
+        ("gemini project", cwd / ".gemini" / "settings.json"),
+        ("codex project", cwd / ".codex" / "config.toml"),
         ("claude-code user", home / ".claude.json"),
         ("cursor user", home / ".cursor" / "mcp.json"),
+        ("codex user", home / ".codex" / "config.toml"),
+        ("gemini user", home / ".gemini" / "settings.json"),
+        ("windsurf user", home / ".codeium" / "windsurf" / "mcp_config.json"),
+        *[("vscode user", d / "mcp.json") for d in vscode_user],
         ("claude-desktop", home / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"),
         ("claude-desktop", appdata / "Claude" / "claude_desktop_config.json"),
         ("claude-desktop", home / ".config" / "Claude" / "claude_desktop_config.json"),
     ]
+
+
+def server_url(spec: dict) -> str | None:
+    """The address of a remote server: `url` (most clients), `serverUrl` (Windsurf) or `httpUrl` (Gemini CLI)."""
+    for key in ("url", "serverUrl", "httpUrl"):
+        if isinstance(spec.get(key), str) and spec[key]:
+            return spec[key]
+    return None
+
+
+def load_config(p: Path) -> Any:
+    """Parse a JSON config, or a TOML one (Codex CLI) on Python 3.11 and newer."""
+    if p.suffix.lower() == ".toml":
+        try:
+            import tomllib
+        except ModuleNotFoundError:
+            raise ValueError("reading TOML (Codex CLI config) needs Python 3.11 or newer") from None
+        return tomllib.loads(p.read_text("utf-8"))
+    return json.loads(p.read_text("utf-8"))
 
 
 def servers_in(data: Any, cwd: Path | None = None) -> dict[str, dict]:
@@ -55,7 +82,7 @@ def servers_in(data: Any, cwd: Path | None = None) -> dict[str, dict]:
     out: dict[str, dict] = {}
     if not isinstance(data, dict):
         return out
-    for key in ("mcpServers", "servers"):
+    for key in ("mcpServers", "servers", "mcp_servers"):
         if isinstance(data.get(key), dict):
             out.update({k: v for k, v in data[key].items() if isinstance(v, dict)})
     projects = data.get("projects")
@@ -86,8 +113,8 @@ def read_configs(paths: Iterable[tuple[str, Path]], cwd: Path | None = None) -> 
             continue
         seen.add(rp)
         try:
-            data = json.loads(p.read_text("utf-8"))
-        except (OSError, json.JSONDecodeError) as e:
+            data = load_config(p)
+        except (OSError, ValueError) as e:  # json.JSONDecodeError and tomllib.TOMLDecodeError are ValueErrors
             found.append({"source": source, "path": str(p), "error": f"cannot read: {e}", "servers": {}})
             continue
         found.append({"source": source, "path": str(p), "servers": servers_in(data, cwd)})
@@ -188,8 +215,8 @@ def check_server(name: str, spec: dict, local: set[str] | None = None) -> list[d
                 src = args[i + 1].split(":")[0]
                 if src in ("/", "~", "$HOME", "${HOME}", "C") or src.rstrip("/\\") in ("/home", "/Users", "/root"):
                     out.append(_f("VFY-CFG-005", "high", f"Container mounts `{src}`, giving it the whole disk or home folder.", "args"))
-    url = spec.get("url") or spec.get("serverUrl")
-    if isinstance(url, str) and url:
+    url = server_url(spec)
+    if url:
         u = urlparse(url)
         if u.scheme == "http" and (u.hostname or "") not in LOCAL_HOSTS:
             out.append(_f("VFY-CFG-002", "high", f"Talks to {u.hostname} over plain http, so anyone on the network can read or change tool calls.", "url"))
@@ -230,7 +257,7 @@ def scan_configs(found: list[dict]) -> dict:
                 summary[f["severity"]] = summary.get(f["severity"], 0) + 1
             servers.append({
                 "server": name, "config": cfg["path"], "source": cfg["source"],
-                "transport": "http" if spec.get("url") or spec.get("serverUrl") else "stdio",
+                "transport": "http" if server_url(spec) else "stdio",
                 "findings": findings,
             })
     return {

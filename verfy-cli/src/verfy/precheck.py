@@ -450,6 +450,10 @@ def _verfy_command(s: dict) -> dict | None:
             return _f("VFY-SELF-003", "deny", f"`verfy {' '.join(words_[:2])}` approves a tool change for the agent. A person has to review and run it.")
         if words_[:2] == ["lock", "check"] and "--update" in a:
             return _f("VFY-SELF-003", "deny", "`verfy lock check --update` writes verfy.lock for the agent. A person has to review and run it.")
+        if words_[:2] == ["lock", "files"] and "--update" in a:
+            return _f("VFY-SELF-003", "deny", "`verfy lock files --update` approves changed instruction files for the agent. A person has to review and run it.")
+        if words_[:1] == ["import"] and "--save" in a:
+            return _f("VFY-SELF-003", "deny", "`verfy import --save` changes which tools the Verfy gateway blocks. A person has to review and run it.")
         if words_[:2] == ["policy", "use"]:
             return _f("VFY-SELF-003", "deny", "`verfy policy use` replaces the policy Verfy enforces. A person has to choose and run it.")
         if words_[:1] == ["init"] and "--force" in a:

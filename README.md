@@ -9,7 +9,7 @@
 
 *The server changes the tool's description after you approved it. Verfy notices the new SHA-256 and blocks the call. Try it on [the website](https://verfy-tech.vercel.app/).*
 
-▶ [The 60-second version](docs/assets/verfy-rug-pull.mp4) (MP4, 0.9 MB): pin the tools, the server ships an update, `verfy lock check` fails, the gateway hides the tool and denies the call. Every terminal line is real output of verfy 0.5.0 with its demo server (`python -m verfy.demo_server --rugpull`).
+▶ [The 60-second version](docs/assets/verfy-rug-pull.mp4) (MP4, 0.9 MB): pin the tools, the server ships an update, `verfy lock check` fails, the gateway hides the tool and denies the call. Recorded with verfy 0.5.0: every terminal line is real output of its demo server (`python -m verfy.demo_server --rugpull`).
 
 **For teams using Claude Code and Cursor: if a tool your agent uses changes in secret, Verfy stops it and signs a receipt for every call it checks.**
 
@@ -43,9 +43,7 @@ They also do things Verfy does not: Snyk scans agent skills, Cisco reads server 
 ## Quick start: the CLI
 
 ```bash
-pip install verfy                                          # Python ≥ 3.10, no dependencies
-curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # no Python: macOS, Linux (read the script first)
-irm https://verfy-tech.vercel.app/install.ps1 | iex        # no Python: Windows PowerShell
+pip install verfy                # Python ≥ 3.10, no dependencies (no Python? see "Without Python" below)
 verfy init                       # signing key + starter policy in ~/.verfy
 verfy scan --discover            # check the MCP servers your agents can reach
 verfy lock check --update        # lock the tools in .mcp.json into ./verfy.lock (commit it)
@@ -53,6 +51,17 @@ verfy hook install --write       # guard every Claude Code tool call
 verfy check "rm -rf ~"           # exit 2: deny (VFY-SH-001)
 verfy demo                       # a poisoned MCP server behind the gateway
 verfy verify                     # every signature and link in your ledger
+```
+
+Without Python, an install script downloads a standalone build. Download it, read it, then run it (there is no `curl … | sh` one-liner on purpose: Verfy itself asks about that pattern, rule VFY-SH-005):
+
+```bash
+curl -fsSLO https://verfy-tech.vercel.app/install.sh && less install.sh && sh install.sh      # macOS, Linux
+```
+```powershell
+powershell -c "irm https://verfy-tech.vercel.app/install.ps1 -OutFile install.ps1"           # Windows: download,
+notepad install.ps1                                                                           # read,
+powershell -ExecutionPolicy Bypass -File install.ps1                                         # run
 ```
 
 More: [`verfy-cli/README.md`](verfy-cli/README.md) and the docs at https://verfy-tech.vercel.app/docs.

@@ -4,8 +4,7 @@ Guard coding-agent tool calls, scan and lock MCP tools, and sign a verifiable re
 
 ```bash
 pip install verfy                  # Python ≥ 3.10, no dependencies
-curl -fsSL https://verfy-tech.vercel.app/install.sh | sh   # no Python: macOS, Linux standalone build
-irm https://verfy-tech.vercel.app/install.ps1 | iex        # no Python: Windows PowerShell
+curl -fsSLO https://verfy-tech.vercel.app/install.sh && less install.sh && sh install.sh   # no Python: macOS, Linux (read it, then run it)
 pip install "verfy[fast]"          # optional: faster Ed25519 via `cryptography`
 ```
 
@@ -74,7 +73,7 @@ Commit `verfy.lock`; a pull request that changes a tool then fails until someone
 ```yaml
 - uses: actions/setup-python@v7
   with: { python-version: "3.13" }
-- uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.3
+- uses: anvarbekovjavohir277-dot/verfy@cli-v0.5.5
   with: { config: .mcp.json, lock: verfy.lock }
 ```
 

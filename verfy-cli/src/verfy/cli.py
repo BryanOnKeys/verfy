@@ -1008,6 +1008,50 @@ def cmd_team_propose(args) -> int:
     return 0
 
 
+def _registry_rows(lock: dict) -> list[dict]:
+    """Locked pins, plus the pins last seen from each server when they differ from the lock."""
+    home = verfy_home()
+    rows = []
+    for server, entry in sorted(lock["servers"].items()):
+        seen = locks.load_seen(home, server)
+        for name, t in sorted(entry["tools"].items()):
+            rows.append({"server": server, "tool": name, "which": "locked", "pin": t["digest"]})
+            if name in seen and tool_pin(seen[name]) != t["digest"]:
+                rows.append({"server": server, "tool": name, "which": "seen", "pin": tool_pin(seen[name])})
+    return rows
+
+
+def cmd_team_registry(args) -> int:
+    """Verfy Registry: report this team's pins, or ask how widespread a pin is."""
+    path = lock_file(args)
+    lock = locks.load_lock(path)
+    rows = _registry_rows(lock)
+    if not rows:
+        print(f"No tools in {path} yet.")
+        return 0
+    if args.action == "report":
+        items = [{"server": r["server"][:200], "tool": r["tool"][:200], "pin": r["pin"]} for r in rows if r["which"] == "locked"]
+        stored = teamlib.registry_report(verfy_home(), items)
+        print(f"Reported {len(items)} pin(s) from {path} to Verfy Registry ({stored} new or refreshed). Only server names, tool names and SHA-256 pins were sent.")
+        return 0
+    found = teamlib.registry_lookup(verfy_home(), [r["pin"] for r in rows])
+    for r in rows:
+        r.update(found.get(r["pin"]) or {"orgs": None, "first_seen": None, "yours": False})
+    if args.json:
+        print(json.dumps({"lock": str(path), "pins": rows}, indent=2))
+        return 0
+    print(f"{c('Verfy Registry', '1')}  pins in {path}" + (" and definitions seen since" if any(r["which"] == "seen" for r in rows) else ""))
+    for r in rows:
+        if r["orgs"]:
+            note = c(f"seen by {r['orgs']} teams", "32") + (f" since {str(r['first_seen'])[:10]}" if r.get("first_seen") else "")
+        else:
+            note = c("seen by fewer than 3 teams", "33") + (" (yours among them)" if r["yours"] else "")
+        print(f"  {r['which'].ljust(6)} {r['server']}/{r['tool']}  {r['pin'][:19]}  {note}")
+    if any(r["which"] == "seen" and not r["orgs"] for r in rows):
+        print("A changed definition that few other teams have seen can be very new, or served only to you: review the diff (`verfy lock diff SERVER`) before approving it.")
+    return 0
+
+
 # ---------------------------------------------------------------- demo
 
 def cmd_demo(args) -> int:
@@ -1279,6 +1323,11 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("server")
     x.add_argument("tool")
     x.set_defaults(fn=cmd_team_propose)
+    x = tm.add_parser("registry", help="Verfy Registry: has anyone else seen these tool definitions? (report | lookup)")
+    x.add_argument("action", choices=["report", "lookup"], help="report: send this team's pins (hashes only); lookup: how many teams saw each pin")
+    x.add_argument("--lock", help="verfy.lock to read (default ./verfy.lock, else ~/.verfy/verfy.lock)")
+    x.add_argument("--json", action="store_true")
+    x.set_defaults(fn=cmd_team_registry)
 
     p = sub.add_parser("demo", help="see the gateway block a poisoned tool and risky calls")
     p.set_defaults(fn=cmd_demo)

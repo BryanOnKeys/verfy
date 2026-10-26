@@ -224,3 +224,33 @@ def pull(home: Path, transport: Transport | None = None) -> dict:
     policy = client.call("GET", "/api/v1/policies/current")
     locks = client.call("GET", "/api/v1/locks?status=approved")
     return {"policy": policy, "locks": locks}
+
+
+def _client(home: Path, transport: Transport | None = None) -> TeamClient:
+    team = load_team(home)
+    if team is None:
+        raise TeamError("this device is not enrolled; run `verfy team enroll`")
+    return TeamClient(team["url"], team["token"], transport=transport, retries=2)
+
+
+def registry_report(home: Path, items: list[dict], transport: Transport | None = None) -> int:
+    """Tell Verfy Registry which tool pins this team has (server name, tool name, SHA-256 pin; never definitions)."""
+    client = _client(home, transport)
+    stored = 0
+    for i in range(0, len(items), 500):
+        res = client.call("POST", "/api/v1/registry/report", {"items": items[i:i + 500]})
+        stored += int((res or {}).get("stored", 0))
+    return stored
+
+
+def registry_lookup(home: Path, pins: list[str], transport: Transport | None = None) -> dict[str, dict]:
+    """``{pin: {orgs, first_seen, yours}}``; ``orgs`` is None when fewer than 3 organizations reported the pin."""
+    client = _client(home, transport)
+    out: dict[str, dict] = {}
+    uniq = sorted(set(pins))
+    for i in range(0, len(uniq), 500):
+        res = client.call("POST", "/api/v1/registry/lookup", {"pins": uniq[i:i + 500]})
+        for row in (res or {}).get("pins", []):
+            if isinstance(row, dict) and isinstance(row.get("pin"), str):
+                out[row["pin"]] = {"orgs": row.get("orgs"), "first_seen": row.get("first_seen"), "yours": bool(row.get("yours"))}
+    return out

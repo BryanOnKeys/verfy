@@ -125,6 +125,8 @@ verfy team enroll --url https://verfy-tech.vercel.app --code atle_…   # code f
 verfy sync                     # upload new receipts (run from cron/CI, never in the hook)
 verfy team pull                # team policy + team-approved locks
 verfy team propose SERVER TOOL # ask admins to approve a changed tool
+verfy team registry report     # share this team's tool pins with Verfy Registry (server, tool, SHA-256 only)
+verfy team registry lookup     # how many teams saw each pin in verfy.lock (and each changed one)
 verfy team status
 ```
 

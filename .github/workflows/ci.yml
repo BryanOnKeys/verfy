@@ -43,7 +43,7 @@ jobs:
         include:
           - os: windows-latest
             python: "3.13"
-          - os: macos-latest
+          - os: macos-15 # macos-latest runners are often not acquired; verfy-releases builds on macos-15 too
             python: "3.13"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
